@@ -1,0 +1,60 @@
+[
+  {
+    "type": "contained_a",
+    "named": true
+  },
+  {
+    "type": "contained_b",
+    "named": true,
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "contained_a",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "supertype",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "contained_a",
+        "named": true
+      },
+      {
+        "type": "contained_b",
+        "named": true
+      }
+    ]
+  },
+  {
+    "type": "document",
+    "named": true,
+    "fields": {
+      "first": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "contained_a",
+            "named": true
+          }
+        ]
+      },
+      "second": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "supertype",
+            "named": true
+          }
+        ]
+      }
+    }
+  }
+]

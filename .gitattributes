@@ -1,0 +1,5 @@
+# Use LF for all text files
+* text=auto eol=lf
+
+# Use CRLF for Windows script file
+/gradlew.bat    text eol=crlf

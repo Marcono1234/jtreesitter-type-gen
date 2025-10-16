@@ -1,0 +1,37 @@
+NodeDocument[id=...]
+- getChildren
+  NodeArray[id=...]
+  - getChildren
+    NodeObject[id=...]
+    - getChildren
+      NodePair[id=...]
+      - getFieldKey
+        NodeString[id=...]
+        - getChildren
+          NodeStringContent[id=...]
+          - getUnnamedChildren
+          - text: a
+        - getUnnamedChildren
+          [", "]
+      - getFieldValue
+        NodeNumber[id=...]
+        - getUnnamedChildren
+        - text: 1
+      NodePair[id=...]
+      - getFieldKey
+        NodeString[id=...]
+        - getChildren
+          NodeStringContent[id=...]
+          - getUnnamedChildren
+          - text: b
+        - getUnnamedChildren
+          [", "]
+      - getFieldValue
+        NodeNull[id=...]
+        - getUnnamedChildren
+        - text: null
+    - getUnnamedChildren
+      [{, ,, }]
+  - getUnnamedChildren
+    [[, ]]
+- getUnnamedChildren

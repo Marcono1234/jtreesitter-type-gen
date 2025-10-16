@@ -1,0 +1,24 @@
+# https://docs.gradle.org/8.11/userguide/version_catalogs.html
+
+[plugins]
+shadow = { id = "com.gradleup.shadow", version = "8.3.5" }
+
+[versions]
+jtreesitter = "0.24.0"
+junit = "5.11.0"
+
+[libraries]
+jspecify = { module = "org.jspecify:jspecify", version = "1.0.0" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.17.2" }
+# Don't use official JavaPoet because it is not actively maintained anymore, see https://github.com/square/javapoet/discussions/866
+# Instead uses https://github.com/palantir/javapoet
+javapoet = { module = "com.palantir.javapoet:javapoet", version = "0.5.0" }
+jtreesitter = { module = "io.github.tree-sitter:jtreesitter", version.ref = "jtreesitter" }
+
+compilerTesting = { module = "io.github.ascopes.jct:java-compiler-testing", version = "4.0.0-RC1" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version = "2.0.16" }
+junitBom = { module = "org.junit:junit-bom", version.ref = "junit" }
+# No version; specified by BOM above
+junit = { module = "org.junit.jupiter:junit-jupiter" }
+
+picocli = { module = "info.picocli:picocli", version = "4.7.6" }

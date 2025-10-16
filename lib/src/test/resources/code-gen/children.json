@@ -1,0 +1,66 @@
+[
+  {
+    "type": "contained",
+    "named": true
+  },
+  {
+    "type": "single_optional",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "contained",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "single_required",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "contained",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "multiple_optional",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "contained",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "multiple_required",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "contained",
+          "named": true
+        }
+      ]
+    }
+  }
+]

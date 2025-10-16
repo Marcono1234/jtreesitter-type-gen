@@ -1,0 +1,92 @@
+NodeProgram[id=...]
+- getChildren
+  NodeClassDeclaration[id=...]
+  - getChild
+  - getFieldBody
+    NodeClassBody[id=...]
+    - getChildren
+      NodeMethodDeclaration[id=...]
+      - getChildren
+        NodeModifiers[id=...]
+        - getChildren
+        - getUnnamedChildren
+          [public, static]
+      - getFieldBody
+        NodeBlock[id=...]
+        - getChildren
+          NodeExpressionStatement[id=...]
+          - getChild
+            NodeMethodInvocation[id=...]
+            - getChild
+            - getFieldArguments
+              NodeArgumentList[id=...]
+              - getChildren
+                NodeStringLiteral[id=...]
+                - getChildren
+                  NodeStringFragment[id=...]
+                  - getUnnamedChildren
+                  - text: test
+                - getUnnamedChildren
+                  [", "]
+              - getUnnamedChildren
+                [(, )]
+            - getFieldName
+              NodeIdentifier[id=...]
+              - getUnnamedChildren
+              - text: println
+            - getFieldObject
+              NodeFieldAccess[id=...]
+              - getChild
+              - getFieldField
+                NodeIdentifier[id=...]
+                - getUnnamedChildren
+                - text: out
+              - getFieldObject
+                NodeIdentifier[id=...]
+                - getUnnamedChildren
+                - text: System
+            - getFieldTypeArguments
+          - getUnnamedChildren
+            [;]
+        - getUnnamedChildren
+          [{, }]
+      - getFieldDimensions
+      - getFieldName
+        NodeIdentifier[id=...]
+        - getUnnamedChildren
+        - text: main
+      - getFieldParameters
+        NodeFormalParameters[id=...]
+        - getChildren
+          NodeSpreadParameter[id=...]
+          - getChildren
+            NodeTypeIdentifier[id=...]
+            - getUnnamedChildren
+            - text: String
+            NodeVariableDeclarator[id=...]
+            - getFieldDimensions
+            - getFieldName
+              NodeIdentifier[id=...]
+              - getUnnamedChildren
+              - text: args
+            - getFieldValue
+          - getUnnamedChildren
+            [...]
+        - getUnnamedChildren
+          [(, )]
+      - getFieldType
+        NodeVoidType[id=...]
+        - getUnnamedChildren
+        - text: void
+      - getFieldTypeParameters
+    - getUnnamedChildren
+      [{, }]
+  - getFieldInterfaces
+  - getFieldName
+    NodeIdentifier[id=...]
+    - getUnnamedChildren
+    - text: Main
+  - getFieldPermits
+  - getFieldSuperclass
+  - getFieldTypeParameters
+- getUnnamedChildren

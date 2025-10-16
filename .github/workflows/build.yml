@@ -1,0 +1,99 @@
+name: Build
+
+on:
+  push:
+    branches-ignore:
+      # Ignore Dependabot branches because it will also open a pull request, which would cause the
+      # workflow to redundantly run twice
+      - dependabot/**
+  pull_request:
+
+
+permissions:
+  contents: read # to fetch code (actions/checkout)
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 22
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build with Gradle
+        # Don't automatically download JDK toolchain; existing JDK of this workflow should be compatible
+        run: ./gradlew build -Porg.gradle.java.installations.auto-download=false
+
+
+  cli-integration-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out sources
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 22
+
+      # TODO: Maybe create tree-sitter library binary using https://github.com/tree-sitter/setup-action/blob/master/lib/action.yml,
+      #   or switch to cmake command used by that action, which also works for Windows (due to CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS);
+      #   at least so that it is easier for users to use this as reference for setting the integration tests up locally
+      - name: Build tree-sitter library
+        run: |
+          git clone --branch v0.23.0 --depth=1 --no-checkout https://github.com/tree-sitter/tree-sitter.git tree-sitter
+          cd tree-sitter
+          # Only checkout what is needed for compiling
+          git checkout HEAD -- lib/src lib/include
+          gcc --version
+          # See https://tree-sitter.github.io/tree-sitter/using-parsers#building-the-library
+          gcc -shared -o ../cli/libtree-sitter.so -fPIC -I lib/include -I lib/src lib/src/lib.c
+
+      - name: Builder tree-sitter-java
+        run: |
+          LANG="java"
+          git clone --branch v0.23.2 --depth=1 --no-checkout https://github.com/tree-sitter/tree-sitter-$LANG.git tree-sitter-$LANG
+          cd tree-sitter-$LANG
+          # Only checkout what is needed for compiling
+          git checkout HEAD -- src
+          gcc --version
+          gcc -shared -o ../cli/liblang-$LANG.so -fPIC -I src/tree_sitter src/parser.c
+
+      - name: Builder tree-sitter-json
+        run: |
+          LANG="json"
+          git clone --branch v0.21.0 --depth=1 --no-checkout https://github.com/tree-sitter/tree-sitter-$LANG.git tree-sitter-$LANG
+          cd tree-sitter-$LANG
+          # Only checkout what is needed for compiling
+          git checkout HEAD -- src
+          gcc --version
+          gcc -shared -o ../cli/liblang-$LANG.so -fPIC -I src/tree_sitter src/parser.c
+
+      - name: Builder tree-sitter-python
+        run: |
+          LANG="python"
+          git clone --branch v0.23.0 --depth=1 --no-checkout https://github.com/tree-sitter/tree-sitter-$LANG.git tree-sitter-$LANG
+          cd tree-sitter-$LANG
+          # Only checkout what is needed for compiling
+          git checkout HEAD -- src
+          gcc --version
+          gcc -shared -o ../cli/liblang-$LANG.so -fPIC -I src/tree_sitter src/parser.c src/scanner.c
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build with Gradle
+        run: |
+          # On Linux must set `LD_LIBRARY_PATH`, otherwise the library cannot be found
+          export LD_LIBRARY_PATH="cli:$LD_LIBRARY_PATH"
+          # Don't automatically download JDK toolchain; existing JDK of this workflow should be compatible
+          ./gradlew cli:integrationTest -Porg.gradle.java.installations.auto-download=false

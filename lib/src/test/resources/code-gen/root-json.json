@@ -1,0 +1,15 @@
+[
+  {
+    "type": "first",
+    "named": true
+  },
+  {
+    "type": "second",
+    "named": true,
+    "root": true
+  },
+  {
+    "type": "third",
+    "named": true
+  }
+]

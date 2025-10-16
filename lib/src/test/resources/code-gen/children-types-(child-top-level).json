@@ -1,0 +1,44 @@
+[
+  {
+    "type": "contained_a",
+    "named": true
+  },
+  {
+    "type": "contained_b",
+    "named": true
+  },
+  {
+    "type": "single_type_named",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "contained_a",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "multi_type_named",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "contained_a",
+          "named": true
+        },
+        {
+          "type": "contained_b",
+          "named": true
+        }
+      ]
+    }
+  }
+]

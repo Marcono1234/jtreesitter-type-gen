@@ -1,0 +1,11 @@
+[
+  {
+    "type": "first",
+    "named": true
+  },
+  {
+    "type": "second",
+    "named": true,
+    "root": true
+  }
+]

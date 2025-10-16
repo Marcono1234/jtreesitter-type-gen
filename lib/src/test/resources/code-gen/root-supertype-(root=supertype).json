@@ -1,0 +1,24 @@
+[
+  {
+    "type": "contained_a",
+    "named": true
+  },
+  {
+    "type": "contained_b",
+    "named": true
+  },
+  {
+    "type": "supertype",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "contained_a",
+        "named": true
+      },
+      {
+        "type": "contained_b",
+        "named": true
+      }
+    ]
+  }
+]

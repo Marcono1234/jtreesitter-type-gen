@@ -1,0 +1,203 @@
+[
+  {
+    "type": "contained_a",
+    "named": true
+  },
+  {
+    "type": "contained_b",
+    "named": true
+  },
+  {
+    "type": "supertype",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "contained_a",
+        "named": true
+      },
+      {
+        "type": "contained_b",
+        "named": true
+      }
+    ]
+  },
+  {
+    "type": "supertype_child",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "supertype",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "multiple_children",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "contained_a",
+          "named": true
+        },
+        {
+          "type": "contained_b",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "self_children",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "contained_a",
+          "named": true
+        },
+        {
+          "type": "self_children",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "supertype_indirect",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "contained_a",
+        "named": true
+      },
+      {
+        "type": "self_indirect_children",
+        "named": true
+      }
+    ]
+  },
+  {
+    "type": "self_indirect_children",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "contained_a",
+          "named": true
+        },
+        {
+          "type": "contained_b",
+          "named": true
+        },
+        {
+          "type": "supertype_indirect",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "supertype_transitive_indirect1",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "contained_a",
+        "named": true
+      },
+      {
+        "type": "self_transitive_indirect_children",
+        "named": true
+      }
+    ]
+  },
+  {
+    "type": "supertype_transitive_indirect2",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "contained_a",
+        "named": true
+      },
+      {
+        "type": "supertype_transitive_indirect1",
+        "named": true
+      }
+    ]
+  },
+  {
+    "type": "self_transitive_indirect_children",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "contained_a",
+          "named": true
+        },
+        {
+          "type": "contained_b",
+          "named": true
+        },
+        {
+          "type": "supertype_transitive_indirect2",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "child_of_each_other_a",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "contained_a",
+          "named": true
+        },
+        {
+          "type": "child_of_each_other_b",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "child_of_each_other_b",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "contained_a",
+          "named": true
+        },
+        {
+          "type": "child_of_each_other_a",
+          "named": true
+        }
+      ]
+    }
+  }
+]

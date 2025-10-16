@@ -1,0 +1,52 @@
+[
+  {
+    "type": "contained",
+    "named": true
+  },
+  {
+    "type": "root",
+    "named": true,
+    "fields": {
+      "single_optional": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "contained",
+            "named": true
+          }
+        ]
+      },
+      "single_required": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "contained",
+            "named": true
+          }
+        ]
+      },
+      "multiple_optional": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "contained",
+            "named": true
+          }
+        ]
+      },
+      "multiple_required": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "contained",
+            "named": true
+          }
+        ]
+      }
+    }
+  }
+]

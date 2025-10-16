@@ -1,0 +1,6 @@
+# Gradle
+/build
+
+# Native libraries for integration test
+/*.dll
+/*.so
