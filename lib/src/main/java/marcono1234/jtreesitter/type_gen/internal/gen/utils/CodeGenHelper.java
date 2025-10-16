@@ -669,28 +669,28 @@ public class CodeGenHelper {
 
     /**
      * Creates a getter method with name {@code methodName} which delegates the call to a method of the same
-     * name on the object stored in {@code delegateField}.
+     * name on the object provided by {@code delegate} ({@code field} or {@code method()}).
      */
-    public static MethodSpec.Builder createDelegatingGetter(String methodName, TypeName returnType, String delegateField) {
+    public static MethodSpec.Builder createDelegatingGetter(String methodName, TypeName returnType, String delegate) {
         return MethodSpec.methodBuilder(methodName)
             .addModifiers(Modifier.PUBLIC)
             .returns(returnType)
-            .addStatement("return this.$N.$N()", delegateField, methodName);
+            .addStatement("return this.$L.$N()", delegate, methodName);
     }
 
     /**
      * Creates a getter method with name {@code methodName} which delegates the call to a method of the same
-     * name on the object stored in {@code delegateField}.
+     * name on the object provided by {@code delegate} ({@code field} or {@code method()}).
      *
      * <p>The delegate returns a nullable value which is wrapped as {@link Optional} depending on the config,
      * see {@link #getReturnOptionalType(TypeName)}.
      */
-    public MethodSpec.Builder createNullableDelegatingGetter(String methodName, TypeName returnType, String delegateField) {
+    public MethodSpec.Builder createNullableDelegatingGetter(String methodName, TypeName returnType, String delegate) {
         String resultVar = "result";
         var builder = MethodSpec.methodBuilder(methodName)
             .addModifiers(Modifier.PUBLIC)
             .returns(getReturnOptionalType(returnType))
-            .addStatement("var $N = this.$N.$N()", resultVar, delegateField, methodName);
+            .addStatement("var $N = this.$L.$N()", resultVar, delegate, methodName);
         addReturnOptionalStatement(builder, resultVar);
         return builder;
     }

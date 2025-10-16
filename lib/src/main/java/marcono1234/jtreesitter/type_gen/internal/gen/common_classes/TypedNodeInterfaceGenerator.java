@@ -97,7 +97,7 @@ public class TypedNodeInterfaceGenerator {
 
         generateJavadoc(typeBuilder, nodeTypes);
 
-        generateTypedNodeAbstractMethods(typeBuilder, codeGenHelper);
+        generateInstanceMethods(typeBuilder, codeGenHelper);
 
         typeBuilder.addMethod(generateMethodFromNode(nodeTypes));
         typeBuilder.addMethod(generateMethodFromNodeThrowing());
@@ -105,8 +105,7 @@ public class TypedNodeInterfaceGenerator {
         return codeGenHelper.createOwnJavaFileBuilder(typeBuilder).build();
     }
 
-    /** Generates all TypedNode abstract methods to be implemented by the subclasses. */
-    private void generateTypedNodeAbstractMethods(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper) {
+    private void generateInstanceMethods(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper) {
         var jtreesitter = codeGenHelper.jtreesitterConfig();
         var jtreesitterNode = jtreesitter.node();
 
@@ -117,33 +116,30 @@ public class TypedNodeInterfaceGenerator {
             .build()
         );
 
-        typeBuilder.addMethod(MethodSpec.methodBuilder(jtreesitterNode.methodGetText())
-            .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-            .returns(codeGenHelper.getReturnOptionalType(ClassName.get(String.class)))
+        // Generate methods which delegate to `getNode()`
+        String getNodeMethodCall = config.methodGetNode() + "()";
+        typeBuilder.addMethod(codeGenHelper.createNullableDelegatingGetter(jtreesitterNode.methodGetText(), ClassName.get(String.class), getNodeMethodCall)
+            .addModifiers(Modifier.DEFAULT)
             .addJavadoc("Returns the source code of this node, if available.")
             .build());
 
-        typeBuilder.addMethod(MethodSpec.methodBuilder(jtreesitterNode.methodGetRange())
-            .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-            .returns(jtreesitter.classRange())
+        typeBuilder.addMethod(CodeGenHelper.createDelegatingGetter(jtreesitterNode.methodGetRange(), jtreesitter.classRange(), getNodeMethodCall)
+            .addModifiers(Modifier.DEFAULT)
             .addJavadoc("Returns the range of this node.")
             .build());
 
-        typeBuilder.addMethod(MethodSpec.methodBuilder(jtreesitterNode.methodGetStartPoint())
-            .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-            .returns(jtreesitter.classPoint())
+        typeBuilder.addMethod(CodeGenHelper.createDelegatingGetter(jtreesitterNode.methodGetStartPoint(), jtreesitter.classPoint(), getNodeMethodCall)
+            .addModifiers(Modifier.DEFAULT)
             .addJavadoc("Returns the start point of this node.")
             .build());
 
-        typeBuilder.addMethod(MethodSpec.methodBuilder(jtreesitterNode.methodGetEndPoint())
-            .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-            .returns(jtreesitter.classPoint())
+        typeBuilder.addMethod(CodeGenHelper.createDelegatingGetter(jtreesitterNode.methodGetEndPoint(), jtreesitter.classPoint(), getNodeMethodCall)
+            .addModifiers(Modifier.DEFAULT)
             .addJavadoc("Returns the end point of this node.")
             .build());
 
-        typeBuilder.addMethod(MethodSpec.methodBuilder(jtreesitterNode.methodHasError())
-            .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-            .returns(boolean.class)
+        typeBuilder.addMethod(CodeGenHelper.createDelegatingGetter(jtreesitterNode.methodHasError(), TypeName.get(boolean.class), getNodeMethodCall)
+            .addModifiers(Modifier.DEFAULT)
             // Note: Most likely the node itself cannot be an ERROR, because then construction of TypedNode would
             // have failed
             .addJavadoc("Returns whether this node or any of its child nodes represents an ERROR.")
@@ -152,10 +148,8 @@ public class TypedNodeInterfaceGenerator {
 
     public record JavaFieldData(TypeName typeName, String name) {}
 
-    // TODO: Instead of having every TypedNode subtype implement these methods, could instead define them as
-    //   `default` methods in TypedNode, which use `#getNode()`?
     /**
-     * Generates the implementation for all {@linkplain #generateTypedNodeAbstractMethods abstract typed node methods}.
+     * Generates the constructor and the implementation for all abstract {@code TypedNode} methods.
      *
      * @param nodeField name of the Java field to generate which stores the jtreesitter Node
      * @param additionalFields additional Java fields to generate
@@ -187,30 +181,5 @@ public class TypedNodeInterfaceGenerator {
             .addStatement("return this.$N", nodeField)
             .build();
         typeBuilder.addMethod(getNodeMethod);
-
-        var getTextMethod = codeGenHelper.createNullableDelegatingGetter(jtreesitterNode.methodGetText(), ClassName.get(String.class), nodeField)
-            .addAnnotation(Override.class)
-            .build();
-        typeBuilder.addMethod(getTextMethod);
-
-        var getRangeMethod = CodeGenHelper.createDelegatingGetter(jtreesitterNode.methodGetRange(), jtreesitter.classRange(), nodeField)
-            .addAnnotation(Override.class)
-            .build();
-        typeBuilder.addMethod(getRangeMethod);
-
-        var getStartPointMethod = CodeGenHelper.createDelegatingGetter(jtreesitterNode.methodGetStartPoint(), jtreesitter.classPoint(), nodeField)
-            .addAnnotation(Override.class)
-            .build();
-        typeBuilder.addMethod(getStartPointMethod);
-
-        var getEndPointMethod = CodeGenHelper.createDelegatingGetter(jtreesitterNode.methodGetEndPoint(), jtreesitter.classPoint(), nodeField)
-            .addAnnotation(Override.class)
-            .build();
-        typeBuilder.addMethod(getEndPointMethod);
-
-        var hasErrorMethod = CodeGenHelper.createDelegatingGetter(jtreesitterNode.methodHasError(), TypeName.get(boolean.class), nodeField)
-            .addAnnotation(Override.class)
-            .build();
-        typeBuilder.addMethod(hasErrorMethod);
     }
 }

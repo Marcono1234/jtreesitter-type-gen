@@ -205,27 +205,38 @@ public sealed interface TypedNode permits NodeContained, NodeSingleOptional, Nod
   /**
    * Returns the source code of this node, if available.
    */
-  Optional<String> getText();
+  default Optional<String> getText() {
+    var result = this.getNode().getText();
+    return Optional.ofNullable(result);
+  }
 
   /**
    * Returns the range of this node.
    */
-  Range getRange();
+  default Range getRange() {
+    return this.getNode().getRange();
+  }
 
   /**
    * Returns the start point of this node.
    */
-  Point getStartPoint();
+  default Point getStartPoint() {
+    return this.getNode().getStartPoint();
+  }
 
   /**
    * Returns the end point of this node.
    */
-  Point getEndPoint();
+  default Point getEndPoint() {
+    return this.getNode().getEndPoint();
+  }
 
   /**
    * Returns whether this node or any of its child nodes represents an ERROR.
    */
-  boolean hasError();
+  default boolean hasError() {
+    return this.getNode().hasError();
+  }
 
   /**
    * Wraps a jtreesitter node as typed node, returning an empty {@code Optional} if no corresponding typed node class exists.
@@ -294,8 +305,6 @@ public @interface NonEmpty {
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
-import io.github.treesitter.jtreesitter.Point;
-import io.github.treesitter.jtreesitter.Range;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -329,32 +338,6 @@ public final class NodeContained implements TypedNode {
   @Override
   public Node getNode() {
     return this.node;
-  }
-
-  @Override
-  public Optional<String> getText() {
-    var result = this.node.getText();
-    return Optional.ofNullable(result);
-  }
-
-  @Override
-  public Range getRange() {
-    return this.node.getRange();
-  }
-
-  @Override
-  public Point getStartPoint() {
-    return this.node.getStartPoint();
-  }
-
-  @Override
-  public Point getEndPoint() {
-    return this.node.getEndPoint();
-  }
-
-  @Override
-  public boolean hasError() {
-    return this.node.hasError();
   }
 
   /**
@@ -448,8 +431,6 @@ public final class NodeContained implements TypedNode {
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
-import io.github.treesitter.jtreesitter.Point;
-import io.github.treesitter.jtreesitter.Range;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -485,32 +466,6 @@ public final class NodeSingleOptional implements TypedNode {
   @Override
   public Node getNode() {
     return this.node;
-  }
-
-  @Override
-  public Optional<String> getText() {
-    var result = this.node.getText();
-    return Optional.ofNullable(result);
-  }
-
-  @Override
-  public Range getRange() {
-    return this.node.getRange();
-  }
-
-  @Override
-  public Point getStartPoint() {
-    return this.node.getStartPoint();
-  }
-
-  @Override
-  public Point getEndPoint() {
-    return this.node.getEndPoint();
-  }
-
-  @Override
-  public boolean hasError() {
-    return this.node.hasError();
   }
 
   /**
@@ -619,8 +574,6 @@ public final class NodeSingleOptional implements TypedNode {
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
-import io.github.treesitter.jtreesitter.Point;
-import io.github.treesitter.jtreesitter.Range;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -656,32 +609,6 @@ public final class NodeSingleRequired implements TypedNode {
   @Override
   public Node getNode() {
     return this.node;
-  }
-
-  @Override
-  public Optional<String> getText() {
-    var result = this.node.getText();
-    return Optional.ofNullable(result);
-  }
-
-  @Override
-  public Range getRange() {
-    return this.node.getRange();
-  }
-
-  @Override
-  public Point getStartPoint() {
-    return this.node.getStartPoint();
-  }
-
-  @Override
-  public Point getEndPoint() {
-    return this.node.getEndPoint();
-  }
-
-  @Override
-  public boolean hasError() {
-    return this.node.hasError();
   }
 
   /**
@@ -790,8 +717,6 @@ public final class NodeSingleRequired implements TypedNode {
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
-import io.github.treesitter.jtreesitter.Point;
-import io.github.treesitter.jtreesitter.Range;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -827,32 +752,6 @@ public final class NodeMultipleOptional implements TypedNode {
   @Override
   public Node getNode() {
     return this.node;
-  }
-
-  @Override
-  public Optional<String> getText() {
-    var result = this.node.getText();
-    return Optional.ofNullable(result);
-  }
-
-  @Override
-  public Range getRange() {
-    return this.node.getRange();
-  }
-
-  @Override
-  public Point getStartPoint() {
-    return this.node.getStartPoint();
-  }
-
-  @Override
-  public Point getEndPoint() {
-    return this.node.getEndPoint();
-  }
-
-  @Override
-  public boolean hasError() {
-    return this.node.hasError();
   }
 
   /**
@@ -961,8 +860,6 @@ public final class NodeMultipleOptional implements TypedNode {
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
-import io.github.treesitter.jtreesitter.Point;
-import io.github.treesitter.jtreesitter.Range;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -998,32 +895,6 @@ public final class NodeMultipleRequired implements TypedNode {
   @Override
   public Node getNode() {
     return this.node;
-  }
-
-  @Override
-  public Optional<String> getText() {
-    var result = this.node.getText();
-    return Optional.ofNullable(result);
-  }
-
-  @Override
-  public Range getRange() {
-    return this.node.getRange();
-  }
-
-  @Override
-  public Point getStartPoint() {
-    return this.node.getStartPoint();
-  }
-
-  @Override
-  public Point getEndPoint() {
-    return this.node.getEndPoint();
-  }
-
-  @Override
-  public boolean hasError() {
-    return this.node.hasError();
   }
 
   /**

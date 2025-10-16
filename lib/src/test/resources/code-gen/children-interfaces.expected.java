@@ -213,27 +213,38 @@ public sealed interface TypedNode permits NodeContainedA, NodeContainedB, NodeSu
   /**
    * Returns the source code of this node, if available.
    */
-  @Nullable String getText();
+  default @Nullable String getText() {
+    var result = this.getNode().getText();
+    return result;
+  }
 
   /**
    * Returns the range of this node.
    */
-  Range getRange();
+  default Range getRange() {
+    return this.getNode().getRange();
+  }
 
   /**
    * Returns the start point of this node.
    */
-  Point getStartPoint();
+  default Point getStartPoint() {
+    return this.getNode().getStartPoint();
+  }
 
   /**
    * Returns the end point of this node.
    */
-  Point getEndPoint();
+  default Point getEndPoint() {
+    return this.getNode().getEndPoint();
+  }
 
   /**
    * Returns whether this node or any of its child nodes represents an ERROR.
    */
-  boolean hasError();
+  default boolean hasError() {
+    return this.getNode().hasError();
+  }
 
   /**
    * Wraps a jtreesitter node as typed node, returning {@code null} if no corresponding typed node class exists.
@@ -306,8 +317,6 @@ public @interface NonEmpty {
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
-import io.github.treesitter.jtreesitter.Point;
-import io.github.treesitter.jtreesitter.Range;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -341,32 +350,6 @@ public final class NodeContainedA implements TypedNode, NodeSupertype, NodeSuper
   @Override
   public Node getNode() {
     return this.node;
-  }
-
-  @Override
-  public @Nullable String getText() {
-    var result = this.node.getText();
-    return result;
-  }
-
-  @Override
-  public Range getRange() {
-    return this.node.getRange();
-  }
-
-  @Override
-  public Point getStartPoint() {
-    return this.node.getStartPoint();
-  }
-
-  @Override
-  public Point getEndPoint() {
-    return this.node.getEndPoint();
-  }
-
-  @Override
-  public boolean hasError() {
-    return this.node.hasError();
   }
 
   /**
@@ -460,8 +443,6 @@ public final class NodeContainedA implements TypedNode, NodeSupertype, NodeSuper
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
-import io.github.treesitter.jtreesitter.Point;
-import io.github.treesitter.jtreesitter.Range;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -495,32 +476,6 @@ public final class NodeContainedB implements TypedNode, NodeSupertype, NodeMulti
   @Override
   public Node getNode() {
     return this.node;
-  }
-
-  @Override
-  public @Nullable String getText() {
-    var result = this.node.getText();
-    return result;
-  }
-
-  @Override
-  public Range getRange() {
-    return this.node.getRange();
-  }
-
-  @Override
-  public Point getStartPoint() {
-    return this.node.getStartPoint();
-  }
-
-  @Override
-  public Point getEndPoint() {
-    return this.node.getEndPoint();
-  }
-
-  @Override
-  public boolean hasError() {
-    return this.node.hasError();
   }
 
   /**
@@ -614,8 +569,6 @@ public final class NodeContainedB implements TypedNode, NodeSupertype, NodeMulti
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
-import io.github.treesitter.jtreesitter.Point;
-import io.github.treesitter.jtreesitter.Range;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -651,32 +604,6 @@ public final class NodeSupertypeChild implements TypedNode {
   @Override
   public Node getNode() {
     return this.node;
-  }
-
-  @Override
-  public @Nullable String getText() {
-    var result = this.node.getText();
-    return result;
-  }
-
-  @Override
-  public Range getRange() {
-    return this.node.getRange();
-  }
-
-  @Override
-  public Point getStartPoint() {
-    return this.node.getStartPoint();
-  }
-
-  @Override
-  public Point getEndPoint() {
-    return this.node.getEndPoint();
-  }
-
-  @Override
-  public boolean hasError() {
-    return this.node.hasError();
   }
 
   /**
@@ -785,8 +712,6 @@ public final class NodeSupertypeChild implements TypedNode {
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
-import io.github.treesitter.jtreesitter.Point;
-import io.github.treesitter.jtreesitter.Range;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -821,32 +746,6 @@ public final class NodeMultipleChildren implements TypedNode {
   @Override
   public Node getNode() {
     return this.node;
-  }
-
-  @Override
-  public @Nullable String getText() {
-    var result = this.node.getText();
-    return result;
-  }
-
-  @Override
-  public Range getRange() {
-    return this.node.getRange();
-  }
-
-  @Override
-  public Point getStartPoint() {
-    return this.node.getStartPoint();
-  }
-
-  @Override
-  public Point getEndPoint() {
-    return this.node.getEndPoint();
-  }
-
-  @Override
-  public boolean hasError() {
-    return this.node.hasError();
   }
 
   /**
@@ -988,8 +887,6 @@ public sealed interface NodeSelfChildren$Child extends TypedNode permits NodeCon
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
-import io.github.treesitter.jtreesitter.Point;
-import io.github.treesitter.jtreesitter.Range;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -1024,32 +921,6 @@ public final class NodeSelfChildren implements TypedNode, NodeSelfChildren$Child
   @Override
   public Node getNode() {
     return this.node;
-  }
-
-  @Override
-  public @Nullable String getText() {
-    var result = this.node.getText();
-    return result;
-  }
-
-  @Override
-  public Range getRange() {
-    return this.node.getRange();
-  }
-
-  @Override
-  public Point getStartPoint() {
-    return this.node.getStartPoint();
-  }
-
-  @Override
-  public Point getEndPoint() {
-    return this.node.getEndPoint();
-  }
-
-  @Override
-  public boolean hasError() {
-    return this.node.hasError();
   }
 
   /**
@@ -1182,8 +1053,6 @@ public sealed interface NodeSelfIndirectChildren$Child extends TypedNode permits
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
-import io.github.treesitter.jtreesitter.Point;
-import io.github.treesitter.jtreesitter.Range;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -1218,32 +1087,6 @@ public final class NodeSelfIndirectChildren implements TypedNode, NodeSupertypeI
   @Override
   public Node getNode() {
     return this.node;
-  }
-
-  @Override
-  public @Nullable String getText() {
-    var result = this.node.getText();
-    return result;
-  }
-
-  @Override
-  public Range getRange() {
-    return this.node.getRange();
-  }
-
-  @Override
-  public Point getStartPoint() {
-    return this.node.getStartPoint();
-  }
-
-  @Override
-  public Point getEndPoint() {
-    return this.node.getEndPoint();
-  }
-
-  @Override
-  public boolean hasError() {
-    return this.node.hasError();
   }
 
   /**
@@ -1376,8 +1219,6 @@ public sealed interface NodeSelfTransitiveIndirectChildren$Child extends TypedNo
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
-import io.github.treesitter.jtreesitter.Point;
-import io.github.treesitter.jtreesitter.Range;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -1412,32 +1253,6 @@ public final class NodeSelfTransitiveIndirectChildren implements TypedNode, Node
   @Override
   public Node getNode() {
     return this.node;
-  }
-
-  @Override
-  public @Nullable String getText() {
-    var result = this.node.getText();
-    return result;
-  }
-
-  @Override
-  public Range getRange() {
-    return this.node.getRange();
-  }
-
-  @Override
-  public Point getStartPoint() {
-    return this.node.getStartPoint();
-  }
-
-  @Override
-  public Point getEndPoint() {
-    return this.node.getEndPoint();
-  }
-
-  @Override
-  public boolean hasError() {
-    return this.node.hasError();
   }
 
   /**
@@ -1569,8 +1384,6 @@ public sealed interface NodeChildOfEachOtherA$Child extends TypedNode permits No
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
-import io.github.treesitter.jtreesitter.Point;
-import io.github.treesitter.jtreesitter.Range;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -1605,32 +1418,6 @@ public final class NodeChildOfEachOtherA implements TypedNode, NodeChildOfEachOt
   @Override
   public Node getNode() {
     return this.node;
-  }
-
-  @Override
-  public @Nullable String getText() {
-    var result = this.node.getText();
-    return result;
-  }
-
-  @Override
-  public Range getRange() {
-    return this.node.getRange();
-  }
-
-  @Override
-  public Point getStartPoint() {
-    return this.node.getStartPoint();
-  }
-
-  @Override
-  public Point getEndPoint() {
-    return this.node.getEndPoint();
-  }
-
-  @Override
-  public boolean hasError() {
-    return this.node.hasError();
   }
 
   /**
@@ -1762,8 +1549,6 @@ public sealed interface NodeChildOfEachOtherB$Child extends TypedNode permits No
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
-import io.github.treesitter.jtreesitter.Point;
-import io.github.treesitter.jtreesitter.Range;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -1798,32 +1583,6 @@ public final class NodeChildOfEachOtherB implements TypedNode, NodeChildOfEachOt
   @Override
   public Node getNode() {
     return this.node;
-  }
-
-  @Override
-  public @Nullable String getText() {
-    var result = this.node.getText();
-    return result;
-  }
-
-  @Override
-  public Range getRange() {
-    return this.node.getRange();
-  }
-
-  @Override
-  public Point getStartPoint() {
-    return this.node.getStartPoint();
-  }
-
-  @Override
-  public Point getEndPoint() {
-    return this.node.getEndPoint();
-  }
-
-  @Override
-  public boolean hasError() {
-    return this.node.hasError();
   }
 
   /**
