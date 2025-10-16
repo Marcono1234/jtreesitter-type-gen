@@ -309,6 +309,8 @@ public @interface NonEmpty {
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -405,9 +407,13 @@ public final class NodeContainedA implements TypedNode, NodeRoot$MultiTypeNamedT
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeContainedA.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContainedA::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContainedA::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -435,6 +441,8 @@ public final class NodeContainedA implements TypedNode, NodeRoot$MultiTypeNamedT
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -531,9 +539,13 @@ public final class NodeContainedB implements TypedNode, NodeRoot$MultiTypeNamedT
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeContainedB.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContainedB::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContainedB::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -921,6 +933,8 @@ public sealed interface NodeRoot$MixedNamedNonNamedType extends TypedNode permit
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.Class;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
@@ -1120,9 +1134,13 @@ public final class NodeRoot implements TypedNode {
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeRoot.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeRoot::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeRoot::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -1173,6 +1191,8 @@ public sealed interface NodeFieldOfEachOtherA$FType extends TypedNode permits No
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -1281,9 +1301,13 @@ public final class NodeFieldOfEachOtherA implements TypedNode, NodeFieldOfEachOt
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeFieldOfEachOtherA.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeFieldOfEachOtherA::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeFieldOfEachOtherA::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -1334,6 +1358,8 @@ public sealed interface NodeFieldOfEachOtherB$FType extends TypedNode permits No
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -1442,9 +1468,13 @@ public final class NodeFieldOfEachOtherB implements TypedNode, NodeFieldOfEachOt
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeFieldOfEachOtherB.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeFieldOfEachOtherB::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeFieldOfEachOtherB::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -1593,6 +1623,8 @@ public sealed interface NodeFieldOfEachOtherWithTokenA$FType extends TypedNode p
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -1703,9 +1735,13 @@ public final class NodeFieldOfEachOtherWithTokenA implements TypedNode, NodeFiel
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeFieldOfEachOtherWithTokenA.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeFieldOfEachOtherWithTokenA::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeFieldOfEachOtherWithTokenA::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -1854,6 +1890,8 @@ public sealed interface NodeFieldOfEachOtherWithTokenB$FType extends TypedNode p
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -1964,9 +2002,13 @@ public final class NodeFieldOfEachOtherWithTokenB implements TypedNode, NodeFiel
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeFieldOfEachOtherWithTokenB.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeFieldOfEachOtherWithTokenB::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeFieldOfEachOtherWithTokenB::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override

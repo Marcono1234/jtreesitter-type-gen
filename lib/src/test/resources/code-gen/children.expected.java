@@ -305,6 +305,8 @@ public @interface NonEmpty {
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -401,9 +403,13 @@ public final class NodeContained implements TypedNode {
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeContained.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContained::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContained::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -431,6 +437,8 @@ public final class NodeContained implements TypedNode {
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -544,9 +552,13 @@ public final class NodeSingleOptional implements TypedNode {
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeSingleOptional.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSingleOptional::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSingleOptional::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -574,6 +586,8 @@ public final class NodeSingleOptional implements TypedNode {
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -687,9 +701,13 @@ public final class NodeSingleRequired implements TypedNode {
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeSingleRequired.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSingleRequired::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSingleRequired::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -717,6 +735,8 @@ public final class NodeSingleRequired implements TypedNode {
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -830,9 +850,13 @@ public final class NodeMultipleOptional implements TypedNode {
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeMultipleOptional.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeMultipleOptional::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeMultipleOptional::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -860,6 +884,8 @@ public final class NodeMultipleOptional implements TypedNode {
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -973,9 +999,13 @@ public final class NodeMultipleRequired implements TypedNode {
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeMultipleRequired.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeMultipleRequired::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeMultipleRequired::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override

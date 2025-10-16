@@ -317,6 +317,8 @@ public @interface NonEmpty {
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -413,9 +415,13 @@ public final class NodeContainedA implements TypedNode, NodeSupertype, NodeSuper
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeContainedA.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContainedA::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContainedA::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -443,6 +449,8 @@ public final class NodeContainedA implements TypedNode, NodeSupertype, NodeSuper
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -539,9 +547,13 @@ public final class NodeContainedB implements TypedNode, NodeSupertype, NodeMulti
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeContainedB.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContainedB::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContainedB::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -569,6 +581,8 @@ public final class NodeContainedB implements TypedNode, NodeSupertype, NodeMulti
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -682,9 +696,13 @@ public final class NodeSupertypeChild implements TypedNode {
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeSupertypeChild.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSupertypeChild::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSupertypeChild::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -712,6 +730,8 @@ public final class NodeSupertypeChild implements TypedNode {
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -824,9 +844,13 @@ public final class NodeMultipleChildren implements TypedNode {
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeMultipleChildren.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeMultipleChildren::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeMultipleChildren::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -887,6 +911,8 @@ public sealed interface NodeSelfChildren$Child extends TypedNode permits NodeCon
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -999,9 +1025,13 @@ public final class NodeSelfChildren implements TypedNode, NodeSelfChildren$Child
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeSelfChildren.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSelfChildren::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSelfChildren::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -1053,6 +1083,8 @@ public sealed interface NodeSelfIndirectChildren$Child extends TypedNode permits
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -1165,9 +1197,13 @@ public final class NodeSelfIndirectChildren implements TypedNode, NodeSupertypeI
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeSelfIndirectChildren.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSelfIndirectChildren::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSelfIndirectChildren::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -1219,6 +1255,8 @@ public sealed interface NodeSelfTransitiveIndirectChildren$Child extends TypedNo
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -1331,9 +1369,13 @@ public final class NodeSelfTransitiveIndirectChildren implements TypedNode, Node
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeSelfTransitiveIndirectChildren.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSelfTransitiveIndirectChildren::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSelfTransitiveIndirectChildren::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -1384,6 +1426,8 @@ public sealed interface NodeChildOfEachOtherA$Child extends TypedNode permits No
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -1496,9 +1540,13 @@ public final class NodeChildOfEachOtherA implements TypedNode, NodeChildOfEachOt
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeChildOfEachOtherA.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeChildOfEachOtherA::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeChildOfEachOtherA::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -1549,6 +1597,8 @@ public sealed interface NodeChildOfEachOtherB$Child extends TypedNode permits No
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -1661,9 +1711,13 @@ public final class NodeChildOfEachOtherB implements TypedNode, NodeChildOfEachOt
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeChildOfEachOtherB.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeChildOfEachOtherB::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeChildOfEachOtherB::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -1691,6 +1745,8 @@ public final class NodeChildOfEachOtherB implements TypedNode, NodeChildOfEachOt
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.String;
 import java.util.stream.Stream;
@@ -1769,9 +1825,13 @@ public sealed interface NodeSupertype extends TypedNode permits NodeContainedA, 
         + "(" + NodeContainedA.TYPE_NAME + ")"
         + "(" + NodeContainedB.TYPE_NAME + ")"
         + "] @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSupertype::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSupertype::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 }
 
@@ -1781,6 +1841,8 @@ public sealed interface NodeSupertype extends TypedNode permits NodeContainedA, 
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.String;
 import java.util.stream.Stream;
@@ -1859,9 +1921,13 @@ public sealed interface NodeSupertypeIndirect extends TypedNode, NodeSelfIndirec
         + "(" + NodeContainedA.TYPE_NAME + ")"
         + "(" + NodeSelfIndirectChildren.TYPE_NAME + ")"
         + "] @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSupertypeIndirect::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSupertypeIndirect::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 }
 
@@ -1871,6 +1937,8 @@ public sealed interface NodeSupertypeIndirect extends TypedNode, NodeSelfIndirec
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.String;
 import java.util.stream.Stream;
@@ -1949,9 +2017,13 @@ public sealed interface NodeSupertypeTransitiveIndirect1 extends TypedNode, Node
         + "(" + NodeContainedA.TYPE_NAME + ")"
         + "(" + NodeSelfTransitiveIndirectChildren.TYPE_NAME + ")"
         + "] @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSupertypeTransitiveIndirect1::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSupertypeTransitiveIndirect1::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 }
 
@@ -1961,6 +2033,8 @@ public sealed interface NodeSupertypeTransitiveIndirect1 extends TypedNode, Node
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.String;
 import java.util.stream.Stream;
@@ -2039,9 +2113,13 @@ public sealed interface NodeSupertypeTransitiveIndirect2 extends TypedNode, Node
         + "(" + NodeContainedA.TYPE_NAME + ")"
         + "(" + NodeSelfTransitiveIndirectChildren.TYPE_NAME + ")"
         + "] @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSupertypeTransitiveIndirect2::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSupertypeTransitiveIndirect2::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 }
 

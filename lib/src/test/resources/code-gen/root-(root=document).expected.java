@@ -297,6 +297,8 @@ public @interface NonEmpty {
 package org.example;
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -393,9 +395,13 @@ public final class NodeDocument implements TypedNode {
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeDocument.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeDocument::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeDocument::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override

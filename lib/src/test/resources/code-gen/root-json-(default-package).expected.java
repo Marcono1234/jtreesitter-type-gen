@@ -291,6 +291,8 @@ public @interface NonEmpty {
 /* ==================== */ 
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -387,9 +389,13 @@ public final class NodeFirst implements TypedNode {
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeFirst.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeFirst::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeFirst::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override
@@ -415,6 +421,8 @@ public final class NodeFirst implements TypedNode {
 /* ==================== */ 
 
 import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.Long;
 import java.lang.Object;
@@ -511,9 +519,13 @@ public final class NodeSecond implements TypedNode {
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
     var queryString = "(" + NodeSecond.TYPE_NAME + ") @" + captureName;
-    var query = language.query(queryString);
-    var stream = query.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSecond::fromNodeThrowing).onClose(query::close);
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSecond::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
   }
 
   @Override

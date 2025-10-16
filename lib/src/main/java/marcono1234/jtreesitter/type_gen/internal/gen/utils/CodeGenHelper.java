@@ -284,7 +284,6 @@ public class CodeGenHelper {
          */
         public MethodSpec generateMethodFindNodes(ClassName nodeClass, List<JavaFieldRef> nodeTypeConstants) {
             var jtreesitter = codeGenHelper.jtreesitterConfig();
-            var query = jtreesitter.query();
 
             String captureNameVar = "captureName";
             String queryStringVar = "queryString";
@@ -313,6 +312,7 @@ public class CodeGenHelper {
             String startNodeUnwrappedVar = "startNodeUnwrapped";
             String languageVar = "language";
             String queryVar = "query";
+            String queryCursorVar = "queryCursor";
             String resultStreamVar = "stream";
             return MethodSpec.methodBuilder(methodFindNodes())
                 .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
@@ -342,14 +342,20 @@ public class CodeGenHelper {
                 .addComment("tree-sitter query which matches the nodes of this type, and captures them")
                 .addStatement("var $N = $S", captureNameVar, "node")
                 .addStatement(queryStringCode.build())
-                .addStatement("var $N = $N.$N($N)", queryVar, languageVar, jtreesitter.language().methodQuery(), queryStringVar)
+                .addStatement("var $N = new $T($N, $N)", queryVar, jtreesitter.query().className(), languageVar, queryStringVar)
+                .addStatement("var $N = new $T($N)", queryCursorVar, jtreesitter.queryCursor().className(), queryVar)
                 // Run the query
-                .addStatement("var $N = $N.$N($N)", resultStreamVar, queryVar, query.methodFindMatches(), startNodeUnwrappedVar)
+                .addStatement("var $N = $N.$N($N)", resultStreamVar, queryCursorVar, jtreesitter.queryCursor().methodFindMatches(), startNodeUnwrappedVar)
                 // Convert the captured nodes
                 .addStatement(CodeBlock.builder()
-                    .add("return $N.flatMap(m -> m.$N($N).stream())", resultStreamVar, query.methodMatchFindNodes(), captureNameVar)
+                    .add("return $N.flatMap(m -> m.$N($N).stream())", resultStreamVar, jtreesitter.queryMatch().methodFindNodes(), captureNameVar)
                     .add(".map($T::$N)", nodeClass, methodFromNodeThrowing())
-                    .add(".onClose($N::close)", queryVar)
+                    .add(".onClose(() -> {\n")
+                    .indent()
+                    .add("$N.close();\n", queryCursorVar)
+                    .add("$N.close();\n", queryVar)
+                    .unindent()
+                    .add("})")
                     .build()
                 )
                 .build();
@@ -468,6 +474,8 @@ public class CodeGenHelper {
     public record JTreestitterConfig(
         Language language,
         Query query,
+        QueryCursor queryCursor,
+        QueryMatch queryMatch,
         Tree tree,
         TreeCursor treeCursor,
         Node node,
@@ -477,14 +485,12 @@ public class CodeGenHelper {
         /** jtreesitter {@code Language} class */
         public record Language(
             ClassName className,
-            String methodQuery,
             TypeName numericIdType,
             String methodGetTypeId,
             String methodGetFieldId
         ) {
             public static final Language DEFAULT = new Language(
                 ClassName.get("io.github.treesitter.jtreesitter", "Language"),
-                "query",
                 // Use the same type as jtreesitter to increase interoperability with its methods, e.g. `Node#getSymbol`
                 // Otherwise when manually converting with `Short#toUnsignedInt` it would make comparing values with
                 // jtreesitter values more cumbersome and error-prone
@@ -536,11 +542,31 @@ public class CodeGenHelper {
 
         /** jtreesitter {@code Query} class */
         public record Query(
-            String methodFindMatches,
-            // Method `QueryMatch#findNodes(String)`
-            String methodMatchFindNodes
+            ClassName className
         ) {
-            public static final Query DEFAULT = new Query("findMatches", "findNodes");
+            public static final Query DEFAULT = new Query(
+                ClassName.get("io.github.treesitter.jtreesitter", "Query")
+            );
+        }
+
+        /** jtreesitter {@code QueryCursor} */
+        public record QueryCursor(
+            ClassName className,
+            String methodFindMatches
+        ) {
+            public static final QueryCursor DEFAULT = new QueryCursor(
+                ClassName.get("io.github.treesitter.jtreesitter", "QueryCursor"),
+                "findMatches"
+            );
+        }
+
+        /** jtreesitter {@code QueryMatch} */
+        public record QueryMatch(
+            String methodFindNodes
+        ) {
+            public static final QueryMatch DEFAULT = new QueryMatch(
+                "findNodes"
+            );
         }
 
         /** jtreesitter {@code Tree} class */
@@ -596,6 +622,8 @@ public class CodeGenHelper {
         public static final JTreestitterConfig DEFAULT = new JTreestitterConfig(
             Language.DEFAULT,
             Query.DEFAULT,
+            QueryCursor.DEFAULT,
+            QueryMatch.DEFAULT,
             Tree.DEFAULT,
             TreeCursor.DEFAULT,
             Node.DEFAULT,
