@@ -1,5 +1,6 @@
 package marcono1234.jtreesitter.type_gen.internal.gen;
 
+import com.palantir.javapoet.CodeBlock;
 import com.palantir.javapoet.FieldSpec;
 import com.palantir.javapoet.MethodSpec;
 import com.palantir.javapoet.TypeSpec;
@@ -57,7 +58,16 @@ class GenField extends GenChildren {
     @Override
     protected void addGetChildrenStatement(MethodSpec.Builder methodBuilder, CodeGenHelper codeGenHelper, String nodeJavaFieldName, String childrenVarName) {
         var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
-        methodBuilder.addStatement("var $N = this.$N.$N($N)", childrenVarName, nodeJavaFieldName, jtreesitterNode.methodGetChildrenByFieldName(), fieldNameConstant);
+        var codeBuilder = CodeBlock.builder()
+            .add("var $N = this.$N.", childrenVarName, nodeJavaFieldName);
+
+        if (codeGenHelper.generatesNumericIdConstants()) {
+            codeBuilder.add("$N($N)", jtreesitterNode.methodGetChildrenByFieldId(), fieldIdConstant);
+        } else {
+            codeBuilder.add("$N($N)", jtreesitterNode.methodGetChildrenByFieldName(), fieldNameConstant);
+        }
+
+        methodBuilder.addStatement(codeBuilder.build());
     }
 
     @Override

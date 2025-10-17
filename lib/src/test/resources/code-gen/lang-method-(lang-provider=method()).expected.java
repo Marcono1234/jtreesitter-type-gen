@@ -824,7 +824,7 @@ public final class NodeDocument implements TypedNode {
    * </ul>
    */
   public List<NodeContainedA> getFieldFirst() {
-    var children = this.node.getChildrenByFieldName(FIELD_FIRST);
+    var children = this.node.getChildrenByFieldId(FIELD_FIRST_ID);
     Function<Node, NodeContainedA> namedMapper = NodeContainedA::fromNodeThrowing;
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
     return childrenMapped;
@@ -838,7 +838,7 @@ public final class NodeDocument implements TypedNode {
    * </ul>
    */
   public NodeSupertype getFieldSecond() {
-    var children = this.node.getChildrenByFieldName(FIELD_SECOND);
+    var children = this.node.getChildrenByFieldId(FIELD_SECOND_ID);
     Function<Node, NodeSupertype> namedMapper = NodeSupertype::fromNodeThrowing;
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
     return NodeUtils.requiredSingleChild(childrenMapped);

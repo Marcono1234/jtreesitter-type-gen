@@ -7,8 +7,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.function.Function;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 /**
  * Tests the generated code for tree-sitter-json, with a {@link Language} instance provided by
@@ -47,6 +47,11 @@ class JsonLangProvMethodTest extends AbstractTypedTreeTest {
 
             var object = (NodeObject) rootNode.getChildren().getFirst();
             var pair = object.getChildren().getFirst();
+
+            // Verify that field methods work (which internally use the field ID)
+            assertInstanceOf(NodeString.class, pair.getFieldKey());
+            assertInstanceOf(NodeNumber.class, pair.getFieldValue());
+
             var pairNode = pair.getNode();
             assertEquals(pairNode.getType(), NodePair.TYPE_NAME);
             assertEquals(pairNode.getSymbol(), NodePair.TYPE_ID);
