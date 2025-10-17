@@ -3,11 +3,10 @@ package org.example;
 import io.github.treesitter.jtreesitter.Node;
 import java.lang.Class;
 import java.lang.IllegalArgumentException;
-import java.lang.String;
+import java.lang.foreign.Arena;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.jspecify.annotations.Nullable;
 
@@ -38,25 +37,24 @@ final class NodeUtils {
 
   /**
    * Gets all non-field children of the node.
-   * @param fields names of all fields; the implementation requires this to filter out field children
    * @param named whether to return named or non-named children
    */
-  public static List<Node> getNonFieldChildren(Node node, String[] fields, boolean named) {
-    // First get all relevant children
+  public static List<Node> getNonFieldChildren(Node node, boolean named) {
     var children = new ArrayList<Node>();
-    Stream<Node> childrenStream;
-    if (named) {
-      childrenStream = node.getNamedChildren().stream();
-    } else {
-      childrenStream = node.getChildren().stream().filter(n -> !n.isNamed());
-    }
-    childrenStream.filter(n -> !n.isError() && !n.isMissing() && !n.isExtra()).forEach(children::add);
-    // Then remove all field children
-    for (var field : fields) {
-      if (children.isEmpty()) {
-        return children;
+    // Use custom allocator to ensure that nodes are usable after cursor was closed
+    var arena = Arena.ofAuto();
+    try (var cursor = node.walk()) {
+      if (cursor.gotoFirstChild()) {
+        do {
+          // Only consider non-field children
+          if (cursor.getCurrentFieldId() == 0) {
+            var currentNode = cursor.getCurrentNode(arena);
+            if (currentNode.isNamed() == named && !currentNode.isError() && !currentNode.isMissing() && !currentNode.isExtra()) {
+              children.add(currentNode);
+            }
+          }
+        } while (cursor.gotoNextSibling());
       }
-      children.removeAll(node.getChildrenByFieldName(field));
     }
     return children;
   }
@@ -391,8 +389,7 @@ public final class NodeContainedA implements TypedNode, NodeSupertype, NodeSuper
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    var fieldNames = new String[] {};
-    return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeContainedA> findNodesImpl(TypedNode startNode,
@@ -551,8 +548,7 @@ public final class NodeContainedB implements TypedNode, NodeSupertype, NodeMulti
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    var fieldNames = new String[] {};
-    return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeContainedB> findNodesImpl(TypedNode startNode,
@@ -713,8 +709,7 @@ public final class NodeSupertypeChild implements TypedNode {
    * </ul>
    */
   public @Nullable NodeSupertype getChild() {
-    var fieldNames = new String[] {};
-    var children = NodeUtils.getNonFieldChildren(node, fieldNames, true);
+    var children = NodeUtils.getNonFieldChildren(node, true);
     Function<Node, NodeSupertype> namedMapper = NodeSupertype::fromNodeThrowing;
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
     return NodeUtils.optionalSingleChild(childrenMapped);
@@ -728,8 +723,7 @@ public final class NodeSupertypeChild implements TypedNode {
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    var fieldNames = new String[] {};
-    return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeSupertypeChild> findNodesImpl(TypedNode startNode,
@@ -890,8 +884,7 @@ public final class NodeMultipleChildren implements TypedNode {
    * </ul>
    */
   public @Nullable Child getChild() {
-    var fieldNames = new String[] {};
-    var children = NodeUtils.getNonFieldChildren(node, fieldNames, true);
+    var children = NodeUtils.getNonFieldChildren(node, true);
     var namedMapper = Child.class;
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
     return NodeUtils.optionalSingleChild(childrenMapped);
@@ -905,8 +898,7 @@ public final class NodeMultipleChildren implements TypedNode {
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    var fieldNames = new String[] {};
-    return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeMultipleChildren> findNodesImpl(TypedNode startNode,
@@ -1100,8 +1092,7 @@ public final class NodeSelfChildren implements TypedNode, NodeSelfChildren$Child
    * </ul>
    */
   public @Nullable NodeSelfChildren$Child getChild() {
-    var fieldNames = new String[] {};
-    var children = NodeUtils.getNonFieldChildren(node, fieldNames, true);
+    var children = NodeUtils.getNonFieldChildren(node, true);
     var namedMapper = NodeSelfChildren$Child.class;
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
     return NodeUtils.optionalSingleChild(childrenMapped);
@@ -1115,8 +1106,7 @@ public final class NodeSelfChildren implements TypedNode, NodeSelfChildren$Child
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    var fieldNames = new String[] {};
-    return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeSelfChildren> findNodesImpl(TypedNode startNode,
@@ -1301,8 +1291,7 @@ public final class NodeSelfIndirectChildren implements TypedNode, NodeSupertypeI
    * </ul>
    */
   public @Nullable NodeSelfIndirectChildren$Child getChild() {
-    var fieldNames = new String[] {};
-    var children = NodeUtils.getNonFieldChildren(node, fieldNames, true);
+    var children = NodeUtils.getNonFieldChildren(node, true);
     var namedMapper = NodeSelfIndirectChildren$Child.class;
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
     return NodeUtils.optionalSingleChild(childrenMapped);
@@ -1316,8 +1305,7 @@ public final class NodeSelfIndirectChildren implements TypedNode, NodeSupertypeI
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    var fieldNames = new String[] {};
-    return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeSelfIndirectChildren> findNodesImpl(TypedNode startNode,
@@ -1502,8 +1490,7 @@ public final class NodeSelfTransitiveIndirectChildren implements TypedNode, Node
    * </ul>
    */
   public @Nullable NodeSelfTransitiveIndirectChildren$Child getChild() {
-    var fieldNames = new String[] {};
-    var children = NodeUtils.getNonFieldChildren(node, fieldNames, true);
+    var children = NodeUtils.getNonFieldChildren(node, true);
     var namedMapper = NodeSelfTransitiveIndirectChildren$Child.class;
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
     return NodeUtils.optionalSingleChild(childrenMapped);
@@ -1517,8 +1504,7 @@ public final class NodeSelfTransitiveIndirectChildren implements TypedNode, Node
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    var fieldNames = new String[] {};
-    return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeSelfTransitiveIndirectChildren> findNodesImpl(TypedNode startNode,
@@ -1702,8 +1688,7 @@ public final class NodeChildOfEachOtherA implements TypedNode, NodeChildOfEachOt
    * </ul>
    */
   public @Nullable NodeChildOfEachOtherA$Child getChild() {
-    var fieldNames = new String[] {};
-    var children = NodeUtils.getNonFieldChildren(node, fieldNames, true);
+    var children = NodeUtils.getNonFieldChildren(node, true);
     var namedMapper = NodeChildOfEachOtherA$Child.class;
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
     return NodeUtils.optionalSingleChild(childrenMapped);
@@ -1717,8 +1702,7 @@ public final class NodeChildOfEachOtherA implements TypedNode, NodeChildOfEachOt
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    var fieldNames = new String[] {};
-    return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeChildOfEachOtherA> findNodesImpl(TypedNode startNode,
@@ -1902,8 +1886,7 @@ public final class NodeChildOfEachOtherB implements TypedNode, NodeChildOfEachOt
    * </ul>
    */
   public @Nullable NodeChildOfEachOtherB$Child getChild() {
-    var fieldNames = new String[] {};
-    var children = NodeUtils.getNonFieldChildren(node, fieldNames, true);
+    var children = NodeUtils.getNonFieldChildren(node, true);
     var namedMapper = NodeChildOfEachOtherB$Child.class;
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
     return NodeUtils.optionalSingleChild(childrenMapped);
@@ -1917,8 +1900,7 @@ public final class NodeChildOfEachOtherB implements TypedNode, NodeChildOfEachOt
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    var fieldNames = new String[] {};
-    return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeChildOfEachOtherB> findNodesImpl(TypedNode startNode,

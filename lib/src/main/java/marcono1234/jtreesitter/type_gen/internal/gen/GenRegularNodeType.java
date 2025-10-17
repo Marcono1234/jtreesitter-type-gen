@@ -97,7 +97,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
         populatedChildren = true;
 
         if (childrenRaw != null) {
-            children = GenChildren.create(typeName, this, childrenRaw, fieldsRaw.keySet(), nodeTypeLookup, nameGenerator, additionalTypedNodeSubtypeCollector);
+            children = GenChildren.create(typeName, this, childrenRaw, nodeTypeLookup, nameGenerator, additionalTypedNodeSubtypeCollector);
         }
         for (var field : fieldsRaw.entrySet()) {
             String fieldName = field.getKey();
@@ -189,12 +189,9 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
             .addJavadoc("\nThis method can be useful when the grammar defines a 'choice' of multiple keywords.")
             .addJavadoc("\nIn that case this method returns the keywords which appear in the parsed source code.");
 
-        String fieldNamesVar = "fieldNames";
-        CodeGenHelper.addStringArrayVar(methodBuilder, fieldNamesVar, fieldsRaw.keySet());
-
         var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
         var nodeUtils = codeGenHelper.nodeUtilsConfig();
-        methodBuilder.addStatement("return $T.$N(this.$N, $N, false).stream().map(n -> n.$N()).toList()", nodeUtils.className(), nodeUtils.methodGetNonFieldChildren(), nodeField, fieldNamesVar, jtreesitterNode.methodGetType());
+        methodBuilder.addStatement("return $T.$N(this.$N, false).stream().map(n -> n.$N()).toList()", nodeUtils.className(), nodeUtils.methodGetNonFieldChildren(), nodeField, jtreesitterNode.methodGetType());
         return methodBuilder.build();
     }
 

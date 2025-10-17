@@ -34,7 +34,7 @@ class GenField extends GenChildren {
     private final String fieldIdConstant;
 
     private GenField(String fieldName, String fieldNameConstant, String fieldIdConstant, String getterName, GenChildType type, boolean multiple, boolean required) {
-        super(getterName, type, multiple, required, /* unused; method is overridden here */ null);
+        super(getterName, type, multiple, required);
         this.fieldName = fieldName;
         this.fieldNameConstant = fieldNameConstant;
         this.fieldIdConstant = fieldIdConstant;

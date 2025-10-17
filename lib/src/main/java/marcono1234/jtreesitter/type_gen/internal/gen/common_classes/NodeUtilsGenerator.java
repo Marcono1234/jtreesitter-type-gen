@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 /**
  * Code generator for the internal {@code NodeUtils} class, which provides convenience methods for working
@@ -26,77 +25,56 @@ public class NodeUtilsGenerator {
         return ParameterizedTypeName.get(ClassName.get(List.class), argType);
     }
 
-    /*
-     * It looks like `Node#getChildren` / `Node#getNamedChildren` also includes children of fields, which is not
-     * desired here. But it seems jtreesitter (or even tree-sitter itself) does not offer a method
-     * to get all non-field children only, therefore need to perform this ourselves here.
-     *
-     * The implementation below first gets all (named) children, then removes all children which belong to fields.
-     * This is rather inefficient. Maybe would be a bit more efficient to use `getFieldNameForChild` (not tested):
-     * ```
-     * var children = new ArrayList<Node>();
-     * for (int i = 0; i < node.getChildCount(); i++) {
-     *     if (node.getFieldNameForChild(i) == null) {
-     *         var child = node.getChild(i).get();
-     *         if (...) {  // additional checks, e.g. `isNamed`, `!isExtra`, ...
-     *             children.add(child);
-     *         }
-     *     }
-     * }
-     * ```
-     * But `Node#getFieldNameForChild` crashes the JVM in some cases; see https://github.com/tree-sitter/java-tree-sitter/issues/20
-     * TODO: Use `getFieldNameForChild` once fix for it is released? Is that really more efficient though?
-     */
     private MethodSpec generateGetNonFieldChildrenMethod() {
         var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
         var jtreesitterNodeClass = jtreesitterNode.className();
+        var jtreesitterCursor = codeGenHelper.jtreesitterConfig().treeCursor();
+        var ffmApi = codeGenHelper.ffmApiConfig();
         
         String nodeParam = "node";
-        var fieldNamesParam = ParameterSpec.builder(ArrayTypeName.of(String.class), "fields")
-            .addJavadoc("names of all fields; the implementation requires this to filter out field children\n")  // trailing '\n' due to https://github.com/palantir/javapoet/issues/128
-            .build();
         var namedParam = ParameterSpec.builder(boolean.class, "named")
             .addJavadoc("whether to return named or non-named children")
             .build();
 
-        String childrenVar = "children";
-        String fieldNameVar = "field";
         var methodBuilder = MethodSpec.methodBuilder(codeGenHelper.nodeUtilsConfig().methodGetNonFieldChildren())
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .addParameter(jtreesitterNodeClass, nodeParam)
-            .addParameter(fieldNamesParam)
             .addParameter(namedParam)
             .returns(listType(jtreesitterNodeClass))
             .addJavadoc("Gets all non-field children of the node.");
 
-        String childrenStreamVar = "childrenStream";
-        methodBuilder
-            .addComment("First get all relevant children")
+        String childrenVar = "children";
+        String arenaVar = "arena";
+        String cursorVar = "cursor";
+        String currentNodeVar = "currentNode";
+        return methodBuilder
             .addStatement("var $N = new $T<$T>()", childrenVar, ArrayList.class, jtreesitterNodeClass)
-            .addStatement("$T<$T> $N", Stream.class, jtreesitterNodeClass, childrenStreamVar)
-            .beginControlFlow("if ($N)", namedParam)
-            .addStatement("$N = $N.$N().stream()", childrenStreamVar, nodeParam, jtreesitterNode.methodGetNamedChildren())
-            .nextControlFlow("else")
-            .addStatement("$N = $N.$N().stream().filter(n -> !n.$N())", childrenStreamVar, nodeParam, jtreesitterNode.methodGetChildren(), jtreesitterNode.methodIsNamed())
+            .addComment("Use custom allocator to ensure that nodes are usable after cursor was closed")
+            .addStatement("var $N = $T.$N()", arenaVar, ffmApi.classArena(), ffmApi.methodArenaOfAuto())
+            .beginControlFlow("try (var $N = $N.$N())", cursorVar, nodeParam, jtreesitterNode.methodWalk())
+            .beginControlFlow("if ($N.$N())", cursorVar, jtreesitterCursor.methodGotoFirstChild())
+            .beginControlFlow("do")
+            .addComment("Only consider non-field children")
+            .beginControlFlow("if ($N.$N() == 0)", cursorVar, jtreesitterCursor.methodGetCurrentFieldId())
+            .addStatement("var $N = $N.$N($N)", currentNodeVar, cursorVar, jtreesitterCursor.methodGetCurrentNode(), arenaVar)
+            .beginControlFlow(CodeBlock.builder()
+                .add("if (")
+                .add("$N.$N() == $N", currentNodeVar, jtreesitterNode.methodIsNamed(), namedParam)
+                // Ignore error, missing and extra nodes; they would lead to exceptions when trying to convert them to typed nodes
+                .add(" && !$N.$N()", currentNodeVar, jtreesitterNode.methodIsError())
+                .add(" && !$N.$N()", currentNodeVar, jtreesitterNode.methodIsMissing())
+                .add(" && !$N.$N()", currentNodeVar, jtreesitterNode.methodIsExtra())
+                .add(")")
+                .build()
+            )
+            .addStatement("$N.add($N)", childrenVar, currentNodeVar)
             .endControlFlow()
-            .addStatement("$N.filter(n -> !n.$N() && !n.$N() && !n.$N()).forEach($N::add)",
-                childrenStreamVar, jtreesitterNode.methodIsError(), jtreesitterNode.methodIsMissing(), jtreesitterNode.methodIsExtra(), childrenVar
-            );
-
-        methodBuilder
-            .addComment("Then remove all field children")
-            .beginControlFlow("for (var $N : $N)", fieldNameVar, fieldNamesParam)
-            // Return fast if there are no children anymore
-            .beginControlFlow("if ($N.isEmpty())", childrenVar)
-            .addStatement("return $N", childrenVar)
             .endControlFlow()
-            // Remove all children of the field
-            .addStatement("$N.removeAll($N.$N($N))", childrenVar, nodeParam, jtreesitterNode.methodGetChildrenByFieldName(), fieldNameVar)
+            .endControlFlow("while ($N.$N())", cursorVar, jtreesitterCursor.methodGotoNextSibling())
+            .endControlFlow()
             .endControlFlow()
             .addStatement("return $N", childrenVar)
             .build();
-
-        return methodBuilder.build();
     }
 
     private MethodSpec generateFromNodeThrowingMethod() {

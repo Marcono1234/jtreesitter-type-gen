@@ -654,13 +654,18 @@ public class CodeGenHelper {
         }
 
         /** jtreesitter {@code TreeCursor} class */
-        // TODO: Maybe remove this TreeCursor class again; is currently only used for generated Javadoc
         public record TreeCursor(
             ClassName className,
+            String methodGotoFirstChild,
+            String methodGotoNextSibling,
+            String methodGetCurrentNode,
             String methodGetCurrentFieldId
         ) {
             public static final TreeCursor DEFAULT = new TreeCursor(
                 ClassName.get("io.github.treesitter.jtreesitter", "TreeCursor"),
+                "gotoFirstChild",
+                "gotoNextSibling",
+                "getCurrentNode",
                 "getCurrentFieldId"
             );
         }
@@ -673,22 +678,24 @@ public class CodeGenHelper {
             String methodGetType,
             String methodGetTypeId,
             String methodGetId,
-            String methodGetChildren, String methodGetNamedChildren, String methodGetChildrenByFieldName,
+            String methodGetChildrenByFieldName,
             String methodGetText,
             String methodGetTree,
             String methodGetRange, String methodGetStartPoint, String methodGetEndPoint,
-            String methodHasError, String methodIsNamed, String methodIsError, String methodIsMissing, String methodIsExtra
+            String methodHasError, String methodIsNamed, String methodIsError, String methodIsMissing, String methodIsExtra,
+            String methodWalk
         ) {
             public static final Node DEFAULT = new Node(
                 ClassName.get("io.github.treesitter.jtreesitter", "Node"),
                 "getType",
                 "getSymbol",
                 "getId",
-                "getChildren", "getNamedChildren", "getChildrenByFieldName",
+                "getChildrenByFieldName",
                 "getText",
                 "getTree",
                 "getRange", "getStartPoint", "getEndPoint",
-                "hasError", "isNamed", "isError", "isMissing", "isExtra"
+                "hasError", "isNamed", "isError", "isMissing", "isExtra",
+                "walk"
             );
         }
 
@@ -714,13 +721,19 @@ public class CodeGenHelper {
      */
     // Note: This config class exists because this project is currently built with JDK 21 but the FFM API classes only became stable in JDK 22
     // TODO: Remove once this project is built with JDK > 21
-    private record FFMApiConfig(
-        ClassName classSegmentAllocator
+    public record FFMApiConfig(
+        ClassName classSegmentAllocator,
+        ClassName classArena,
+        String methodArenaOfAuto
     ) {
-        public static final FFMApiConfig DEFAULT = new FFMApiConfig(ClassName.get("java.lang.foreign", "SegmentAllocator"));
+        public static final FFMApiConfig DEFAULT = new FFMApiConfig(
+            ClassName.get("java.lang.foreign", "SegmentAllocator"),
+            ClassName.get("java.lang.foreign", "Arena"),
+            "ofAuto"
+        );
     }
 
-    private FFMApiConfig ffmApiConfig() {
+    public FFMApiConfig ffmApiConfig() {
         return FFMApiConfig.DEFAULT;
     }
 
@@ -809,22 +822,6 @@ public class CodeGenHelper {
             .addStatement("var $N = this.$L.$N()", resultVar, delegate, methodName);
         addReturnOptionalStatement(builder, resultVar);
         return builder;
-    }
-
-    /**
-     * Adds a {@code String[]} variable initialized with the given values, for example:
-     * {@snippet lang=java :
-     * var strings = new String[] {"stringA", "stringB", "stringC"};
-     * }
-     */
-    public static void addStringArrayVar(MethodSpec.Builder builder, String varName, Collection<String> values) {
-        var codeBuilder = CodeBlock.builder();
-        codeBuilder.add("var $N = new $T[] {", varName, String.class);
-        for (String value : values) {
-            codeBuilder.add("$S,$W", value);
-        }
-        codeBuilder.add("}");
-        builder.addStatement(codeBuilder.build());
     }
 
     /**
