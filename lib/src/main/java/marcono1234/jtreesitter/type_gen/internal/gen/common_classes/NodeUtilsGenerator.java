@@ -129,10 +129,6 @@ public class NodeUtilsGenerator {
             .addJavadoc("maps non-named children; {@code null} if only named children are expected")
             .build();
 
-        String namedChildrenVar = "namedChildren";
-        String nonNamedChildrenVar = "nonNamedChildren";
-        String childVar = "child";
-
         var methodBuilder = MethodSpec.methodBuilder(nodeUtils.methodMapChildrenNamedNonNamed())
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .addTypeVariable(resultTypeVar)
@@ -145,41 +141,23 @@ public class NodeUtilsGenerator {
             .addJavadoc("Maps the children of a node (in the form of jtreesitter nodes) to typed nodes.")
             .addJavadoc("\nThis differentiates between named and non-named children, since separate typed node classes are used for them.");
 
-        methodBuilder
-            .addComment("First split between named and non-named children")
-            .addStatement("var $N = new $T<$T>()", namedChildrenVar, ArrayList.class, jtreesitterNodeClass)
-            .addStatement("var $N = new $T<$T>()", nonNamedChildrenVar, ArrayList.class, jtreesitterNodeClass)
-            .beginControlFlow("for (var $N : $N)", childVar, childrenParam)
-            .beginControlFlow("if ($N.$N())", childVar, jtreesitterNode.methodIsNamed())
-            .addStatement("$N.add($N)", namedChildrenVar, childVar)
-            .nextControlFlow("else")
-            .addStatement("$N.add($N)", nonNamedChildrenVar, childVar)
-            .endControlFlow()
-            .endControlFlow();
-
-        String resultChildrenVar = "result";
+        String childVar = "child";
         Class<?> thrownExceptionType = IllegalArgumentException.class;
-        // Map named children
-        methodBuilder
-            .addComment("Map named children (in case they are expected)")
-            .addStatement("var $N = new $T<$T>()", resultChildrenVar, ArrayList.class, resultTypeVar)
-            .beginControlFlow("if ($N != null)", namedMapperParam)
-            .addStatement("$N.stream().map($N).forEach($N::add)", namedChildrenVar, namedMapperParam, resultChildrenVar)
-            .nextControlFlow("else if (!$N.isEmpty())", namedChildrenVar)
-            .addStatement("throw new $T(\"Unexpected named children: \" + $N)", thrownExceptionType, namedChildrenVar)
+        // Note: Ideally would use `addStatement` here but that does not work due to https://github.com/square/javapoet/issues/711
+        methodBuilder.addCode(CodeBlock.builder()
+            .add("return $N.stream().map($N -> {\n", childrenParam, childVar)
+            .indent()
+            .beginControlFlow("if ($N.$N())", childVar, jtreesitterNode.methodIsNamed())
+            .addStatement("if ($N == null) throw new $T(\"Unexpected named child: \" + $N)", namedMapperParam, thrownExceptionType, childVar)
+            .addStatement("return $N.apply($N)", namedMapperParam, childVar)
+            .nextControlFlow("else")
+            .addStatement("if ($N == null) throw new $T(\"Unexpected non-named child: \" + $N)", nonNamedMapperParam, thrownExceptionType, childVar)
+            .addStatement("return $N.apply($N)", nonNamedMapperParam, childVar)
             .endControlFlow()
-            .build();
-
-        // Map non-named children
-        methodBuilder
-            .addComment("Map non-named children (in case they are expected)")
-            .beginControlFlow("if ($N != null)", nonNamedMapperParam)
-            .addStatement("$N.stream().map($N).forEach($N::add)", nonNamedChildrenVar, nonNamedMapperParam, resultChildrenVar)
-            .nextControlFlow("else if (!$N.isEmpty())", nonNamedChildrenVar)
-            .addStatement("throw new $T(\"Unexpected non-named children: \" + $N)", thrownExceptionType, nonNamedChildrenVar)
-            .endControlFlow();
-
-        methodBuilder.addStatement("return $N", resultChildrenVar);
+            .unindent()
+            .add("}).toList();") // trailing ';' due to being unable to use `addStatement` above
+            .build()
+        );
         var method = methodBuilder.build();
         typeBuilder.addMethod(method);
 

@@ -71,30 +71,15 @@ final class NodeUtils {
    */
   public static <T extends TypedNode> List<T> mapChildren(List<Node> children,
       Function<Node, ? extends T> namedMapper, Function<Node, ? extends T> nonNamedMapper) {
-    // First split between named and non-named children
-    var namedChildren = new ArrayList<Node>();
-    var nonNamedChildren = new ArrayList<Node>();
-    for (var child : children) {
+    return children.stream().map(child -> {
       if (child.isNamed()) {
-        namedChildren.add(child);
+        if (namedMapper == null) throw new IllegalArgumentException("Unexpected named child: " + child);
+        return namedMapper.apply(child);
       } else {
-        nonNamedChildren.add(child);
+        if (nonNamedMapper == null) throw new IllegalArgumentException("Unexpected non-named child: " + child);
+        return nonNamedMapper.apply(child);
       }
-    }
-    // Map named children (in case they are expected)
-    var result = new ArrayList<T>();
-    if (namedMapper != null) {
-      namedChildren.stream().map(namedMapper).forEach(result::add);
-    } else if (!namedChildren.isEmpty()) {
-      throw new IllegalArgumentException("Unexpected named children: " + namedChildren);
-    }
-    // Map non-named children (in case they are expected)
-    if (nonNamedMapper != null) {
-      nonNamedChildren.stream().map(nonNamedMapper).forEach(result::add);
-    } else if (!nonNamedChildren.isEmpty()) {
-      throw new IllegalArgumentException("Unexpected non-named children: " + nonNamedChildren);
-    }
-    return result;
+    }).toList();
   }
 
   /**
