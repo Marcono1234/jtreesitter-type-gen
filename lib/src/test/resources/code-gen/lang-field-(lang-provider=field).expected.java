@@ -46,6 +46,7 @@ package org.example;
 import io.github.treesitter.jtreesitter.Node;
 import java.lang.Class;
 import java.lang.IllegalArgumentException;
+import java.lang.IllegalStateException;
 import java.lang.foreign.Arena;
 import java.util.ArrayList;
 import java.util.List;
@@ -92,7 +93,10 @@ final class NodeUtils {
           // Only consider non-field children
           if (cursor.getCurrentFieldId() == 0) {
             var currentNode = cursor.getCurrentNode(arena);
-            if (currentNode.isNamed() == named && !currentNode.isError() && !currentNode.isMissing() && !currentNode.isExtra()) {
+            if (currentNode.isError() || currentNode.isMissing()) {
+              throw new IllegalStateException("Child is error or missing node: " + currentNode);
+            }
+            if (currentNode.isNamed() == named && !currentNode.isExtra()) {
               children.add(currentNode);
             }
           }

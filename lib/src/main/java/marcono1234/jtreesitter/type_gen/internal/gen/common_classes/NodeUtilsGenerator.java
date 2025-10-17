@@ -57,12 +57,14 @@ public class NodeUtilsGenerator {
             .addComment("Only consider non-field children")
             .beginControlFlow("if ($N.$N() == 0)", cursorVar, jtreesitterCursor.methodGetCurrentFieldId())
             .addStatement("var $N = $N.$N($N)", currentNodeVar, cursorVar, jtreesitterCursor.methodGetCurrentNode(), arenaVar)
+            // Cannot convert error node to typed node; for easier troubleshooting directly throw exception instead of silently discarding it
+            .beginControlFlow("if ($N.$N() || $N.$N())", currentNodeVar, jtreesitterNode.methodIsError(), currentNodeVar, jtreesitterNode.methodIsMissing())
+            .addStatement("throw new $T(\"Child is error or missing node: \" + $N)", IllegalStateException.class, currentNodeVar)
+            .endControlFlow()
             .beginControlFlow(CodeBlock.builder()
                 .add("if (")
                 .add("$N.$N() == $N", currentNodeVar, jtreesitterNode.methodIsNamed(), namedParam)
-                // Ignore error, missing and extra nodes; they would lead to exceptions when trying to convert them to typed nodes
-                .add(" && !$N.$N()", currentNodeVar, jtreesitterNode.methodIsError())
-                .add(" && !$N.$N()", currentNodeVar, jtreesitterNode.methodIsMissing())
+                // Ignore extra nodes; they would lead to exceptions when trying to convert them to typed nodes
                 .add(" && !$N.$N()", currentNodeVar, jtreesitterNode.methodIsExtra())
                 .add(")")
                 .build()

@@ -73,6 +73,19 @@ class JsonNullableTest extends AbstractTypedTreeTest {
     }
 
     @Test
+    void testErrorNode() {
+        String source = "{ : }";
+
+        try (var tree = TypedTree.fromTree(parse(source))) {
+            assertTrue(tree.hasError());
+
+            var objectNode = (NodeObject) tree.getRootNode().getChildren().getFirst();
+            var e = assertThrows(IllegalStateException.class, objectNode::getChildren);
+            assertTrue(e.getMessage().startsWith("Child is error or missing node: "));
+        }
+    }
+
+    @Test
     void testFromNode() {
         String source = "[]";
 
