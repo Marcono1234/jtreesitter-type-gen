@@ -324,7 +324,9 @@ import java.lang.Long;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.jspecify.annotations.Nullable;
@@ -393,6 +395,42 @@ public final class NodeContainedA implements TypedNode, NodeSupertype, NodeSuper
     return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
   }
 
+  private static Stream<NodeContainedA> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
+    var startNodeUnwrapped = startNode.getNode();
+    var language = startNodeUnwrapped.getTree().getLanguage();
+    // tree-sitter query which matches the nodes of this type, and captures them
+    var captureName = "node";
+    var queryString = "(" + NodeContainedA.TYPE_NAME + ") @" + captureName;
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContainedA::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeContainedA.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  public static Stream<NodeContainedA> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    return findNodesImpl(startNode, allocator);
+  }
+
   /**
    * Gets all nodes of this type, starting at the given node.
    *
@@ -400,6 +438,7 @@ public final class NodeContainedA implements TypedNode, NodeSupertype, NodeSuper
    * It is recommended to use a try-with-resources statement.
    * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
    * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
    *
    * <h4>Example</h4>
    * {@snippet lang=java :
@@ -410,18 +449,7 @@ public final class NodeContainedA implements TypedNode, NodeSupertype, NodeSuper
    * }
    */
   public static Stream<NodeContainedA> findNodes(TypedNode startNode) {
-    var startNodeUnwrapped = startNode.getNode();
-    var language = startNodeUnwrapped.getTree().getLanguage();
-    // tree-sitter query which matches the nodes of this type, and captures them
-    var captureName = "node";
-    var queryString = "(" + NodeContainedA.TYPE_NAME + ") @" + captureName;
-    var query = new Query(language, queryString);
-    var queryCursor = new QueryCursor(query);
-    var stream = queryCursor.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContainedA::fromNodeThrowing).onClose(() -> {
-          queryCursor.close();
-          query.close();
-        });
+    return findNodesImpl(startNode, null);
   }
 
   @Override
@@ -456,7 +484,9 @@ import java.lang.Long;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.jspecify.annotations.Nullable;
@@ -525,6 +555,42 @@ public final class NodeContainedB implements TypedNode, NodeSupertype, NodeMulti
     return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
   }
 
+  private static Stream<NodeContainedB> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
+    var startNodeUnwrapped = startNode.getNode();
+    var language = startNodeUnwrapped.getTree().getLanguage();
+    // tree-sitter query which matches the nodes of this type, and captures them
+    var captureName = "node";
+    var queryString = "(" + NodeContainedB.TYPE_NAME + ") @" + captureName;
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContainedB::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeContainedB.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  public static Stream<NodeContainedB> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    return findNodesImpl(startNode, allocator);
+  }
+
   /**
    * Gets all nodes of this type, starting at the given node.
    *
@@ -532,6 +598,7 @@ public final class NodeContainedB implements TypedNode, NodeSupertype, NodeMulti
    * It is recommended to use a try-with-resources statement.
    * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
    * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
    *
    * <h4>Example</h4>
    * {@snippet lang=java :
@@ -542,18 +609,7 @@ public final class NodeContainedB implements TypedNode, NodeSupertype, NodeMulti
    * }
    */
   public static Stream<NodeContainedB> findNodes(TypedNode startNode) {
-    var startNodeUnwrapped = startNode.getNode();
-    var language = startNodeUnwrapped.getTree().getLanguage();
-    // tree-sitter query which matches the nodes of this type, and captures them
-    var captureName = "node";
-    var queryString = "(" + NodeContainedB.TYPE_NAME + ") @" + captureName;
-    var query = new Query(language, queryString);
-    var queryCursor = new QueryCursor(query);
-    var stream = queryCursor.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContainedB::fromNodeThrowing).onClose(() -> {
-          queryCursor.close();
-          query.close();
-        });
+    return findNodesImpl(startNode, null);
   }
 
   @Override
@@ -588,8 +644,10 @@ import java.lang.Long;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.jspecify.annotations.Nullable;
@@ -674,6 +732,43 @@ public final class NodeSupertypeChild implements TypedNode {
     return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
   }
 
+  private static Stream<NodeSupertypeChild> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
+    var startNodeUnwrapped = startNode.getNode();
+    var language = startNodeUnwrapped.getTree().getLanguage();
+    // tree-sitter query which matches the nodes of this type, and captures them
+    var captureName = "node";
+    var queryString = "(" + NodeSupertypeChild.TYPE_NAME + ") @" + captureName;
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSupertypeChild::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeSupertypeChild.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  public static Stream<NodeSupertypeChild> findNodes(TypedNode startNode,
+      SegmentAllocator allocator) {
+    return findNodesImpl(startNode, allocator);
+  }
+
   /**
    * Gets all nodes of this type, starting at the given node.
    *
@@ -681,6 +776,7 @@ public final class NodeSupertypeChild implements TypedNode {
    * It is recommended to use a try-with-resources statement.
    * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
    * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
    *
    * <h4>Example</h4>
    * {@snippet lang=java :
@@ -691,18 +787,7 @@ public final class NodeSupertypeChild implements TypedNode {
    * }
    */
   public static Stream<NodeSupertypeChild> findNodes(TypedNode startNode) {
-    var startNodeUnwrapped = startNode.getNode();
-    var language = startNodeUnwrapped.getTree().getLanguage();
-    // tree-sitter query which matches the nodes of this type, and captures them
-    var captureName = "node";
-    var queryString = "(" + NodeSupertypeChild.TYPE_NAME + ") @" + captureName;
-    var query = new Query(language, queryString);
-    var queryCursor = new QueryCursor(query);
-    var stream = queryCursor.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSupertypeChild::fromNodeThrowing).onClose(() -> {
-          queryCursor.close();
-          query.close();
-        });
+    return findNodesImpl(startNode, null);
   }
 
   @Override
@@ -737,7 +822,9 @@ import java.lang.Long;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.jspecify.annotations.Nullable;
@@ -822,6 +909,43 @@ public final class NodeMultipleChildren implements TypedNode {
     return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
   }
 
+  private static Stream<NodeMultipleChildren> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
+    var startNodeUnwrapped = startNode.getNode();
+    var language = startNodeUnwrapped.getTree().getLanguage();
+    // tree-sitter query which matches the nodes of this type, and captures them
+    var captureName = "node";
+    var queryString = "(" + NodeMultipleChildren.TYPE_NAME + ") @" + captureName;
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeMultipleChildren::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeMultipleChildren.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  public static Stream<NodeMultipleChildren> findNodes(TypedNode startNode,
+      SegmentAllocator allocator) {
+    return findNodesImpl(startNode, allocator);
+  }
+
   /**
    * Gets all nodes of this type, starting at the given node.
    *
@@ -829,6 +953,7 @@ public final class NodeMultipleChildren implements TypedNode {
    * It is recommended to use a try-with-resources statement.
    * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
    * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
    *
    * <h4>Example</h4>
    * {@snippet lang=java :
@@ -839,18 +964,7 @@ public final class NodeMultipleChildren implements TypedNode {
    * }
    */
   public static Stream<NodeMultipleChildren> findNodes(TypedNode startNode) {
-    var startNodeUnwrapped = startNode.getNode();
-    var language = startNodeUnwrapped.getTree().getLanguage();
-    // tree-sitter query which matches the nodes of this type, and captures them
-    var captureName = "node";
-    var queryString = "(" + NodeMultipleChildren.TYPE_NAME + ") @" + captureName;
-    var query = new Query(language, queryString);
-    var queryCursor = new QueryCursor(query);
-    var stream = queryCursor.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeMultipleChildren::fromNodeThrowing).onClose(() -> {
-          queryCursor.close();
-          query.close();
-        });
+    return findNodesImpl(startNode, null);
   }
 
   @Override
@@ -918,7 +1032,9 @@ import java.lang.Long;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.jspecify.annotations.Nullable;
@@ -1003,6 +1119,43 @@ public final class NodeSelfChildren implements TypedNode, NodeSelfChildren$Child
     return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
   }
 
+  private static Stream<NodeSelfChildren> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
+    var startNodeUnwrapped = startNode.getNode();
+    var language = startNodeUnwrapped.getTree().getLanguage();
+    // tree-sitter query which matches the nodes of this type, and captures them
+    var captureName = "node";
+    var queryString = "(" + NodeSelfChildren.TYPE_NAME + ") @" + captureName;
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSelfChildren::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeSelfChildren.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  public static Stream<NodeSelfChildren> findNodes(TypedNode startNode,
+      SegmentAllocator allocator) {
+    return findNodesImpl(startNode, allocator);
+  }
+
   /**
    * Gets all nodes of this type, starting at the given node.
    *
@@ -1010,6 +1163,7 @@ public final class NodeSelfChildren implements TypedNode, NodeSelfChildren$Child
    * It is recommended to use a try-with-resources statement.
    * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
    * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
    *
    * <h4>Example</h4>
    * {@snippet lang=java :
@@ -1020,18 +1174,7 @@ public final class NodeSelfChildren implements TypedNode, NodeSelfChildren$Child
    * }
    */
   public static Stream<NodeSelfChildren> findNodes(TypedNode startNode) {
-    var startNodeUnwrapped = startNode.getNode();
-    var language = startNodeUnwrapped.getTree().getLanguage();
-    // tree-sitter query which matches the nodes of this type, and captures them
-    var captureName = "node";
-    var queryString = "(" + NodeSelfChildren.TYPE_NAME + ") @" + captureName;
-    var query = new Query(language, queryString);
-    var queryCursor = new QueryCursor(query);
-    var stream = queryCursor.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSelfChildren::fromNodeThrowing).onClose(() -> {
-          queryCursor.close();
-          query.close();
-        });
+    return findNodesImpl(startNode, null);
   }
 
   @Override
@@ -1090,7 +1233,9 @@ import java.lang.Long;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.jspecify.annotations.Nullable;
@@ -1175,6 +1320,43 @@ public final class NodeSelfIndirectChildren implements TypedNode, NodeSupertypeI
     return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
   }
 
+  private static Stream<NodeSelfIndirectChildren> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
+    var startNodeUnwrapped = startNode.getNode();
+    var language = startNodeUnwrapped.getTree().getLanguage();
+    // tree-sitter query which matches the nodes of this type, and captures them
+    var captureName = "node";
+    var queryString = "(" + NodeSelfIndirectChildren.TYPE_NAME + ") @" + captureName;
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSelfIndirectChildren::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeSelfIndirectChildren.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  public static Stream<NodeSelfIndirectChildren> findNodes(TypedNode startNode,
+      SegmentAllocator allocator) {
+    return findNodesImpl(startNode, allocator);
+  }
+
   /**
    * Gets all nodes of this type, starting at the given node.
    *
@@ -1182,6 +1364,7 @@ public final class NodeSelfIndirectChildren implements TypedNode, NodeSupertypeI
    * It is recommended to use a try-with-resources statement.
    * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
    * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
    *
    * <h4>Example</h4>
    * {@snippet lang=java :
@@ -1192,18 +1375,7 @@ public final class NodeSelfIndirectChildren implements TypedNode, NodeSupertypeI
    * }
    */
   public static Stream<NodeSelfIndirectChildren> findNodes(TypedNode startNode) {
-    var startNodeUnwrapped = startNode.getNode();
-    var language = startNodeUnwrapped.getTree().getLanguage();
-    // tree-sitter query which matches the nodes of this type, and captures them
-    var captureName = "node";
-    var queryString = "(" + NodeSelfIndirectChildren.TYPE_NAME + ") @" + captureName;
-    var query = new Query(language, queryString);
-    var queryCursor = new QueryCursor(query);
-    var stream = queryCursor.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSelfIndirectChildren::fromNodeThrowing).onClose(() -> {
-          queryCursor.close();
-          query.close();
-        });
+    return findNodesImpl(startNode, null);
   }
 
   @Override
@@ -1262,7 +1434,9 @@ import java.lang.Long;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.jspecify.annotations.Nullable;
@@ -1347,6 +1521,43 @@ public final class NodeSelfTransitiveIndirectChildren implements TypedNode, Node
     return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
   }
 
+  private static Stream<NodeSelfTransitiveIndirectChildren> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
+    var startNodeUnwrapped = startNode.getNode();
+    var language = startNodeUnwrapped.getTree().getLanguage();
+    // tree-sitter query which matches the nodes of this type, and captures them
+    var captureName = "node";
+    var queryString = "(" + NodeSelfTransitiveIndirectChildren.TYPE_NAME + ") @" + captureName;
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSelfTransitiveIndirectChildren::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeSelfTransitiveIndirectChildren.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  public static Stream<NodeSelfTransitiveIndirectChildren> findNodes(TypedNode startNode,
+      SegmentAllocator allocator) {
+    return findNodesImpl(startNode, allocator);
+  }
+
   /**
    * Gets all nodes of this type, starting at the given node.
    *
@@ -1354,6 +1565,7 @@ public final class NodeSelfTransitiveIndirectChildren implements TypedNode, Node
    * It is recommended to use a try-with-resources statement.
    * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
    * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
    *
    * <h4>Example</h4>
    * {@snippet lang=java :
@@ -1364,18 +1576,7 @@ public final class NodeSelfTransitiveIndirectChildren implements TypedNode, Node
    * }
    */
   public static Stream<NodeSelfTransitiveIndirectChildren> findNodes(TypedNode startNode) {
-    var startNodeUnwrapped = startNode.getNode();
-    var language = startNodeUnwrapped.getTree().getLanguage();
-    // tree-sitter query which matches the nodes of this type, and captures them
-    var captureName = "node";
-    var queryString = "(" + NodeSelfTransitiveIndirectChildren.TYPE_NAME + ") @" + captureName;
-    var query = new Query(language, queryString);
-    var queryCursor = new QueryCursor(query);
-    var stream = queryCursor.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSelfTransitiveIndirectChildren::fromNodeThrowing).onClose(() -> {
-          queryCursor.close();
-          query.close();
-        });
+    return findNodesImpl(startNode, null);
   }
 
   @Override
@@ -1433,7 +1634,9 @@ import java.lang.Long;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.jspecify.annotations.Nullable;
@@ -1518,6 +1721,43 @@ public final class NodeChildOfEachOtherA implements TypedNode, NodeChildOfEachOt
     return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
   }
 
+  private static Stream<NodeChildOfEachOtherA> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
+    var startNodeUnwrapped = startNode.getNode();
+    var language = startNodeUnwrapped.getTree().getLanguage();
+    // tree-sitter query which matches the nodes of this type, and captures them
+    var captureName = "node";
+    var queryString = "(" + NodeChildOfEachOtherA.TYPE_NAME + ") @" + captureName;
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeChildOfEachOtherA::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeChildOfEachOtherA.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  public static Stream<NodeChildOfEachOtherA> findNodes(TypedNode startNode,
+      SegmentAllocator allocator) {
+    return findNodesImpl(startNode, allocator);
+  }
+
   /**
    * Gets all nodes of this type, starting at the given node.
    *
@@ -1525,6 +1765,7 @@ public final class NodeChildOfEachOtherA implements TypedNode, NodeChildOfEachOt
    * It is recommended to use a try-with-resources statement.
    * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
    * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
    *
    * <h4>Example</h4>
    * {@snippet lang=java :
@@ -1535,18 +1776,7 @@ public final class NodeChildOfEachOtherA implements TypedNode, NodeChildOfEachOt
    * }
    */
   public static Stream<NodeChildOfEachOtherA> findNodes(TypedNode startNode) {
-    var startNodeUnwrapped = startNode.getNode();
-    var language = startNodeUnwrapped.getTree().getLanguage();
-    // tree-sitter query which matches the nodes of this type, and captures them
-    var captureName = "node";
-    var queryString = "(" + NodeChildOfEachOtherA.TYPE_NAME + ") @" + captureName;
-    var query = new Query(language, queryString);
-    var queryCursor = new QueryCursor(query);
-    var stream = queryCursor.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeChildOfEachOtherA::fromNodeThrowing).onClose(() -> {
-          queryCursor.close();
-          query.close();
-        });
+    return findNodesImpl(startNode, null);
   }
 
   @Override
@@ -1604,7 +1834,9 @@ import java.lang.Long;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.jspecify.annotations.Nullable;
@@ -1689,6 +1921,43 @@ public final class NodeChildOfEachOtherB implements TypedNode, NodeChildOfEachOt
     return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
   }
 
+  private static Stream<NodeChildOfEachOtherB> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
+    var startNodeUnwrapped = startNode.getNode();
+    var language = startNodeUnwrapped.getTree().getLanguage();
+    // tree-sitter query which matches the nodes of this type, and captures them
+    var captureName = "node";
+    var queryString = "(" + NodeChildOfEachOtherB.TYPE_NAME + ") @" + captureName;
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeChildOfEachOtherB::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeChildOfEachOtherB.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  public static Stream<NodeChildOfEachOtherB> findNodes(TypedNode startNode,
+      SegmentAllocator allocator) {
+    return findNodesImpl(startNode, allocator);
+  }
+
   /**
    * Gets all nodes of this type, starting at the given node.
    *
@@ -1696,6 +1965,7 @@ public final class NodeChildOfEachOtherB implements TypedNode, NodeChildOfEachOt
    * It is recommended to use a try-with-resources statement.
    * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
    * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
    *
    * <h4>Example</h4>
    * {@snippet lang=java :
@@ -1706,18 +1976,7 @@ public final class NodeChildOfEachOtherB implements TypedNode, NodeChildOfEachOt
    * }
    */
   public static Stream<NodeChildOfEachOtherB> findNodes(TypedNode startNode) {
-    var startNodeUnwrapped = startNode.getNode();
-    var language = startNodeUnwrapped.getTree().getLanguage();
-    // tree-sitter query which matches the nodes of this type, and captures them
-    var captureName = "node";
-    var queryString = "(" + NodeChildOfEachOtherB.TYPE_NAME + ") @" + captureName;
-    var query = new Query(language, queryString);
-    var queryCursor = new QueryCursor(query);
-    var stream = queryCursor.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeChildOfEachOtherB::fromNodeThrowing).onClose(() -> {
-          queryCursor.close();
-          query.close();
-        });
+    return findNodesImpl(startNode, null);
   }
 
   @Override
@@ -1749,6 +2008,8 @@ import io.github.treesitter.jtreesitter.Query;
 import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.jspecify.annotations.Nullable;
@@ -1800,23 +2061,8 @@ public sealed interface NodeSupertype extends TypedNode permits NodeContainedA, 
     return typedNode;
   }
 
-  /**
-   * Gets all nodes of this type, starting at the given node.
-   *
-   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
-   * It is recommended to use a try-with-resources statement.
-   * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
-   * including exceptions being thrown or possibly even a JVM crash.
-   *
-   * <h4>Example</h4>
-   * {@snippet lang=java :
-   * try (var nodes = NodeSupertype.findNodes(start)) {
-   *   List<String> texts = nodes.map(n -> n.getText()).toList();
-   *   ...
-   * }
-   * }
-   */
-  static Stream<NodeSupertype> findNodes(TypedNode startNode) {
+  private static Stream<NodeSupertype> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
     var startNodeUnwrapped = startNode.getNode();
     var language = startNodeUnwrapped.getTree().getLanguage();
     // tree-sitter query which matches the nodes of this type, and captures them
@@ -1827,11 +2073,52 @@ public sealed interface NodeSupertype extends TypedNode permits NodeContainedA, 
         + "] @" + captureName;
     var query = new Query(language, queryString);
     var queryCursor = new QueryCursor(query);
-    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
     return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSupertype::fromNodeThrowing).onClose(() -> {
           queryCursor.close();
           query.close();
         });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeSupertype.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  static Stream<NodeSupertype> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    return findNodesImpl(startNode, allocator);
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
+   * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeSupertype.findNodes(start)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   */
+  static Stream<NodeSupertype> findNodes(TypedNode startNode) {
+    return findNodesImpl(startNode, null);
   }
 }
 
@@ -1845,6 +2132,8 @@ import io.github.treesitter.jtreesitter.Query;
 import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.jspecify.annotations.Nullable;
@@ -1896,23 +2185,8 @@ public sealed interface NodeSupertypeIndirect extends TypedNode, NodeSelfIndirec
     return typedNode;
   }
 
-  /**
-   * Gets all nodes of this type, starting at the given node.
-   *
-   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
-   * It is recommended to use a try-with-resources statement.
-   * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
-   * including exceptions being thrown or possibly even a JVM crash.
-   *
-   * <h4>Example</h4>
-   * {@snippet lang=java :
-   * try (var nodes = NodeSupertypeIndirect.findNodes(start)) {
-   *   List<String> texts = nodes.map(n -> n.getText()).toList();
-   *   ...
-   * }
-   * }
-   */
-  static Stream<NodeSupertypeIndirect> findNodes(TypedNode startNode) {
+  private static Stream<NodeSupertypeIndirect> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
     var startNodeUnwrapped = startNode.getNode();
     var language = startNodeUnwrapped.getTree().getLanguage();
     // tree-sitter query which matches the nodes of this type, and captures them
@@ -1923,11 +2197,52 @@ public sealed interface NodeSupertypeIndirect extends TypedNode, NodeSelfIndirec
         + "] @" + captureName;
     var query = new Query(language, queryString);
     var queryCursor = new QueryCursor(query);
-    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
     return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSupertypeIndirect::fromNodeThrowing).onClose(() -> {
           queryCursor.close();
           query.close();
         });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeSupertypeIndirect.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  static Stream<NodeSupertypeIndirect> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    return findNodesImpl(startNode, allocator);
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
+   * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeSupertypeIndirect.findNodes(start)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   */
+  static Stream<NodeSupertypeIndirect> findNodes(TypedNode startNode) {
+    return findNodesImpl(startNode, null);
   }
 }
 
@@ -1941,6 +2256,8 @@ import io.github.treesitter.jtreesitter.Query;
 import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.jspecify.annotations.Nullable;
@@ -1992,23 +2309,8 @@ public sealed interface NodeSupertypeTransitiveIndirect1 extends TypedNode, Node
     return typedNode;
   }
 
-  /**
-   * Gets all nodes of this type, starting at the given node.
-   *
-   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
-   * It is recommended to use a try-with-resources statement.
-   * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
-   * including exceptions being thrown or possibly even a JVM crash.
-   *
-   * <h4>Example</h4>
-   * {@snippet lang=java :
-   * try (var nodes = NodeSupertypeTransitiveIndirect1.findNodes(start)) {
-   *   List<String> texts = nodes.map(n -> n.getText()).toList();
-   *   ...
-   * }
-   * }
-   */
-  static Stream<NodeSupertypeTransitiveIndirect1> findNodes(TypedNode startNode) {
+  private static Stream<NodeSupertypeTransitiveIndirect1> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
     var startNodeUnwrapped = startNode.getNode();
     var language = startNodeUnwrapped.getTree().getLanguage();
     // tree-sitter query which matches the nodes of this type, and captures them
@@ -2019,11 +2321,53 @@ public sealed interface NodeSupertypeTransitiveIndirect1 extends TypedNode, Node
         + "] @" + captureName;
     var query = new Query(language, queryString);
     var queryCursor = new QueryCursor(query);
-    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
     return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSupertypeTransitiveIndirect1::fromNodeThrowing).onClose(() -> {
           queryCursor.close();
           query.close();
         });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeSupertypeTransitiveIndirect1.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  static Stream<NodeSupertypeTransitiveIndirect1> findNodes(TypedNode startNode,
+      SegmentAllocator allocator) {
+    return findNodesImpl(startNode, allocator);
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
+   * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeSupertypeTransitiveIndirect1.findNodes(start)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   */
+  static Stream<NodeSupertypeTransitiveIndirect1> findNodes(TypedNode startNode) {
+    return findNodesImpl(startNode, null);
   }
 }
 
@@ -2037,6 +2381,8 @@ import io.github.treesitter.jtreesitter.Query;
 import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.jspecify.annotations.Nullable;
@@ -2088,23 +2434,8 @@ public sealed interface NodeSupertypeTransitiveIndirect2 extends TypedNode, Node
     return typedNode;
   }
 
-  /**
-   * Gets all nodes of this type, starting at the given node.
-   *
-   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
-   * It is recommended to use a try-with-resources statement.
-   * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
-   * including exceptions being thrown or possibly even a JVM crash.
-   *
-   * <h4>Example</h4>
-   * {@snippet lang=java :
-   * try (var nodes = NodeSupertypeTransitiveIndirect2.findNodes(start)) {
-   *   List<String> texts = nodes.map(n -> n.getText()).toList();
-   *   ...
-   * }
-   * }
-   */
-  static Stream<NodeSupertypeTransitiveIndirect2> findNodes(TypedNode startNode) {
+  private static Stream<NodeSupertypeTransitiveIndirect2> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
     var startNodeUnwrapped = startNode.getNode();
     var language = startNodeUnwrapped.getTree().getLanguage();
     // tree-sitter query which matches the nodes of this type, and captures them
@@ -2115,11 +2446,53 @@ public sealed interface NodeSupertypeTransitiveIndirect2 extends TypedNode, Node
         + "] @" + captureName;
     var query = new Query(language, queryString);
     var queryCursor = new QueryCursor(query);
-    var stream = queryCursor.findMatches(startNodeUnwrapped);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
     return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSupertypeTransitiveIndirect2::fromNodeThrowing).onClose(() -> {
           queryCursor.close();
           query.close();
         });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeSupertypeTransitiveIndirect2.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  static Stream<NodeSupertypeTransitiveIndirect2> findNodes(TypedNode startNode,
+      SegmentAllocator allocator) {
+    return findNodesImpl(startNode, allocator);
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
+   * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeSupertypeTransitiveIndirect2.findNodes(start)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   */
+  static Stream<NodeSupertypeTransitiveIndirect2> findNodes(TypedNode startNode) {
+    return findNodesImpl(startNode, null);
   }
 }
 

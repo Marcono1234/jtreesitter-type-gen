@@ -13,6 +13,7 @@ import org.jspecify.annotations.Nullable;
 import javax.lang.model.element.Modifier;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 @SuppressWarnings({"CodeBlock2Expr", "Convert2MethodRef"}) // Suppress IntelliJ warnings for rewriting lambda expressions
@@ -274,15 +275,9 @@ public class CodeGenHelper {
         }
 
         /**
-         * Generates the {@link #methodFindNodes()} implementation, which is a method that starts at
-         * a given node and returns a stream of found {@code nodeClass} sub nodes.
-         *
-         * @param nodeClass
-         *      whose node instances should be returned
-         * @param nodeTypeConstants
-         *      the Java fields storing the node type names for all implementations of {@code nodeClass}
+         * Generates the actual implementation of {@link #generateMethodFindNodes}.
          */
-        public MethodSpec generateMethodFindNodes(ClassName nodeClass, List<JavaFieldRef> nodeTypeConstants) {
+        private MethodSpec generateMethodFindNodesImpl(String implMethodName, ClassName nodeClass, List<JavaFieldRef> nodeTypeConstants) {
             var jtreesitter = codeGenHelper.jtreesitterConfig();
 
             String captureNameVar = "captureName";
@@ -309,33 +304,19 @@ public class CodeGenHelper {
             queryStringCode.add(" @\" + $N", captureNameVar);
 
             String startNodeParam = "startNode";
+            String allocatorParam = "allocator";
             String startNodeUnwrappedVar = "startNodeUnwrapped";
             String languageVar = "language";
             String queryVar = "query";
             String queryCursorVar = "queryCursor";
             String resultStreamVar = "stream";
-            return MethodSpec.methodBuilder(methodFindNodes())
-                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+            return MethodSpec.methodBuilder(implMethodName)
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                 // Use TypedNode instead of jtreesitter Node as parameter to make sure node (and its language)
                 // actually belongs to generated code
                 .addParameter(className(), startNodeParam)
+                .addParameter(codeGenHelper.ffmApiConfig().classSegmentAllocator(), allocatorParam)
                 .returns(ParameterizedTypeName.get(ClassName.get(Stream.class), nodeClass))
-                .addJavadoc("Gets all nodes of this type, starting at the given node.")
-                .addJavadoc("\n\n<p><b>Important:</b> The {@code Stream} must be closed to release resources.")
-                .addJavadoc("\nIt is recommended to use a try-with-resources statement.")
-                // The nodes are allocated with the Arena of the Query, so they cannot / should not be used anymore after the Query was closed
-                // Due to that also cannot provide a convenience method which returns for example a `List<TypedNode>`
-                // TODO: Similar to https://github.com/tree-sitter/java-tree-sitter/issues/57, maybe jtreesitter could offer
-                //   specifying custom Arena?
-                .addJavadoc("\nAfter the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,")
-                .addJavadoc("\nincluding exceptions being thrown or possibly even a JVM crash.")
-                .addJavadoc("\n\n<h4>Example</h4>")
-                .addJavadoc("\n{@snippet lang=java :")
-                .addJavadoc("\ntry (var nodes = $T.$N(start)) {", nodeClass, methodFindNodes())
-                .addJavadoc("\n  List<String> texts = nodes.map(n -> n.$N()).toList();", codeGenHelper.jtreesitterConfig().node().methodGetText())
-                .addJavadoc("\n  ...")
-                .addJavadoc("\n}")
-                .addJavadoc("\n}")
                 // First create the Query
                 .addStatement("var $N = $N.$N()", startNodeUnwrappedVar, startNodeParam, methodGetNode())
                 .addStatement("var $N = $N.$N().$N()", languageVar, startNodeUnwrappedVar, jtreesitter.node().methodGetTree(), jtreesitter.tree().methodGetLanguage())
@@ -345,7 +326,14 @@ public class CodeGenHelper {
                 .addStatement("var $N = new $T($N, $N)", queryVar, jtreesitter.query().className(), languageVar, queryStringVar)
                 .addStatement("var $N = new $T($N)", queryCursorVar, jtreesitter.queryCursor().className(), queryVar)
                 // Run the query
-                .addStatement("var $N = $N.$N($N)", resultStreamVar, queryCursorVar, jtreesitter.queryCursor().methodFindMatches(), startNodeUnwrappedVar)
+                .addStatement(CodeBlock.builder()
+                    .add("var $N = $N == null ?$W", resultStreamVar, allocatorParam)
+                    // Variant without allocator
+                    .add("$N.$N($N)$W", queryCursorVar, jtreesitter.queryCursor().methodFindMatches(), startNodeUnwrappedVar)
+                    // Variant with allocator (and with default `Options`, unfortunately there is no overload without it)
+                    .add(": $N.$N($N, $N, new $T(($T<$T>) null))", queryCursorVar, jtreesitter.queryCursor().methodFindMatches(), startNodeUnwrappedVar, allocatorParam, jtreesitter.queryCursor().classNameOptions(), Predicate.class, jtreesitter.queryCursor().classNameState())
+                    .build()
+                )
                 // Convert the captured nodes
                 .addStatement(CodeBlock.builder()
                     .add("return $N.flatMap(m -> m.$N($N).stream())", resultStreamVar, jtreesitter.queryMatch().methodFindNodes(), captureNameVar)
@@ -359,6 +347,80 @@ public class CodeGenHelper {
                     .build()
                 )
                 .build();
+        }
+
+        /**
+         * Used by {@link #generateMethodsFindNodes} to generate a {@code public} {@code findNodes} method.
+         *
+         * @param methodName name of the method to generate
+         * @param implMethodName name of the implementation method to which the method should delegate
+         * @param nodeClass type of the method result nodes
+         * @param hasAllocatorParam whether the method should have an 'allocator' parameter
+         */
+        private MethodSpec generateMethodFindNodes(String methodName, String implMethodName, ClassName nodeClass, boolean hasAllocatorParam) {
+            var startNodeParam = ParameterSpec.builder(className(), "startNode").build();
+            var allocatorParam = ParameterSpec.builder(codeGenHelper.ffmApiConfig().classSegmentAllocator(), "allocator")
+                .addJavadoc("allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed")
+                .build();
+
+            var methodBuilder = MethodSpec.methodBuilder(methodName)
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .addParameter(startNodeParam);
+
+            if (hasAllocatorParam) {
+                methodBuilder.addParameter(allocatorParam);
+            }
+
+            methodBuilder
+                .returns(ParameterizedTypeName.get(ClassName.get(Stream.class), nodeClass))
+                .addJavadoc("Gets all nodes of this type, starting at the given node.")
+                .addJavadoc("\n\n<p><b>Important:</b> The {@code Stream} must be closed to release resources.")
+                .addJavadoc("\nIt is recommended to use a try-with-resources statement.");
+
+            if (!hasAllocatorParam) {
+                methodBuilder
+                    // The nodes are allocated with the Arena of the Query, so they cannot / should not be used anymore after the Query was closed
+                    .addJavadoc("\nAfter the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,")
+                    .addJavadoc("\nincluding exceptions being thrown or possibly even a JVM crash.")
+                    // Add link to overload with custom 'allocator' parameter
+                    .addJavadoc("\nUse {@link #$N($T, $T)} to be able to access the nodes after the stream was closed.", methodName, startNodeParam.type(), allocatorParam.type());
+            }
+
+            methodBuilder
+                .addJavadoc("\n\n<h4>Example</h4>")
+                .addJavadoc("\n{@snippet lang=java :")
+                .addJavadoc("\ntry (var nodes = $T.$N(start" + (hasAllocatorParam ? ", allocator" : "") + ")) {", nodeClass, methodName)
+                .addJavadoc("\n  List<String> texts = nodes.map(n -> n.$N()).toList();", codeGenHelper.jtreesitterConfig().node().methodGetText())
+                .addJavadoc("\n  ...")
+                .addJavadoc("\n}")
+                .addJavadoc("\n}");
+
+            if (hasAllocatorParam) {
+                methodBuilder.addStatement("return $N($N, $N)", implMethodName, startNodeParam, allocatorParam);
+            } else {
+                methodBuilder.addStatement("return $N($N, null)", implMethodName, startNodeParam);
+            }
+
+            return methodBuilder.build();
+        }
+
+        /**
+         * Generates the {@link #methodFindNodes()} methods, which start at a given node and return a stream of
+         * found {@code nodeClass} sub nodes.
+         *
+         * @param nodeClass
+         *      whose node instances should be returned
+         * @param nodeTypeConstants
+         *      the Java fields storing the node type names for all implementations of {@code nodeClass}
+         */
+        public List<MethodSpec> generateMethodsFindNodes(ClassName nodeClass, List<JavaFieldRef> nodeTypeConstants) {
+            String methodName = methodFindNodes();
+            String implMethodName = methodName + "Impl";
+            return List.of(
+                generateMethodFindNodesImpl(implMethodName, nodeClass, nodeTypeConstants),
+                generateMethodFindNodes(methodName, implMethodName, nodeClass, true),
+                generateMethodFindNodes(methodName, implMethodName, nodeClass, false)
+            );
         }
 
         public static TypedNodeConfig createDefault(CodeGenHelper codeGenHelper) {
@@ -549,14 +611,25 @@ public class CodeGenHelper {
             );
         }
 
-        /** jtreesitter {@code QueryCursor} */
+        /**
+         * jtreesitter {@code QueryCursor}
+         *
+         * @param classNameOptions nested class {@code Options}
+         * @param classNameState nested class {@code State}
+         */
         public record QueryCursor(
             ClassName className,
-            String methodFindMatches
+            String methodFindMatches,
+            ClassName classNameOptions,
+            ClassName classNameState
         ) {
+            private static final ClassName className_ = ClassName.get("io.github.treesitter.jtreesitter", "QueryCursor");
+
             public static final QueryCursor DEFAULT = new QueryCursor(
-                ClassName.get("io.github.treesitter.jtreesitter", "QueryCursor"),
-                "findMatches"
+                className_,
+                "findMatches",
+                className_.nestedClass("Options"),
+                className_.nestedClass("State")
             );
         }
 
@@ -634,6 +707,21 @@ public class CodeGenHelper {
 
     public JTreestitterConfig jtreesitterConfig() {
         return JTreestitterConfig.DEFAULT;
+    }
+
+    /**
+     * Config for the Java FFM API (package {@code java.lang.foreign}).
+     */
+    // Note: This config class exists because this project is currently built with JDK 21 but the FFM API classes only became stable in JDK 22
+    // TODO: Remove once this project is built with JDK > 21
+    private record FFMApiConfig(
+        ClassName classSegmentAllocator
+    ) {
+        public static final FFMApiConfig DEFAULT = new FFMApiConfig(ClassName.get("java.lang.foreign", "SegmentAllocator"));
+    }
+
+    private FFMApiConfig ffmApiConfig() {
+        return FFMApiConfig.DEFAULT;
     }
 
     // TODO: Make the following methods non-static to allow customizing them in the future?

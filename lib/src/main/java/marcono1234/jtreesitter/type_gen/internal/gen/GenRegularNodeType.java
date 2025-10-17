@@ -290,7 +290,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
         }
 
         var ownClassName = createJavaTypeName(codeGenHelper);
-        typeBuilder.addMethod(typedNode.generateMethodFindNodes(ownClassName, List.of(new JavaFieldRef(ownClassName, typeNameConstant))));
+        typeBuilder.addMethods(typedNode.generateMethodsFindNodes(ownClassName, List.of(new JavaFieldRef(ownClassName, typeNameConstant))));
 
         generateOverriddenObjectMethods(typeBuilder, codeGenHelper, nodeField);
         javaTypes.add(typeBuilder);

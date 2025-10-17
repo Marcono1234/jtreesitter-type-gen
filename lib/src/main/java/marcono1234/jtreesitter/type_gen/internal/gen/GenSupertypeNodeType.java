@@ -191,7 +191,7 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
         );
     }
 
-    private MethodSpec generateMethodFindNodes(CodeGenHelper codeGenHelper) {
+    private List<MethodSpec> generateMethodsFindNodes(CodeGenHelper codeGenHelper) {
         var ownClassName = createJavaTypeName(codeGenHelper);
 
         // Explicitly use the type names of all (transitive) subtypes, because even if tree-sitter query supported
@@ -200,7 +200,7 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
         var allSubtypeFields = getAllSubtypeClasses().stream()
             .map(c -> new JavaFieldRef(c.createJavaTypeName(codeGenHelper), c.getTypeNameConstant()))
             .toList();
-        return codeGenHelper.typedNodeConfig().generateMethodFindNodes(ownClassName, allSubtypeFields);
+        return codeGenHelper.typedNodeConfig().generateMethodsFindNodes(ownClassName, allSubtypeFields);
     }
 
     @Override
@@ -231,7 +231,7 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
         typeBuilder.addMethod(generateMethodFromNode(codeGenHelper));
         typeBuilder.addMethod(generateMethodFromNodeThrowing(codeGenHelper));
 
-        typeBuilder.addMethod(generateMethodFindNodes(codeGenHelper));
+        typeBuilder.addMethods(generateMethodsFindNodes(codeGenHelper));
 
         return List.of(codeGenHelper.createOwnJavaFileBuilder(typeBuilder).build());
     }

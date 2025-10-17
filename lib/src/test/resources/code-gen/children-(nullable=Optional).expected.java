@@ -312,8 +312,10 @@ import java.lang.Long;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 
@@ -381,6 +383,42 @@ public final class NodeContained implements TypedNode {
     return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
   }
 
+  private static Stream<NodeContained> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
+    var startNodeUnwrapped = startNode.getNode();
+    var language = startNodeUnwrapped.getTree().getLanguage();
+    // tree-sitter query which matches the nodes of this type, and captures them
+    var captureName = "node";
+    var queryString = "(" + NodeContained.TYPE_NAME + ") @" + captureName;
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContained::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeContained.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  public static Stream<NodeContained> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    return findNodesImpl(startNode, allocator);
+  }
+
   /**
    * Gets all nodes of this type, starting at the given node.
    *
@@ -388,6 +426,7 @@ public final class NodeContained implements TypedNode {
    * It is recommended to use a try-with-resources statement.
    * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
    * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
    *
    * <h4>Example</h4>
    * {@snippet lang=java :
@@ -398,18 +437,7 @@ public final class NodeContained implements TypedNode {
    * }
    */
   public static Stream<NodeContained> findNodes(TypedNode startNode) {
-    var startNodeUnwrapped = startNode.getNode();
-    var language = startNodeUnwrapped.getTree().getLanguage();
-    // tree-sitter query which matches the nodes of this type, and captures them
-    var captureName = "node";
-    var queryString = "(" + NodeContained.TYPE_NAME + ") @" + captureName;
-    var query = new Query(language, queryString);
-    var queryCursor = new QueryCursor(query);
-    var stream = queryCursor.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContained::fromNodeThrowing).onClose(() -> {
-          queryCursor.close();
-          query.close();
-        });
+    return findNodesImpl(startNode, null);
   }
 
   @Override
@@ -444,9 +472,11 @@ import java.lang.Long;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 
@@ -530,6 +560,43 @@ public final class NodeSingleOptional implements TypedNode {
     return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
   }
 
+  private static Stream<NodeSingleOptional> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
+    var startNodeUnwrapped = startNode.getNode();
+    var language = startNodeUnwrapped.getTree().getLanguage();
+    // tree-sitter query which matches the nodes of this type, and captures them
+    var captureName = "node";
+    var queryString = "(" + NodeSingleOptional.TYPE_NAME + ") @" + captureName;
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSingleOptional::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeSingleOptional.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  public static Stream<NodeSingleOptional> findNodes(TypedNode startNode,
+      SegmentAllocator allocator) {
+    return findNodesImpl(startNode, allocator);
+  }
+
   /**
    * Gets all nodes of this type, starting at the given node.
    *
@@ -537,6 +604,7 @@ public final class NodeSingleOptional implements TypedNode {
    * It is recommended to use a try-with-resources statement.
    * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
    * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
    *
    * <h4>Example</h4>
    * {@snippet lang=java :
@@ -547,18 +615,7 @@ public final class NodeSingleOptional implements TypedNode {
    * }
    */
   public static Stream<NodeSingleOptional> findNodes(TypedNode startNode) {
-    var startNodeUnwrapped = startNode.getNode();
-    var language = startNodeUnwrapped.getTree().getLanguage();
-    // tree-sitter query which matches the nodes of this type, and captures them
-    var captureName = "node";
-    var queryString = "(" + NodeSingleOptional.TYPE_NAME + ") @" + captureName;
-    var query = new Query(language, queryString);
-    var queryCursor = new QueryCursor(query);
-    var stream = queryCursor.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSingleOptional::fromNodeThrowing).onClose(() -> {
-          queryCursor.close();
-          query.close();
-        });
+    return findNodesImpl(startNode, null);
   }
 
   @Override
@@ -593,9 +650,11 @@ import java.lang.Long;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 
@@ -679,6 +738,43 @@ public final class NodeSingleRequired implements TypedNode {
     return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
   }
 
+  private static Stream<NodeSingleRequired> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
+    var startNodeUnwrapped = startNode.getNode();
+    var language = startNodeUnwrapped.getTree().getLanguage();
+    // tree-sitter query which matches the nodes of this type, and captures them
+    var captureName = "node";
+    var queryString = "(" + NodeSingleRequired.TYPE_NAME + ") @" + captureName;
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSingleRequired::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeSingleRequired.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  public static Stream<NodeSingleRequired> findNodes(TypedNode startNode,
+      SegmentAllocator allocator) {
+    return findNodesImpl(startNode, allocator);
+  }
+
   /**
    * Gets all nodes of this type, starting at the given node.
    *
@@ -686,6 +782,7 @@ public final class NodeSingleRequired implements TypedNode {
    * It is recommended to use a try-with-resources statement.
    * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
    * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
    *
    * <h4>Example</h4>
    * {@snippet lang=java :
@@ -696,18 +793,7 @@ public final class NodeSingleRequired implements TypedNode {
    * }
    */
   public static Stream<NodeSingleRequired> findNodes(TypedNode startNode) {
-    var startNodeUnwrapped = startNode.getNode();
-    var language = startNodeUnwrapped.getTree().getLanguage();
-    // tree-sitter query which matches the nodes of this type, and captures them
-    var captureName = "node";
-    var queryString = "(" + NodeSingleRequired.TYPE_NAME + ") @" + captureName;
-    var query = new Query(language, queryString);
-    var queryCursor = new QueryCursor(query);
-    var stream = queryCursor.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSingleRequired::fromNodeThrowing).onClose(() -> {
-          queryCursor.close();
-          query.close();
-        });
+    return findNodesImpl(startNode, null);
   }
 
   @Override
@@ -742,9 +828,11 @@ import java.lang.Long;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 
@@ -828,6 +916,43 @@ public final class NodeMultipleOptional implements TypedNode {
     return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
   }
 
+  private static Stream<NodeMultipleOptional> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
+    var startNodeUnwrapped = startNode.getNode();
+    var language = startNodeUnwrapped.getTree().getLanguage();
+    // tree-sitter query which matches the nodes of this type, and captures them
+    var captureName = "node";
+    var queryString = "(" + NodeMultipleOptional.TYPE_NAME + ") @" + captureName;
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeMultipleOptional::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeMultipleOptional.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  public static Stream<NodeMultipleOptional> findNodes(TypedNode startNode,
+      SegmentAllocator allocator) {
+    return findNodesImpl(startNode, allocator);
+  }
+
   /**
    * Gets all nodes of this type, starting at the given node.
    *
@@ -835,6 +960,7 @@ public final class NodeMultipleOptional implements TypedNode {
    * It is recommended to use a try-with-resources statement.
    * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
    * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
    *
    * <h4>Example</h4>
    * {@snippet lang=java :
@@ -845,18 +971,7 @@ public final class NodeMultipleOptional implements TypedNode {
    * }
    */
   public static Stream<NodeMultipleOptional> findNodes(TypedNode startNode) {
-    var startNodeUnwrapped = startNode.getNode();
-    var language = startNodeUnwrapped.getTree().getLanguage();
-    // tree-sitter query which matches the nodes of this type, and captures them
-    var captureName = "node";
-    var queryString = "(" + NodeMultipleOptional.TYPE_NAME + ") @" + captureName;
-    var query = new Query(language, queryString);
-    var queryCursor = new QueryCursor(query);
-    var stream = queryCursor.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeMultipleOptional::fromNodeThrowing).onClose(() -> {
-          queryCursor.close();
-          query.close();
-        });
+    return findNodesImpl(startNode, null);
   }
 
   @Override
@@ -891,9 +1006,11 @@ import java.lang.Long;
 import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 
@@ -977,6 +1094,43 @@ public final class NodeMultipleRequired implements TypedNode {
     return NodeUtils.getNonFieldChildren(this.node, fieldNames, false).stream().map(n -> n.getType()).toList();
   }
 
+  private static Stream<NodeMultipleRequired> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
+    var startNodeUnwrapped = startNode.getNode();
+    var language = startNodeUnwrapped.getTree().getLanguage();
+    // tree-sitter query which matches the nodes of this type, and captures them
+    var captureName = "node";
+    var queryString = "(" + NodeMultipleRequired.TYPE_NAME + ") @" + captureName;
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeMultipleRequired::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeMultipleRequired.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  public static Stream<NodeMultipleRequired> findNodes(TypedNode startNode,
+      SegmentAllocator allocator) {
+    return findNodesImpl(startNode, allocator);
+  }
+
   /**
    * Gets all nodes of this type, starting at the given node.
    *
@@ -984,6 +1138,7 @@ public final class NodeMultipleRequired implements TypedNode {
    * It is recommended to use a try-with-resources statement.
    * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
    * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
    *
    * <h4>Example</h4>
    * {@snippet lang=java :
@@ -994,18 +1149,7 @@ public final class NodeMultipleRequired implements TypedNode {
    * }
    */
   public static Stream<NodeMultipleRequired> findNodes(TypedNode startNode) {
-    var startNodeUnwrapped = startNode.getNode();
-    var language = startNodeUnwrapped.getTree().getLanguage();
-    // tree-sitter query which matches the nodes of this type, and captures them
-    var captureName = "node";
-    var queryString = "(" + NodeMultipleRequired.TYPE_NAME + ") @" + captureName;
-    var query = new Query(language, queryString);
-    var queryCursor = new QueryCursor(query);
-    var stream = queryCursor.findMatches(startNodeUnwrapped);
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeMultipleRequired::fromNodeThrowing).onClose(() -> {
-          queryCursor.close();
-          query.close();
-        });
+    return findNodesImpl(startNode, null);
   }
 
   @Override

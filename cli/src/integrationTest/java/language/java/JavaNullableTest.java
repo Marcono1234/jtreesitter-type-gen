@@ -4,6 +4,7 @@ import com.example.java.*;
 import language.AbstractTypedTreeTest;
 import org.junit.jupiter.api.Test;
 
+import java.lang.foreign.Arena;
 import java.util.List;
 import java.util.function.Function;
 
@@ -175,6 +176,24 @@ class JavaNullableTest extends AbstractTypedTreeTest {
             // Tests supertype `NodeLiteral`
             try (var nodes = NodeLiteral.findNodes(tree.getRootNode())) {
                 assertEquals(List.of("123", "456", "true"), nodes.map(NodeLiteral::getText).toList());
+            }
+
+
+            // Tests using a custom allocator
+            try (var arena = Arena.ofConfined()) {
+                List<NodeDecimalIntegerLiteral> nodesList;
+                try (var nodes = NodeDecimalIntegerLiteral.findNodes(tree.getRootNode(), arena)) {
+                    nodesList = nodes.toList();
+                }
+
+                List<String> foundInts = nodesList.stream().map(NodeDecimalIntegerLiteral::getText).toList();
+                assertEquals(List.of("123", "456"), foundInts);
+
+                // Should still be able to use nodes and navigate tree, despite the stream having been closed already
+                nodesList.stream().map(NodeDecimalIntegerLiteral::getNode).forEach(node -> {
+                    var parent = node.getParent().orElseThrow();
+                    assertTrue(parent.getChildren().contains(node));
+                });
             }
         }
     }

@@ -6,6 +6,7 @@ import io.github.treesitter.jtreesitter.Range;
 import language.AbstractTypedTreeTest;
 import org.junit.jupiter.api.Test;
 
+import java.lang.foreign.Arena;
 import java.util.List;
 import java.util.function.Function;
 
@@ -154,6 +155,30 @@ class JsonNullableTest extends AbstractTypedTreeTest {
                 List<String> foundValues = nodes.map(NodeValue::getText).toList();
                 assertEquals(List.of(source, "\"a\"", "1"), foundValues);
             }
+        }
+
+
+        // Tests using a custom allocator
+        source = "[1, 2, 3]";
+        try (
+            var tree = TypedTree.fromTree(parse(source));
+            var arena = Arena.ofConfined()
+        ) {
+            assertFalse(tree.hasError());
+
+            List<NodeNumber> nodesList;
+            try (var nodes = NodeNumber.findNodes(tree.getRootNode(), arena)) {
+                nodesList = nodes.toList();
+            }
+
+            List<String> foundValues = nodesList.stream().map(NodeNumber::getText).toList();
+            assertEquals(List.of("1", "2", "3"), foundValues);
+
+            // Should still be able to use nodes and navigate tree, despite the stream having been closed already
+            nodesList.stream().map(NodeNumber::getNode).forEach(node -> {
+                var parent = node.getParent().orElseThrow();
+                assertTrue(parent.getChildren().contains(node));
+            });
         }
     }
 
