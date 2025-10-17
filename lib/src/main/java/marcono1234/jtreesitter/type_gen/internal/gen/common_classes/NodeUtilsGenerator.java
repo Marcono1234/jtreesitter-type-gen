@@ -106,63 +106,6 @@ public class NodeUtilsGenerator {
             .build();
     }
 
-    // TODO: This generated mapping method is not actually used anymore; see also (non-existent) callers
-    //   of `NodeUtilsConfig#methodMapChildren()`
-    /**
-     * Internal implementation for {@link #generateMapChildrenMethods(TypeSpec.Builder)}.
-     */
-    private void generateMapChildrenMethods(TypeSpec.Builder typeBuilder, Function<TypeVariableName, ParameterSpec> mapperParamSupplier, String mapperCode, List<Object> mapperArgs) {
-        var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
-        var nodeUtils = codeGenHelper.nodeUtilsConfig();
-        String methodName = nodeUtils.methodMapChildren();
-
-        String childrenVar = "children";
-
-        var resultTypeVar = TypeVariableName.get("T", codeGenHelper.typedNodeConfig().className());
-
-        var allMappingStmtArgs = new ArrayList<>(mapperArgs);
-        allMappingStmtArgs.addFirst(childrenVar);
-
-        var method = MethodSpec.methodBuilder(methodName)
-            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-            .addTypeVariable(resultTypeVar)
-            .addParameter(listType(jtreesitterNode.className()), childrenVar)
-            .addParameter(mapperParamSupplier.apply(resultTypeVar))
-            .returns(listType(resultTypeVar))
-            .addStatement(String.format(Locale.ROOT, "return $N.stream().map(%s).toList()", mapperCode), allMappingStmtArgs.toArray())
-            .build();
-        typeBuilder.addMethod(method);
-    }
-
-    /**
-     * Generates mapping methods for {@code List<Node> -> List<T extends TypedNode>} for children which
-     * are only named node types.
-     */
-    private void generateMapChildrenMethods(TypeSpec.Builder typeBuilder) {
-        var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
-        var nodeUtils = codeGenHelper.nodeUtilsConfig();
-
-        // Overload with dedicated mapper `Function<Node, T extends TypedNode>`
-        String mapperParamName = "mapper";
-        generateMapChildrenMethods(
-            typeBuilder,
-            typeVar -> ParameterSpec.builder(ParameterizedTypeName.get(ClassName.get(Function.class), jtreesitterNode.className(), typeVar), mapperParamName).build(),
-            // Just provide the Function to map: `map(mapper)`
-            "$N",
-            List.of(mapperParamName)
-        );
-
-        // Overload with `Class<T extends TypedNode>`, which performs `Node -> TypedNode` lookup and then verifies
-        // that typed node is instance of `T` using the given `Class` object
-        String classParamName = "nodeClass";
-        generateMapChildrenMethods(
-            typeBuilder,
-            typeVar -> ParameterSpec.builder(ParameterizedTypeName.get(ClassName.get(Class.class), typeVar), classParamName).build(),
-            "n -> $N(n, $N)",
-            List.of(nodeUtils.methodFromNodeThrowing(), classParamName)
-        );
-    }
-
     /**
      * Internal implementation for {@link #generateMapChildrenNamedNonNamedMethods(TypeSpec.Builder)}.
      */
@@ -343,7 +286,6 @@ public class NodeUtilsGenerator {
 
         typeBuilder.addMethod(generateFromNodeThrowingMethod());
         typeBuilder.addMethod(generateGetNonFieldChildrenMethod());
-        generateMapChildrenMethods(typeBuilder);
         generateMapChildrenNamedNonNamedMethods(typeBuilder);
 
         generateNodeListConverterMethods(typeBuilder);

@@ -63,15 +63,6 @@ final class NodeUtils {
     return children;
   }
 
-  public static <T extends TypedNode> List<T> mapChildren(List<Node> children,
-      Function<Node, T> mapper) {
-    return children.stream().map(mapper).toList();
-  }
-
-  public static <T extends TypedNode> List<T> mapChildren(List<Node> children, Class<T> nodeClass) {
-    return children.stream().map(n -> fromNodeThrowing(n, nodeClass)).toList();
-  }
-
   /**
    * Maps the children of a node (in the form of jtreesitter nodes) to typed nodes.
    * This differentiates between named and non-named children, since separate typed node classes are used for them.

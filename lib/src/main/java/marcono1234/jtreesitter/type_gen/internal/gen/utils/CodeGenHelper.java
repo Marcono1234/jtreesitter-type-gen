@@ -467,7 +467,7 @@ public class CodeGenHelper {
         String name,
         String methodFromNodeThrowing,
         String methodGetNonFieldChildren,
-        String methodMapChildren, String methodMapChildrenNamedNonNamed,
+        String methodMapChildrenNamedNonNamed,
         // Methods for converting List<TypedNode> to TypedNode / Optional<TypedNode> or @NonEmpty List<TypedNode>
         String methodOptionalChild, String methodRequiredChild, String methodAtLeastOneChild
     ) {
@@ -481,7 +481,7 @@ public class CodeGenHelper {
                 "NodeUtils",
                 "fromNodeThrowing",
                 "getNonFieldChildren",
-                "mapChildren", "mapChildren",
+                "mapChildren",
                 "optionalSingleChild", "requiredSingleChild", "atLeastOneChild"
             );
         }
