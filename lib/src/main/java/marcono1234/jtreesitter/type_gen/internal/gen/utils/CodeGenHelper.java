@@ -29,10 +29,10 @@ public class CodeGenHelper {
     private final ClassName nonEmptyClassName;
     private final AnnotationSpec nonEmptyAnnotation;
 
-    public CodeGenHelper(CodeGenConfig config, CodeGenerator.Version versionInfo, Optional<LanguageProviderConfig> languageProviderConfig) {
+    public CodeGenHelper(CodeGenConfig config, CodeGenerator.Version versionInfo, @Nullable LanguageProviderConfig languageProviderConfig) {
         this.config = Objects.requireNonNull(config);
         this.versionInfo = Objects.requireNonNull(versionInfo);
-        this.languageProviderConfig = languageProviderConfig.orElse(null);
+        this.languageProviderConfig = languageProviderConfig;
 
         generationTime = this.config.generatedAnnotationConfig().flatMap(c -> c.generationTime()).orElseGet(Instant::now);
         nullableAnnotation = this.config.nullableAnnotationTypeName()
@@ -124,7 +124,7 @@ public class CodeGenHelper {
      * Throws an exception if {@link #generatesNumericIdConstants()} is false.
      */
     public FieldSpec createTypeIdConstantField(String typeName, String constantName) {
-        var languageUtils = languageUtilsConfig().orElseThrow();
+        var languageUtils = Objects.requireNonNull(languageUtilsConfig());
         var jtreesitterNode = jtreesitterConfig().node();
         var fieldType = jtreesitterConfig().language().numericIdType();
 
@@ -510,10 +510,15 @@ public class CodeGenHelper {
             return codeGenHelper.createOwnClassName(name);
         }
 
-        public static LanguageUtilsConfig createDefault(CodeGenHelper codeGenHelper) {
+        public static @Nullable LanguageUtilsConfig createDefault(CodeGenHelper codeGenHelper) {
+            var languageProviderConfig = codeGenHelper.languageProviderConfig;
+            if (languageProviderConfig == null) {
+                return null;
+            }
+
             return new LanguageUtilsConfig(
                 codeGenHelper,
-                codeGenHelper.languageProviderConfig,
+                languageProviderConfig,
                 "LanguageUtils",
                 "getTypeId", "getFieldId"
             );
@@ -521,17 +526,17 @@ public class CodeGenHelper {
     }
 
     /**
-     * Empty if {@code LanguageUtils} class is not being generated.
+     * {@code null} if {@code LanguageUtils} class is not being generated.
      */
-    public Optional<LanguageUtilsConfig> languageUtilsConfig() {
-        return languageProviderConfig == null ? Optional.empty() : Optional.of(LanguageUtilsConfig.createDefault(this));
+    public @Nullable LanguageUtilsConfig languageUtilsConfig() {
+        return LanguageUtilsConfig.createDefault(this);
     }
 
     /**
      * {@return whether numeric type and field ID constants are being generated}
      */
     public boolean generatesNumericIdConstants() {
-        return languageUtilsConfig().isPresent();
+        return languageUtilsConfig() != null;
     }
 
     /**

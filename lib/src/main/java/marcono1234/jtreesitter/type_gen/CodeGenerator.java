@@ -11,6 +11,7 @@ import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.*;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.NodeType;
+import org.jspecify.annotations.Nullable;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -116,12 +117,12 @@ public class CodeGenerator {
             }
         }
 
-        var nodeGens = determineGenElements(nodeTypes, languageConfig.rootNodeTypeName(), config.nameGenerator());
-        CodeGenHelper codeGenHelper = new CodeGenHelper(config, versionInfo, languageConfig.languageProviderConfig());
+        var nodeGens = determineGenElements(nodeTypes, languageConfig.rootNodeTypeName().orElse(null), config.nameGenerator());
+        CodeGenHelper codeGenHelper = new CodeGenHelper(config, versionInfo, languageConfig.languageProviderConfig().orElse(null));
 
         var languageUtilsConfig = codeGenHelper.languageUtilsConfig();
-        if (languageUtilsConfig.isPresent()) {
-            codeWriter.write(new LanguageUtilsGenerator(codeGenHelper, languageUtilsConfig.get()).generateCode());
+        if (languageUtilsConfig != null) {
+            codeWriter.write(new LanguageUtilsGenerator(codeGenHelper, languageUtilsConfig).generateCode());
         }
 
         codeWriter.write(new NodeUtilsGenerator(codeGenHelper).generateCode());
@@ -134,8 +135,8 @@ public class CodeGenerator {
             }
         }
 
-        if (nodeGens.rootNode.isPresent()) {
-            codeWriter.write(new TypedTreeClassGenerator(codeGenHelper).generateCode(nodeGens.rootNode.get()));
+        if (nodeGens.rootNode != null) {
+            codeWriter.write(new TypedTreeClassGenerator(codeGenHelper).generateCode(nodeGens.rootNode));
         }
     }
 
@@ -157,12 +158,12 @@ public class CodeGenerator {
      *      All subtypes of the generated {@code TypedNode} interface; includes {@code nodeTypes} as well as
      *      additional nested classes for example for node children
      * @param rootNode
-     *      Root node in the parse tree; one of {@code nodeTypes}; empty if root node is not specified
+     *      Root node in the parse tree; one of {@code nodeTypes}; {@code null} if root node is not specified
      */
-    private record GenElements(List<GenNodeType> nodeTypes, List<GenJavaType> typedNodeSubtypes, Optional<GenNodeType> rootNode) {
+    private record GenElements(List<GenNodeType> nodeTypes, List<GenJavaType> typedNodeSubtypes, @Nullable GenNodeType rootNode) {
     }
 
-    private GenElements determineGenElements(List<NodeType> nodeTypes, Optional<String> rootNodeTypeCustom, NameGenerator nameGenerator) throws CodeGenException {
+    private GenElements determineGenElements(List<NodeType> nodeTypes, @Nullable String rootNodeTypeCustom, NameGenerator nameGenerator) throws CodeGenException {
         Set<String> allTypeNames = new LinkedHashSet<>();
         List<NodeType> supertypes = new ArrayList<>();
 
@@ -196,7 +197,7 @@ public class CodeGenerator {
             }
 
             if (nodeType.root) {
-                if (rootNodeTypeCustom.isPresent()) {
+                if (rootNodeTypeCustom != null) {
                     throw new CodeGenException("Should not explicitly specify root node type when 'node-types.json' already specifies root node ('%s')".formatted(typeName));
                 }
                 if (rootNodeTypeJson != null) {
@@ -247,14 +248,14 @@ public class CodeGenerator {
         }
 
         var allNodeTypeGens = concat(regularNodeGens.values(), supertypeGens.values());
-        String rootNodeType = rootNodeTypeCustom.orElse(rootNodeTypeJson);
-        Optional<GenNodeType> rootNode = rootNodeType == null
-            ? Optional.empty()
-            : allNodeTypeGens.stream().filter(n -> n.getTypeName().equals(rootNodeType)).findFirst();
-        if (rootNode.isEmpty()) {
+        String rootNodeType = rootNodeTypeCustom != null ? rootNodeTypeCustom : rootNodeTypeJson;
+        GenNodeType rootNode = rootNodeType == null
+            ? null
+            : allNodeTypeGens.stream().filter(n -> n.getTypeName().equals(rootNodeType)).findFirst().orElse(null);
+        if (rootNode == null) {
             // If root node type was specified by user, verify that it was actually found
-            if (rootNodeTypeCustom.isPresent()) {
-                throw new CodeGenException("Root node type '%s' not found".formatted(rootNodeTypeCustom.get()));
+            if (rootNodeTypeCustom != null) {
+                throw new CodeGenException("Root node type '%s' not found".formatted(rootNodeTypeCustom));
             } else if (rootNodeTypeJson != null) {
                 // Should not happen since root node was specified in JSON, so type gen class should exist
                 throw new AssertionError("Failed to find type gen class for root node '%s'".formatted(rootNodeTypeJson));

@@ -11,6 +11,7 @@ import marcono1234.jtreesitter.type_gen.internal.node_types_json.ChildType;
 
 import javax.lang.model.element.Modifier;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
@@ -80,7 +81,7 @@ class GenField extends GenChildren {
         );
 
         if (codeGenHelper.generatesNumericIdConstants()) {
-            var languageUtils = codeGenHelper.languageUtilsConfig().orElseThrow();
+            var languageUtils = Objects.requireNonNull(codeGenHelper.languageUtilsConfig());
             var jtreesitter = codeGenHelper.jtreesitterConfig();
             var jtreesitterTreeCursor = jtreesitter.treeCursor();
             var fieldType = jtreesitter.language().numericIdType();
