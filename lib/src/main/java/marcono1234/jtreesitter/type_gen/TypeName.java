@@ -14,7 +14,7 @@ public record TypeName(String packageName, String name) {
      * Type name of the {@code org.jspecify.annotations.Nullable} annotation.
      */
     // Exists as constant here because jtreesitter uses this annotation, so users can benefit from it transitively
-    public static TypeName JSPECIFY_NULLABLE_ANNOTATION = TypeName.fromClass(Nullable.class);
+    public static final TypeName JSPECIFY_NULLABLE_ANNOTATION = TypeName.fromClass(Nullable.class);
 
     public TypeName {
         JavaNameValidator.checkPackageName(packageName);

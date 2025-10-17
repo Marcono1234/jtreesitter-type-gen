@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 /**
  * Tests the generated code for tree-sitter-json, with a {@link Language} instance provided by

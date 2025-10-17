@@ -1,8 +1,11 @@
+import org.jspecify.annotations.NullMarked;
+
 /**
  * Module for code generation.
  *
  * <p>The main class is {@link marcono1234.jtreesitter.type_gen.CodeGenerator}.
  */
+@NullMarked
 @SuppressWarnings({"module", "JavaModuleNaming"}) // suppress warnings about module name, see https://bugs.openjdk.org/browse/JDK-8264488
 module marcono1234.jtreesitter.type_gen {
     requires com.fasterxml.jackson.databind;

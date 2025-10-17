@@ -151,11 +151,6 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
         }
     }
 
-    @Override
-    public boolean isJavaInterface() {
-        return false;
-    }
-
     /** Generates {@code Object} methods such as {@code equals}, {@code hashCode} and {@code toString}. */
     private void generateOverriddenObjectMethods(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper, String nodeField) {
         ClassName ownClassName = createJavaTypeName(codeGenHelper);

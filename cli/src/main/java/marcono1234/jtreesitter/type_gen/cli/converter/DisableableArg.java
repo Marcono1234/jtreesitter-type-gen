@@ -1,5 +1,7 @@
 package marcono1234.jtreesitter.type_gen.cli.converter;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.Objects;
 import java.util.Optional;
 
@@ -13,10 +15,11 @@ import java.util.Optional;
  */
 public class DisableableArg<T> {
     private static final DisableableArg<Object> DISABLED = new DisableableArg<>(null);
-    
+
+    @Nullable
     private final T value;
 
-    private DisableableArg(T value) {
+    private DisableableArg(@Nullable T value) {
         this.value = value;
     }
     
@@ -28,6 +31,7 @@ public class DisableableArg<T> {
         if (isDisabled()) {
             throw new IllegalStateException("Not enabled");
         }
+        assert value != null;
         return value;
     }
 

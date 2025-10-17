@@ -235,11 +235,6 @@ sealed interface GenChildType {
             return createNestedJavaTypeName(enclosingNodeType.getJavaName(), javaName, codeGenHelper);
         }
 
-        @Override
-        public boolean isJavaInterface() {
-            return false;
-        }
-
         // Internal method name
         private static final String TOKEN_ENUM_FROM_NODE_METHOD_NAME = "fromNode";
 

@@ -13,7 +13,8 @@ import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-@SuppressWarnings("FieldMayBeFinal")
+// Suppress warnings for fields assigned using reflection by picocli
+@SuppressWarnings({"FieldMayBeFinal", "NotNullFieldNotInitialized"})
 @CommandLine.Command(
     // Replace default name "<main class>" which might be a bit irritating in usage help
     name = "",
@@ -158,6 +159,7 @@ class CommandGenerate implements Callable<Void> {
             multiplicity = "1",
             exclusive = false
         )
+        @Nullable
         private JavaxGeneratedOptions javaxGeneratedOptions;
 
         private static class JavaxGeneratedOptions {

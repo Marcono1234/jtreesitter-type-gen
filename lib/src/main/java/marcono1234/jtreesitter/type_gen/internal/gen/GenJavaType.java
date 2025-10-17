@@ -8,9 +8,4 @@ import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
  */
 public interface GenJavaType {
     ClassName createJavaTypeName(CodeGenHelper codeGenHelper);
-
-    /**
-     * Whether the generated Java type is a Java interface.
-     */
-    boolean isJavaInterface();
 }
