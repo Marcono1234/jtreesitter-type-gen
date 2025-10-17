@@ -6,7 +6,6 @@ import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
 import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -107,10 +106,10 @@ public class NodeUtilsGenerator {
     }
 
     /**
-     * Internal implementation for {@link #generateMapChildrenNamedNonNamedMethods(TypeSpec.Builder)}.
+     * Generates mapping methods for {@code List<Node> -> List<T extends TypedNode>} for children which
+     * can be named and non-named node types.
      */
-    // The `named...` parameters are for converting named children
-    private void generateMapChildrenNamedNonNamedMethods(TypeSpec.Builder typeBuilder, Function<TypeName, ParameterSpec.Builder> namedMapperParamSupplier, String namedMapperCode, List<Object> namedMapperArgs) {
+    private void generateMapChildrenNamedNonNamedMethods(TypeSpec.Builder typeBuilder) {
         var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
         var jtreesitterNodeClass = jtreesitterNode.className();
         var nodeUtils = codeGenHelper.nodeUtilsConfig();
@@ -119,14 +118,14 @@ public class NodeUtilsGenerator {
         // Mappers don't return `T` but instead `? extends T`
         var extendsResultTypeVar = WildcardTypeName.subtypeOf(resultTypeVar);
 
-        String childrenParam = "children";
+        var childrenParam = ParameterSpec.builder(listType(jtreesitterNodeClass), "children").build();
 
-        var namedMapperParam = namedMapperParamSupplier.apply(extendsResultTypeVar)
+        var mapperType = ParameterizedTypeName.get(ClassName.get(Function.class), jtreesitterNodeClass, extendsResultTypeVar);
+        var namedMapperParam = ParameterSpec.builder(mapperType, "namedMapper")
             .addJavadoc("maps named children; {@code null} if only non-named children are expected\n")  // trailing '\n' due to https://github.com/palantir/javapoet/issues/128
             .build();
 
-        var nonNamedMapperType = ParameterizedTypeName.get(ClassName.get(Function.class), jtreesitterNodeClass, extendsResultTypeVar);
-        var nonNamedMapperParam = ParameterSpec.builder(nonNamedMapperType, "nonNamedMapper")
+        var nonNamedMapperParam = ParameterSpec.builder(mapperType, "nonNamedMapper")
             .addJavadoc("maps non-named children; {@code null} if only named children are expected")
             .build();
 
@@ -137,7 +136,7 @@ public class NodeUtilsGenerator {
         var methodBuilder = MethodSpec.methodBuilder(nodeUtils.methodMapChildrenNamedNonNamed())
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .addTypeVariable(resultTypeVar)
-            .addParameter(listType(jtreesitterNodeClass), childrenParam)
+            .addParameter(childrenParam)
             // nullable
             .addParameter(namedMapperParam)
             // nullable
@@ -160,15 +159,12 @@ public class NodeUtilsGenerator {
 
         String resultChildrenVar = "result";
         Class<?> thrownExceptionType = IllegalArgumentException.class;
-        var allNamedMappingStmtArgs = new ArrayList<>(namedMapperArgs);
-        allNamedMappingStmtArgs.addFirst(namedChildrenVar);
-        allNamedMappingStmtArgs.addLast(resultChildrenVar);
         // Map named children
         methodBuilder
             .addComment("Map named children (in case they are expected)")
             .addStatement("var $N = new $T<$T>()", resultChildrenVar, ArrayList.class, resultTypeVar)
             .beginControlFlow("if ($N != null)", namedMapperParam)
-            .addStatement(String.format(Locale.ROOT, "$N.stream().map(%s).forEach($N::add)", namedMapperCode), allNamedMappingStmtArgs.toArray())
+            .addStatement("$N.stream().map($N).forEach($N::add)", namedChildrenVar, namedMapperParam, resultChildrenVar)
             .nextControlFlow("else if (!$N.isEmpty())", namedChildrenVar)
             .addStatement("throw new $T(\"Unexpected named children: \" + $N)", thrownExceptionType, namedChildrenVar)
             .endControlFlow()
@@ -184,36 +180,26 @@ public class NodeUtilsGenerator {
             .endControlFlow();
 
         methodBuilder.addStatement("return $N", resultChildrenVar);
+        var method = methodBuilder.build();
+        typeBuilder.addMethod(method);
 
-        typeBuilder.addMethod(methodBuilder.build());
-    }
 
-    /**
-     * Generates mapping methods for {@code List<Node> -> List<T extends TypedNode>} for children which
-     * can be named and non-named node types.
-     */
-    private void generateMapChildrenNamedNonNamedMethods(TypeSpec.Builder typeBuilder) {
-        var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
-        var nodeUtils = codeGenHelper.nodeUtilsConfig();
-
-        // Overload with dedicated mapper `Function<Node, T extends TypedNode>`
-        String mapperParamName = "namedMapper";
-        generateMapChildrenNamedNonNamedMethods(
-            typeBuilder,
-            typeVar -> ParameterSpec.builder(ParameterizedTypeName.get(ClassName.get(Function.class), jtreesitterNode.className(), typeVar), mapperParamName),
-            // Just provide the Function to map: `map(mapper)`
-            "$N",
-            List.of(mapperParamName)
-        );
-
-        // Overload with `Class<T extends TypedNode>`, which performs `Node -> TypedNode` lookup and then verifies
+        // Generate overload with `Class<T extends TypedNode>`, which performs `Node -> TypedNode` lookup and then verifies
         // that typed node is instance of `T` using the given `Class` object
-        String classParamName = "namedNodeClass";
-        generateMapChildrenNamedNonNamedMethods(
-            typeBuilder,
-            typeVar -> ParameterSpec.builder(ParameterizedTypeName.get(ClassName.get(Class.class), typeVar), classParamName),
-            "n -> $N(n, $N)",
-            List.of(nodeUtils.methodFromNodeThrowing(), classParamName)
+        String namedClassParam = "namedNodeClass";
+        typeBuilder.addMethod(MethodSpec.methodBuilder(method.name())
+            .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+            .addTypeVariable(resultTypeVar)
+            .addParameter(childrenParam)
+            .addParameter(ParameterSpec.builder(ParameterizedTypeName.get(ClassName.get(Class.class), extendsResultTypeVar), namedClassParam)
+                .addJavadoc("class of the named children; {@code null} if only non-named children are expected\n")  // trailing '\n' due to https://github.com/palantir/javapoet/issues/128)
+                .build()
+            )
+            .addParameter(nonNamedMapperParam)
+            .returns(listType(resultTypeVar))
+            // Delegate to other overload
+            .addStatement("return $N($N, n -> $N(n, $N), $N)", method.name(), childrenParam, nodeUtils.methodFromNodeThrowing(), namedClassParam, nonNamedMapperParam)
+            .build()
         );
     }
 

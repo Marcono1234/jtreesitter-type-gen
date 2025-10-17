@@ -96,37 +96,12 @@ final class NodeUtils {
   }
 
   /**
-   * Maps the children of a node (in the form of jtreesitter nodes) to typed nodes.
-   * This differentiates between named and non-named children, since separate typed node classes are used for them.
-   * @param namedNodeClass maps named children; {@code null} if only non-named children are expected
+   * @param namedNodeClass class of the named children; {@code null} if only non-named children are expected
    * @param nonNamedMapper maps non-named children; {@code null} if only named children are expected
    */
   public static <T extends TypedNode> List<T> mapChildren(List<Node> children,
       Class<? extends T> namedNodeClass, Function<Node, ? extends T> nonNamedMapper) {
-    // First split between named and non-named children
-    var namedChildren = new ArrayList<Node>();
-    var nonNamedChildren = new ArrayList<Node>();
-    for (var child : children) {
-      if (child.isNamed()) {
-        namedChildren.add(child);
-      } else {
-        nonNamedChildren.add(child);
-      }
-    }
-    // Map named children (in case they are expected)
-    var result = new ArrayList<T>();
-    if (namedNodeClass != null) {
-      namedChildren.stream().map(n -> fromNodeThrowing(n, namedNodeClass)).forEach(result::add);
-    } else if (!namedChildren.isEmpty()) {
-      throw new IllegalArgumentException("Unexpected named children: " + namedChildren);
-    }
-    // Map non-named children (in case they are expected)
-    if (nonNamedMapper != null) {
-      nonNamedChildren.stream().map(nonNamedMapper).forEach(result::add);
-    } else if (!nonNamedChildren.isEmpty()) {
-      throw new IllegalArgumentException("Unexpected non-named children: " + nonNamedChildren);
-    }
-    return result;
+    return mapChildren(children, n -> fromNodeThrowing(n, namedNodeClass), nonNamedMapper);
   }
 
   public static <T extends TypedNode> T requiredSingleChild(List<T> nodes) {

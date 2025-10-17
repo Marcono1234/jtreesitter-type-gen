@@ -80,6 +80,28 @@
             "named": false
           }
         ]
+      },
+      "mixed_multi_named_non_named": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "contained_a",
+            "named": true
+          },
+          {
+            "type": "contained_b",
+            "named": true
+          },
+          {
+            "type": "+",
+            "named": false
+          },
+          {
+            "type": "-",
+            "named": false
+          }
+        ]
       }
     }
   },

@@ -98,37 +98,12 @@ final class NodeUtils {
   }
 
   /**
-   * Maps the children of a node (in the form of jtreesitter nodes) to typed nodes.
-   * This differentiates between named and non-named children, since separate typed node classes are used for them.
-   * @param namedNodeClass maps named children; {@code null} if only non-named children are expected
+   * @param namedNodeClass class of the named children; {@code null} if only non-named children are expected
    * @param nonNamedMapper maps non-named children; {@code null} if only named children are expected
    */
   public static <T extends TypedNode> List<T> mapChildren(List<Node> children,
       Class<? extends T> namedNodeClass, Function<Node, ? extends T> nonNamedMapper) {
-    // First split between named and non-named children
-    var namedChildren = new ArrayList<Node>();
-    var nonNamedChildren = new ArrayList<Node>();
-    for (var child : children) {
-      if (child.isNamed()) {
-        namedChildren.add(child);
-      } else {
-        nonNamedChildren.add(child);
-      }
-    }
-    // Map named children (in case they are expected)
-    var result = new ArrayList<T>();
-    if (namedNodeClass != null) {
-      namedChildren.stream().map(n -> fromNodeThrowing(n, namedNodeClass)).forEach(result::add);
-    } else if (!namedChildren.isEmpty()) {
-      throw new IllegalArgumentException("Unexpected named children: " + namedChildren);
-    }
-    // Map non-named children (in case they are expected)
-    if (nonNamedMapper != null) {
-      nonNamedChildren.stream().map(nonNamedMapper).forEach(result::add);
-    } else if (!nonNamedChildren.isEmpty()) {
-      throw new IllegalArgumentException("Unexpected non-named children: " + nonNamedChildren);
-    }
-    return result;
+    return mapChildren(children, n -> fromNodeThrowing(n, namedNodeClass), nonNamedMapper);
   }
 
   public static <T extends TypedNode> T requiredSingleChild(List<T> nodes) {
@@ -191,7 +166,7 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public sealed interface TypedNode permits NodeContainedA, NodeContainedB, NodeRoot, NodeFieldOfEachOtherA, NodeFieldOfEachOtherB, NodeFieldOfEachOtherWithTokenA, NodeFieldOfEachOtherWithTokenB, NodeRoot.MultiTypeNamedType, NodeRoot.SingleTypeNonNamedTokenType, NodeRoot.MultiTypeNonNamedTokenType, NodeRoot.MixedNamedNonNamedType, NodeFieldOfEachOtherA$FType, NodeFieldOfEachOtherB$FType, NodeFieldOfEachOtherWithTokenA$FType, NodeFieldOfEachOtherWithTokenB$FType {
+public sealed interface TypedNode permits NodeContainedA, NodeContainedB, NodeRoot, NodeFieldOfEachOtherA, NodeFieldOfEachOtherB, NodeFieldOfEachOtherWithTokenA, NodeFieldOfEachOtherWithTokenB, NodeRoot.MultiTypeNamedType, NodeRoot.SingleTypeNonNamedTokenType, NodeRoot.MultiTypeNonNamedTokenType, NodeRoot.MixedNamedNonNamedType, NodeRoot.MixedMultiNamedNonNamedType, NodeFieldOfEachOtherA$FType, NodeFieldOfEachOtherB$FType, NodeFieldOfEachOtherWithTokenA$FType, NodeFieldOfEachOtherWithTokenB$FType {
   /**
    * Returns the underlying jtreesitter node.
    */
@@ -324,7 +299,7 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeContainedA implements TypedNode, NodeRoot.MultiTypeNamedType, NodeRoot.MixedNamedNonNamedType, NodeFieldOfEachOtherA$FType, NodeFieldOfEachOtherB$FType {
+public final class NodeContainedA implements TypedNode, NodeRoot.MultiTypeNamedType, NodeRoot.MixedNamedNonNamedType, NodeRoot.MixedMultiNamedNonNamedType, NodeFieldOfEachOtherA$FType, NodeFieldOfEachOtherB$FType {
   /**
    * Type name of this node, as defined in the grammar.
    */
@@ -483,7 +458,7 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeContainedB implements TypedNode, NodeRoot.MultiTypeNamedType {
+public final class NodeContainedB implements TypedNode, NodeRoot.MultiTypeNamedType, NodeRoot.MixedMultiNamedNonNamedType {
   /**
    * Type name of this node, as defined in the grammar.
    */
@@ -644,6 +619,7 @@ import org.jspecify.annotations.Nullable;
  * <li>{@link #getFieldSingleTypeNonNamed single_type_non_named}
  * <li>{@link #getFieldMultiTypeNonNamed multi_type_non_named}
  * <li>{@link #getFieldMixedNamedNonNamed mixed_named_non_named}
+ * <li>{@link #getFieldMixedMultiNamedNonNamed mixed_multi_named_non_named}
  * </ul>
  */
 @Generated(
@@ -691,6 +667,13 @@ public final class NodeRoot implements TypedNode {
    * @see #getFieldMixedNamedNonNamed
    */
   public static final String FIELD_MIXED_NAMED_NON_NAMED = "mixed_named_non_named";
+
+  /**
+   * Field name {@code mixed_multi_named_non_named}
+   *
+   * @see #getFieldMixedMultiNamedNonNamed
+   */
+  public static final String FIELD_MIXED_MULTI_NAMED_NON_NAMED = "mixed_multi_named_non_named";
 
   private final Node node;
 
@@ -797,6 +780,21 @@ public final class NodeRoot implements TypedNode {
     var children = this.node.getChildrenByFieldName(FIELD_MIXED_NAMED_NON_NAMED);
     Function<Node, NodeContainedA> namedMapper = NodeContainedA::fromNodeThrowing;
     Function<Node, MixedNamedNonNamedTokenType> tokenMapper = n -> new MixedNamedNonNamedTokenType(n, MixedNamedNonNamedTokenType.TokenType.fromNode(n));
+    var childrenMapped = NodeUtils.mapChildren(children, namedMapper, tokenMapper);
+    return NodeUtils.optionalSingleChild(childrenMapped);
+  }
+
+  /**
+   * Retrieves the nodes of field {@value #FIELD_MIXED_MULTI_NAMED_NON_NAMED}.
+   * <ul>
+   * <li>multiple: false
+   * <li>required: false
+   * </ul>
+   */
+  public @Nullable MixedMultiNamedNonNamedType getFieldMixedMultiNamedNonNamed() {
+    var children = this.node.getChildrenByFieldName(FIELD_MIXED_MULTI_NAMED_NON_NAMED);
+    var namedMapper = MixedMultiNamedNonNamedType.class;
+    Function<Node, MixedMultiNamedNonNamedTokenType> tokenMapper = n -> new MixedMultiNamedNonNamedTokenType(n, MixedMultiNamedNonNamedTokenType.TokenType.fromNode(n));
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, tokenMapper);
     return NodeUtils.optionalSingleChild(childrenMapped);
   }
@@ -1153,6 +1151,103 @@ public final class NodeRoot implements TypedNode {
    * </ul>
    */
   public sealed interface MixedNamedNonNamedType extends TypedNode permits NodeContainedA, MixedNamedNonNamedTokenType {
+  }
+
+  /**
+   * Child node type without name.
+   */
+  public static final class MixedMultiNamedNonNamedTokenType implements MixedMultiNamedNonNamedType {
+    private final Node node;
+
+    private final TokenType token;
+
+    MixedMultiNamedNonNamedTokenType(Node node, TokenType token) {
+      this.node = node;
+      this.token = token;
+    }
+
+    @Override
+    public Node getNode() {
+      return this.node;
+    }
+
+    /**
+     * Returns the token type.
+     */
+    public TokenType getToken() {
+      return this.token;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (obj instanceof MixedMultiNamedNonNamedTokenType other) {
+        return this.node.equals(other.node);
+      }
+      return false;
+    }
+
+    @Override
+    public int hashCode() {
+      return this.node.hashCode();
+    }
+
+    @Override
+    public String toString() {
+      return "MixedMultiNamedNonNamedTokenType" + "[id=" + Long.toUnsignedString(this.node.getId()) + ",token=" + this.token + "]";
+    }
+
+    /**
+     * Token type:
+     * <ul>
+     * <li>{@link #PLUS_SIGN '+'}
+     * <li>{@link #HYPHEN_MINUS '-'}
+     * </ul>
+     */
+    public enum TokenType {
+      /**
+       * {@code +}
+       */
+      PLUS_SIGN("+"),
+
+      /**
+       * {@code -}
+       */
+      HYPHEN_MINUS("-");
+
+      private final String type;
+
+      TokenType(String type) {
+        this.type = type;
+      }
+
+      /**
+       * Returns the grammar type of this token.
+       */
+      public String getType() {
+        return this.type;
+      }
+
+      static TokenType fromNode(Node node) {
+        var type = node.getType();
+        for (var token : values()) {
+          if (token.type.equals(type)) {
+            return token;
+          }
+        }
+        // Should not happen since all non-named child types are covered
+        throw new IllegalArgumentException("Unknown token type: " + type);
+      }
+    }
+  }
+
+  /**
+   * Possible types:
+   * <ul>
+   * <li>{@link NodeContainedA contained_a}
+   * <li>{@link NodeContainedB contained_b}
+   * </ul>
+   */
+  public sealed interface MixedMultiNamedNonNamedType extends TypedNode permits NodeContainedA, NodeContainedB, MixedMultiNamedNonNamedTokenType {
   }
 }
 
