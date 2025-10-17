@@ -447,7 +447,7 @@ sealed interface GenChildType {
                 typeBuilder.addJavadoc("Child type of {@link $T}.\n<p>", enclosingNodeType.createJavaTypeName(codeGenHelper));
             }
             typeBuilder.addJavadoc("Possible types:");
-            codeGenHelper.addJavadocTypeMapping(typeBuilder, types);
+            codeGenHelper.addJavadocTypeMapping(typeBuilder, types, tokensChildType);
         }
 
         @Override

@@ -35,7 +35,7 @@ public class TypedNodeInterfaceGenerator {
 
         // TODO: Is this really helpful?
         typeBuilder.addJavadoc("\n\n<h2>Node subtypes</h2>");
-        codeGenHelper.addJavadocTypeMapping(typeBuilder, nodeTypes);
+        codeGenHelper.addJavadocTypeMapping(typeBuilder, nodeTypes, null);
     }
 
     /** Generates the {@code fromNode} method, converting {@code Node -> TypedNode}. */

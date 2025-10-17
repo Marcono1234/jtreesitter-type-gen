@@ -4,6 +4,7 @@ import com.palantir.javapoet.*;
 import marcono1234.jtreesitter.type_gen.CodeGenConfig;
 import marcono1234.jtreesitter.type_gen.CodeGenerator;
 import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageProviderConfig;
+import marcono1234.jtreesitter.type_gen.internal.gen.GenJavaType;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenNodeType;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.LanguageUtilsGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.NodeUtilsGenerator;
@@ -204,11 +205,14 @@ public class CodeGenHelper {
     /**
      * Adds Javadoc which for each Java type in {@code types} mentions its node type name.
      */
-    public void addJavadocTypeMapping(TypeSpec.Builder builder, List<GenNodeType> types) {
+    public void addJavadocTypeMapping(TypeSpec.Builder builder, List<GenNodeType> types, @Nullable GenJavaType tokensType) {
         // TODO should generate HTML table instead of list?
         builder.addJavadoc("\n<ul>");
         for (var type : types) {
             builder.addJavadoc("\n<li>{@link $T $L}", type.createJavaTypeName(this), CodeGenHelper.escapeJavadocText(type.getTypeName()));
+        }
+        if (tokensType != null) {
+            builder.addJavadoc("\n<li>{@linkplain $T <i>tokens</i>}", tokensType.createJavaTypeName(this));
         }
         builder.addJavadoc("\n</ul>");
     }

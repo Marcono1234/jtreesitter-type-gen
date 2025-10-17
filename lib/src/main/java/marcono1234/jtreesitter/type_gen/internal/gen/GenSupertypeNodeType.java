@@ -132,7 +132,7 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
 
     private void generateJavadoc(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper) {
         typeBuilder.addJavadoc("Supertype $L, with subtypes:", CodeGenHelper.createJavadocCodeTag(typeName));
-        codeGenHelper.addJavadocTypeMapping(typeBuilder, subtypes);
+        codeGenHelper.addJavadocTypeMapping(typeBuilder, subtypes, null);
     }
 
     private static void getAllSubtypeClasses(GenSupertypeNodeType type, Consumer<GenRegularNodeType> consumer) {

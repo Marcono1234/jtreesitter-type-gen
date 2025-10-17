@@ -939,6 +939,7 @@ import javax.annotation.processing.Generated;
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeContainedA contained_a}
+ * <li>{@linkplain NodeRoot$MixedNamedNonNamedTokenType <i>tokens</i>}
  * </ul>
  */
 @Generated(
@@ -1714,6 +1715,7 @@ import javax.annotation.processing.Generated;
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeFieldOfEachOtherWithTokenB field_of_each_other_with_token_b}
+ * <li>{@linkplain NodeFieldOfEachOtherWithTokenA$FTokenType <i>tokens</i>}
  * </ul>
  */
 @Generated(
@@ -2010,6 +2012,7 @@ import javax.annotation.processing.Generated;
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeFieldOfEachOtherWithTokenA field_of_each_other_with_token_a}
+ * <li>{@linkplain NodeFieldOfEachOtherWithTokenB$FTokenType <i>tokens</i>}
  * </ul>
  */
 @Generated(

@@ -1148,6 +1148,7 @@ public final class NodeRoot implements TypedNode {
    * Possible types:
    * <ul>
    * <li>{@link NodeContainedA contained_a}
+   * <li>{@linkplain MixedNamedNonNamedTokenType <i>tokens</i>}
    * </ul>
    */
   public sealed interface MixedNamedNonNamedType extends TypedNode permits NodeContainedA, MixedNamedNonNamedTokenType {
@@ -1245,6 +1246,7 @@ public final class NodeRoot implements TypedNode {
    * <ul>
    * <li>{@link NodeContainedA contained_a}
    * <li>{@link NodeContainedB contained_b}
+   * <li>{@linkplain MixedMultiNamedNonNamedTokenType <i>tokens</i>}
    * </ul>
    */
   public sealed interface MixedMultiNamedNonNamedType extends TypedNode permits NodeContainedA, NodeContainedB, MixedMultiNamedNonNamedTokenType {
@@ -1655,6 +1657,7 @@ import javax.annotation.processing.Generated;
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeFieldOfEachOtherWithTokenB field_of_each_other_with_token_b}
+ * <li>{@linkplain NodeFieldOfEachOtherWithTokenA.FTokenType <i>tokens</i>}
  * </ul>
  */
 @Generated(
@@ -1933,6 +1936,7 @@ import javax.annotation.processing.Generated;
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeFieldOfEachOtherWithTokenA field_of_each_other_with_token_a}
+ * <li>{@linkplain NodeFieldOfEachOtherWithTokenB.FTokenType <i>tokens</i>}
  * </ul>
  */
 @Generated(
