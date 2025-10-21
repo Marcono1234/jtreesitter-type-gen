@@ -51,9 +51,3 @@ tasks.withType<Test>().configureEach {
         }))
     }
 }
-
-// Make build reproducible, see https://docs.gradle.org/8.11/userguide/working_with_files.html#sec:reproducible_archives
-tasks.withType<AbstractArchiveTask>().configureEach {
-    isPreserveFileTimestamps = false
-    isReproducibleFileOrder = true
-}
