@@ -346,7 +346,7 @@ public final class NodeContainedA implements TypedNode {
    * Type ID of this node, assigned by tree-sitter.
    * @see Node#getSymbol
    */
-  public static final @Unsigned short TYPE_ID = LanguageUtils.getTypeId("contained_a");
+  public static final @Unsigned short TYPE_ID = LanguageUtils.getTypeId(TYPE_NAME);
 
   private final Node node;
 

@@ -87,7 +87,7 @@ class GenField extends GenChildren {
             var fieldType = jtreesitter.language().numericIdType();
 
             enclosingTypeBuilder.addField(FieldSpec.builder(fieldType, fieldIdConstant, Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-                .initializer("$T.$N($S)", languageUtils.className(), languageUtils.methodGetFieldId(), fieldName)
+                .initializer("$T.$N($N)", languageUtils.className(), languageUtils.methodGetFieldId(), fieldNameConstant)
                 .addJavadoc("Field ID for field $L, assigned by tree-sitter.", CodeGenHelper.createJavadocCodeTag(fieldName))
                 .addJavadoc("\n@see $T#$N", jtreesitterTreeCursor.className(), jtreesitterTreeCursor.methodGetCurrentFieldId())
                 .addJavadoc("\n@see #$N", fieldNameConstant)

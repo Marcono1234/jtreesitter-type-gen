@@ -128,16 +128,21 @@ public class CodeGenHelper {
     }
 
     /**
-     * Creates a Java constant field with name {@code constantName} storing the node type ID for {@code typeName}.
+     * Creates a Java constant field with name {@code constantName} storing the node type ID.
      * Throws an exception if {@link #generatesNumericIdConstants()} is false.
+     *
+     * @param constantName
+     *      name of the Java constant field to generate
+     * @param typeNameConstant
+     *      name of the existing Java constant field storing the node type name
      */
-    public FieldSpec createTypeIdConstantField(String typeName, String constantName) {
+    public FieldSpec createTypeIdConstantField(String constantName, String typeNameConstant) {
         var languageUtils = Objects.requireNonNull(languageUtilsConfig());
         var jtreesitterNode = jtreesitterConfig().node();
         var fieldType = jtreesitterConfig().language().numericIdType();
 
         return FieldSpec.builder(fieldType, constantName, Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-            .initializer("$T.$N($S)", languageUtils.className(), languageUtils.methodGetTypeId(), typeName)
+            .initializer("$T.$N($N)", languageUtils.className(), languageUtils.methodGetTypeId(), typeNameConstant)
             .addJavadoc("Type ID of this node, assigned by tree-sitter.")
             .addJavadoc("\n@see $T#$N", jtreesitterNode.className(), jtreesitterNode.methodGetTypeId())
             .build();

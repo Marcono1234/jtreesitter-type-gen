@@ -260,7 +260,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
 
         typeBuilder.addField(CodeGenHelper.createTypeNameConstantField(typeName, typeNameConstant));
         if (codeGenHelper.generatesNumericIdConstants()) {
-            typeBuilder.addField(codeGenHelper.createTypeIdConstantField(typeName, typeIdConstant));
+            typeBuilder.addField(codeGenHelper.createTypeIdConstantField(typeIdConstant, typeNameConstant));
         }
 
         String nodeField = "node";

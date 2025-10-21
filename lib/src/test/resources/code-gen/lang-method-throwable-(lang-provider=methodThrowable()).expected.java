@@ -344,7 +344,7 @@ public final class NodeContainedA implements TypedNode, NodeSupertype {
    * Type ID of this node, assigned by tree-sitter.
    * @see Node#getSymbol
    */
-  public static final @Unsigned short TYPE_ID = LanguageUtils.getTypeId("contained_a");
+  public static final @Unsigned short TYPE_ID = LanguageUtils.getTypeId(TYPE_NAME);
 
   private final Node node;
 
@@ -512,7 +512,7 @@ public final class NodeContainedB implements TypedNode, NodeSupertype {
    * Type ID of this node, assigned by tree-sitter.
    * @see Node#getSymbol
    */
-  public static final @Unsigned short TYPE_ID = LanguageUtils.getTypeId("contained_b");
+  public static final @Unsigned short TYPE_ID = LanguageUtils.getTypeId(TYPE_NAME);
 
   private final Node node;
 
@@ -699,7 +699,7 @@ public final class NodeDocument implements TypedNode {
    * Type ID of this node, assigned by tree-sitter.
    * @see Node#getSymbol
    */
-  public static final @Unsigned short TYPE_ID = LanguageUtils.getTypeId("document");
+  public static final @Unsigned short TYPE_ID = LanguageUtils.getTypeId(TYPE_NAME);
 
   /**
    * Field name {@code first}
@@ -713,7 +713,7 @@ public final class NodeDocument implements TypedNode {
    * @see TreeCursor#getCurrentFieldId
    * @see #FIELD_FIRST
    */
-  public static final @Unsigned short FIELD_FIRST_ID = LanguageUtils.getFieldId("first");
+  public static final @Unsigned short FIELD_FIRST_ID = LanguageUtils.getFieldId(FIELD_FIRST);
 
   /**
    * Field name {@code second}
@@ -727,7 +727,7 @@ public final class NodeDocument implements TypedNode {
    * @see TreeCursor#getCurrentFieldId
    * @see #FIELD_SECOND
    */
-  public static final @Unsigned short FIELD_SECOND_ID = LanguageUtils.getFieldId("second");
+  public static final @Unsigned short FIELD_SECOND_ID = LanguageUtils.getFieldId(FIELD_SECOND);
 
   private final Node node;
 
@@ -910,7 +910,7 @@ public sealed interface NodeSupertype extends TypedNode permits NodeContainedA, 
    * Type ID of this node, assigned by tree-sitter.
    * @see Node#getSymbol
    */
-  @Unsigned short TYPE_ID = LanguageUtils.getTypeId("supertype");
+  @Unsigned short TYPE_ID = LanguageUtils.getTypeId(TYPE_NAME);
 
   /**
    * Wraps a jtreesitter node as this node type, returning {@code null} if the node has the wrong type.

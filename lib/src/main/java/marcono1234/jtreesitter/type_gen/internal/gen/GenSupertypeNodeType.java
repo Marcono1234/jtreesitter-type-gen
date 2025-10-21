@@ -225,7 +225,7 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
         // Note: Most likely for supertype nodes the numeric type ID is not that useful because they don't exist
         // as `Node` objects; but at least this dynamic lookup through Language verifies that the type name exists
         if (codeGenHelper.generatesNumericIdConstants()) {
-            typeBuilder.addField(codeGenHelper.createTypeIdConstantField(typeName, typeIdConstant));
+            typeBuilder.addField(codeGenHelper.createTypeIdConstantField(typeIdConstant, typeNameConstant));
         }
 
         typeBuilder.addMethod(generateMethodFromNode(codeGenHelper));
