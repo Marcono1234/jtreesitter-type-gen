@@ -32,7 +32,7 @@ class JavaNullableTest extends AbstractTypedTreeTest {
         String source = """
             public class Main {
                 public static void main(String... args) throws IllegalArgumentException {
-                    System.out.println("hello");
+                    System.out.println("hello" + " world");
                 }
             }
             """;
@@ -69,8 +69,10 @@ class JavaNullableTest extends AbstractTypedTreeTest {
             assertNotNull(callQualifier);
             assertEquals("System.out", callQualifier.getText());
 
-            var callArgument = (NodeStringLiteral) call.getFieldArguments().getChildren().getFirst();
-            assertEquals("\"hello\"", callArgument.getText());
+            var binaryExpression = (NodeBinaryExpression) call.getFieldArguments().getChildren().getFirst();
+            assertEquals(NodeBinaryExpression.FieldTokenOperator.TokenType.PLUS_SIGN, binaryExpression.getFieldOperator().getToken());
+            assertEquals("\"hello\"", binaryExpression.getFieldLeft().getText());
+            assertEquals("\" world\"", binaryExpression.getFieldRight().getText());
         }
     }
 

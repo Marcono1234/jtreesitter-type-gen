@@ -859,7 +859,8 @@ public final class NodeRoot implements TypedNode {
   }
 
   /**
-   * Possible types:
+   * Child type returned by {@link NodeRoot#getFieldMultiTypeNamed}.
+   * <p>Possible types:
    * <ul>
    * <li>{@link NodeContainedA contained_a}
    * <li>{@link NodeContainedB contained_b}
@@ -869,7 +870,8 @@ public final class NodeRoot implements TypedNode {
   }
 
   /**
-   * Child node type without name.
+   * Child node type without name, returned by {@link NodeRoot#getFieldSingleTypeNonNamed}.
+   * <p>The type of the node can be obtained using {@link #getToken}.
    */
   public static final class FieldTokenSingleTypeNonNamed implements TypedNode {
     private final Node node;
@@ -950,7 +952,8 @@ public final class NodeRoot implements TypedNode {
   }
 
   /**
-   * Child node type without name.
+   * Child node type without name, returned by {@link NodeRoot#getFieldMultiTypeNonNamed}.
+   * <p>The type of the node can be obtained using {@link #getToken}.
    */
   public static final class FieldTokenMultiTypeNonNamed implements TypedNode {
     private final Node node;
@@ -1049,7 +1052,8 @@ public final class NodeRoot implements TypedNode {
   }
 
   /**
-   * Child node type without name.
+   * Child node type without name, returned by {@link NodeRoot#getFieldMixedNamedNonNamed}.
+   * <p>The type of the node can be obtained using {@link #getToken}.
    */
   public static final class FieldTokenMixedNamedNonNamed implements FieldMixedNamedNonNamed {
     private final Node node;
@@ -1130,7 +1134,8 @@ public final class NodeRoot implements TypedNode {
   }
 
   /**
-   * Possible types:
+   * Child type returned by {@link NodeRoot#getFieldMixedNamedNonNamed}.
+   * <p>Possible types:
    * <ul>
    * <li>{@link NodeContainedA contained_a}
    * <li>{@linkplain FieldTokenMixedNamedNonNamed <i>tokens</i>}
@@ -1140,7 +1145,8 @@ public final class NodeRoot implements TypedNode {
   }
 
   /**
-   * Child node type without name.
+   * Child node type without name, returned by {@link NodeRoot#getFieldMixedMultiNamedNonNamed}.
+   * <p>The type of the node can be obtained using {@link #getToken}.
    */
   public static final class FieldTokenMixedMultiNamedNonNamed implements FieldMixedMultiNamedNonNamed {
     private final Node node;
@@ -1227,7 +1233,8 @@ public final class NodeRoot implements TypedNode {
   }
 
   /**
-   * Possible types:
+   * Child type returned by {@link NodeRoot#getFieldMixedMultiNamedNonNamed}.
+   * <p>Possible types:
    * <ul>
    * <li>{@link NodeContainedA contained_a}
    * <li>{@link NodeContainedB contained_b}
@@ -1246,7 +1253,7 @@ package org.example;
 import javax.annotation.processing.Generated;
 
 /**
- * Child type of {@link NodeFieldOfEachOtherA}.
+ * Child type returned by {@link NodeFieldOfEachOtherA#getFieldF}.
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeContainedA contained_a}
@@ -1442,7 +1449,7 @@ package org.example;
 import javax.annotation.processing.Generated;
 
 /**
- * Child type of {@link NodeFieldOfEachOtherB}.
+ * Child type returned by {@link NodeFieldOfEachOtherB#getFieldF}.
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeContainedA contained_a}
@@ -1638,7 +1645,7 @@ package org.example;
 import javax.annotation.processing.Generated;
 
 /**
- * Child type of {@link NodeFieldOfEachOtherWithTokenA}.
+ * Child type returned by {@link NodeFieldOfEachOtherWithTokenA#getFieldF}.
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeFieldOfEachOtherWithTokenB field_of_each_other_with_token_b}
@@ -1828,7 +1835,8 @@ public final class NodeFieldOfEachOtherWithTokenA implements TypedNode, NodeFiel
   }
 
   /**
-   * Child node type without name.
+   * Child node type without name, returned by {@link NodeFieldOfEachOtherWithTokenA#getFieldF}.
+   * <p>The type of the node can be obtained using {@link #getToken}.
    */
   public static final class FieldTokenF implements NodeFieldOfEachOtherWithTokenA$FieldF {
     private final Node node;
@@ -1917,7 +1925,7 @@ package org.example;
 import javax.annotation.processing.Generated;
 
 /**
- * Child type of {@link NodeFieldOfEachOtherWithTokenB}.
+ * Child type returned by {@link NodeFieldOfEachOtherWithTokenB#getFieldF}.
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeFieldOfEachOtherWithTokenA field_of_each_other_with_token_a}
@@ -2107,7 +2115,8 @@ public final class NodeFieldOfEachOtherWithTokenB implements TypedNode, NodeFiel
   }
 
   /**
-   * Child node type without name.
+   * Child node type without name, returned by {@link NodeFieldOfEachOtherWithTokenB#getFieldF}.
+   * <p>The type of the node can be obtained using {@link #getToken}.
    */
   public static final class FieldTokenF implements NodeFieldOfEachOtherWithTokenB$FieldF {
     private final Node node;

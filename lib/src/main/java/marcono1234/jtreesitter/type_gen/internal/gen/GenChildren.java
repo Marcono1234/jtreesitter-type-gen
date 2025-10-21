@@ -121,7 +121,7 @@ class GenChildren {
         generateChildrenMethodJavadoc(methodBuilder);
 
         enclosingTypeBuilder.addMethod(methodBuilder.build());
-        var childJavaTypes = type.generateJavaTypes(codeGenHelper);
+        var childJavaTypes = type.generateJavaTypes(codeGenHelper, getterName);
         List<TypeSpec.Builder> topLevelTypes = new ArrayList<>();
         for (var childJavaType : childJavaTypes) {
             if (childJavaType.asTopLevel()) {

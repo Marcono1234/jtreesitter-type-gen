@@ -933,7 +933,8 @@ public final class NodeMultipleChildren implements TypedNode {
   }
 
   /**
-   * Possible types:
+   * Child type returned by {@link NodeMultipleChildren#getChild}.
+   * <p>Possible types:
    * <ul>
    * <li>{@link NodeContainedA contained_a}
    * <li>{@link NodeContainedB contained_b}
@@ -951,7 +952,7 @@ package org.example;
 import javax.annotation.processing.Generated;
 
 /**
- * Child type of {@link NodeSelfChildren}.
+ * Child type returned by {@link NodeSelfChildren#getChild}.
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeContainedA contained_a}
@@ -1149,7 +1150,7 @@ package org.example;
 import javax.annotation.processing.Generated;
 
 /**
- * Child type of {@link NodeSelfIndirectChildren}.
+ * Child type returned by {@link NodeSelfIndirectChildren#getChild}.
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeContainedA contained_a}
@@ -1348,7 +1349,7 @@ package org.example;
 import javax.annotation.processing.Generated;
 
 /**
- * Child type of {@link NodeSelfTransitiveIndirectChildren}.
+ * Child type returned by {@link NodeSelfTransitiveIndirectChildren#getChild}.
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeContainedA contained_a}
@@ -1547,7 +1548,7 @@ package org.example;
 import javax.annotation.processing.Generated;
 
 /**
- * Child type of {@link NodeChildOfEachOtherA}.
+ * Child type returned by {@link NodeChildOfEachOtherA#getChild}.
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeContainedA contained_a}
@@ -1745,7 +1746,7 @@ package org.example;
 import javax.annotation.processing.Generated;
 
 /**
- * Child type of {@link NodeChildOfEachOtherB}.
+ * Child type returned by {@link NodeChildOfEachOtherB#getChild}.
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeContainedA contained_a}

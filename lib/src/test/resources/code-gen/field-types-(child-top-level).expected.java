@@ -582,7 +582,7 @@ package org.example;
 import javax.annotation.processing.Generated;
 
 /**
- * Child type of {@link NodeRoot}.
+ * Child type returned by {@link NodeRoot#getFieldMultiTypeNamed}.
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeContainedA contained_a}
@@ -611,7 +611,8 @@ import java.lang.String;
 import javax.annotation.processing.Generated;
 
 /**
- * Child node type without name. Child type of {@link NodeRoot}.
+ * Child node type without name, returned by {@link NodeRoot#getFieldSingleTypeNonNamed}.
+ * <p>The type of the node can be obtained using {@link #getToken}.
  */
 @Generated(
     value = "marcono1234.jtreesitter.type_gen.CodeGenerator",
@@ -710,7 +711,8 @@ import java.lang.String;
 import javax.annotation.processing.Generated;
 
 /**
- * Child node type without name. Child type of {@link NodeRoot}.
+ * Child node type without name, returned by {@link NodeRoot#getFieldMultiTypeNonNamed}.
+ * <p>The type of the node can be obtained using {@link #getToken}.
  */
 @Generated(
     value = "marcono1234.jtreesitter.type_gen.CodeGenerator",
@@ -827,7 +829,8 @@ import java.lang.String;
 import javax.annotation.processing.Generated;
 
 /**
- * Child node type without name. Child type of {@link NodeRoot}.
+ * Child node type without name, returned by {@link NodeRoot#getFieldMixedNamedNonNamed}.
+ * <p>The type of the node can be obtained using {@link #getToken}.
  */
 @Generated(
     value = "marcono1234.jtreesitter.type_gen.CodeGenerator",
@@ -920,7 +923,7 @@ package org.example;
 import javax.annotation.processing.Generated;
 
 /**
- * Child type of {@link NodeRoot}.
+ * Child type returned by {@link NodeRoot#getFieldMixedNamedNonNamed}.
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeContainedA contained_a}
@@ -1205,7 +1208,7 @@ package org.example;
 import javax.annotation.processing.Generated;
 
 /**
- * Child type of {@link NodeFieldOfEachOtherA}.
+ * Child type returned by {@link NodeFieldOfEachOtherA#getFieldF}.
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeContainedA contained_a}
@@ -1401,7 +1404,7 @@ package org.example;
 import javax.annotation.processing.Generated;
 
 /**
- * Child type of {@link NodeFieldOfEachOtherB}.
+ * Child type returned by {@link NodeFieldOfEachOtherB#getFieldF}.
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeContainedA contained_a}
@@ -1603,7 +1606,8 @@ import java.lang.String;
 import javax.annotation.processing.Generated;
 
 /**
- * Child node type without name. Child type of {@link NodeFieldOfEachOtherWithTokenA}.
+ * Child node type without name, returned by {@link NodeFieldOfEachOtherWithTokenA#getFieldF}.
+ * <p>The type of the node can be obtained using {@link #getToken}.
  */
 @Generated(
     value = "marcono1234.jtreesitter.type_gen.CodeGenerator",
@@ -1696,7 +1700,7 @@ package org.example;
 import javax.annotation.processing.Generated;
 
 /**
- * Child type of {@link NodeFieldOfEachOtherWithTokenA}.
+ * Child type returned by {@link NodeFieldOfEachOtherWithTokenA#getFieldF}.
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeFieldOfEachOtherWithTokenB field_of_each_other_with_token_b}
@@ -1900,7 +1904,8 @@ import java.lang.String;
 import javax.annotation.processing.Generated;
 
 /**
- * Child node type without name. Child type of {@link NodeFieldOfEachOtherWithTokenB}.
+ * Child node type without name, returned by {@link NodeFieldOfEachOtherWithTokenB#getFieldF}.
+ * <p>The type of the node can be obtained using {@link #getToken}.
  */
 @Generated(
     value = "marcono1234.jtreesitter.type_gen.CodeGenerator",
@@ -1993,7 +1998,7 @@ package org.example;
 import javax.annotation.processing.Generated;
 
 /**
- * Child type of {@link NodeFieldOfEachOtherWithTokenB}.
+ * Child type returned by {@link NodeFieldOfEachOtherWithTokenB#getFieldF}.
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeFieldOfEachOtherWithTokenA field_of_each_other_with_token_a}

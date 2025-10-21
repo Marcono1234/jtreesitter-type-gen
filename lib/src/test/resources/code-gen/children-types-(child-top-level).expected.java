@@ -752,7 +752,7 @@ package org.example;
 import javax.annotation.processing.Generated;
 
 /**
- * Child type of {@link NodeMultiTypeNamed}.
+ * Child type returned by {@link NodeMultiTypeNamed#getChild}.
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeContainedA contained_a}

@@ -57,7 +57,12 @@ sealed interface GenChildType {
     boolean refersToTypeThroughInterface(GenRegularNodeType type, Set<GenJavaType> seenTypes);
 
     record JavaTypeConfig(TypeSpec.Builder type, boolean asTopLevel) {}
-    List<JavaTypeConfig> generateJavaTypes(CodeGenHelper codeGenHelper);
+
+    /**
+     * @param childGetterName
+     *      name of the getter method for obtaining this child type, generated in the class for the parent node type
+     */
+    List<JavaTypeConfig> generateJavaTypes(CodeGenHelper codeGenHelper, String childGetterName);
 
     interface ChildTypeNameGenerator {
         String generateInterfaceName(List<String> allChildTypes);
@@ -160,7 +165,7 @@ sealed interface GenChildType {
         }
 
         @Override
-        public List<JavaTypeConfig> generateJavaTypes(CodeGenHelper codeGenHelper) {
+        public List<JavaTypeConfig> generateJavaTypes(CodeGenHelper codeGenHelper, String childGetterName) {
             // Refers to existing type, nothing to generate
             return List.of();
         }
@@ -323,16 +328,13 @@ sealed interface GenChildType {
             typeBuilder.addMethod(toStringMethod);
         }
 
-        private void generateJavadoc(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper) {
-            typeBuilder.addJavadoc("Child node type without name.");
-            if (isChildTypeAsTopLevel(codeGenHelper)) {
-                // If child is generated as top-level class, add Javadoc link to 'enclosing' class
-                typeBuilder.addJavadoc(" Child type of {@link $T}.", enclosingNodeType.createJavaTypeName(codeGenHelper));
-            }
+        private void generateJavadoc(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper, String childGetterName, String tokenGetterName) {
+            typeBuilder.addJavadoc("Child node type without name, returned by {@link $T#$N}.\n", enclosingNodeType.createJavaTypeName(codeGenHelper), childGetterName);
+            typeBuilder.addJavadoc("<p>The type of the node can be obtained using {@link #$N}.", tokenGetterName);
         }
 
         @Override
-        public List<JavaTypeConfig> generateJavaTypes(CodeGenHelper codeGenHelper) {
+        public List<JavaTypeConfig> generateJavaTypes(CodeGenHelper codeGenHelper, String childGetterName) {
             var typeBuilder = TypeSpec.classBuilder(createJavaTypeName(codeGenHelper))
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
 
@@ -341,7 +343,8 @@ sealed interface GenChildType {
                 typeBuilder.addModifiers(Modifier.STATIC);
             }
 
-            generateJavadoc(typeBuilder, codeGenHelper);
+            String tokenGetterName = codeGenHelper.tokenEnumConfig().enclosingMethodGetToken();
+            generateJavadoc(typeBuilder, codeGenHelper, childGetterName, tokenGetterName);
 
             if (interfaceToImplement == null) {
                 typeBuilder.addSuperinterface(codeGenHelper.typedNodeConfig().className());
@@ -358,7 +361,7 @@ sealed interface GenChildType {
             String tokenField = "token";
             TypedNodeInterfaceGenerator.generateTypedNodeImplementation(typeBuilder, codeGenHelper, nodeField, new TypedNodeInterfaceGenerator.JavaFieldData(tokenClassName, tokenField));
 
-            var getTokenTypeMethod = MethodSpec.methodBuilder(codeGenHelper.tokenEnumConfig().enclosingMethodGetToken())
+            var getTokenTypeMethod = MethodSpec.methodBuilder(tokenGetterName)
                 .addModifiers(Modifier.PUBLIC)
                 .returns(tokenClassName)
                 .addJavadoc("Returns the token type.")
@@ -436,17 +439,14 @@ sealed interface GenChildType {
             return createNestedJavaTypeName(enclosingNodeType.getJavaName(), javaName, codeGenHelper);
         }
 
-        private void generateJavadoc(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper) {
-            if (isChildTypeAsTopLevel(codeGenHelper)) {
-                // If child is generated as top-level class, add Javadoc link to 'enclosing' class
-                typeBuilder.addJavadoc("Child type of {@link $T}.\n<p>", enclosingNodeType.createJavaTypeName(codeGenHelper));
-            }
-            typeBuilder.addJavadoc("Possible types:");
+        private void generateJavadoc(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper, String childGetterName) {
+            typeBuilder.addJavadoc("Child type returned by {@link $T#$N}.\n", enclosingNodeType.createJavaTypeName(codeGenHelper), childGetterName);
+            typeBuilder.addJavadoc("<p>Possible types:");
             codeGenHelper.addJavadocTypeMapping(typeBuilder, types, tokensChildType);
         }
 
         @Override
-        public List<JavaTypeConfig> generateJavaTypes(CodeGenHelper codeGenHelper) {
+        public List<JavaTypeConfig> generateJavaTypes(CodeGenHelper codeGenHelper, String childGetterName) {
             var typeBuilder = TypeSpec.interfaceBuilder(createJavaTypeName(codeGenHelper))
                 .addModifiers(Modifier.PUBLIC, Modifier.SEALED)
                 .addSuperinterface(codeGenHelper.typedNodeConfig().className());
@@ -455,12 +455,12 @@ sealed interface GenChildType {
                 typeBuilder.addPermittedSubclass(subtype.createJavaTypeName(codeGenHelper));
             }
 
-            generateJavadoc(typeBuilder, codeGenHelper);
+            generateJavadoc(typeBuilder, codeGenHelper, childGetterName);
 
             List<JavaTypeConfig> javaTypes = new ArrayList<>();
             if (tokensChildType != null) {
                 typeBuilder.addPermittedSubclass(tokensChildType.createJavaTypeName(codeGenHelper));
-                javaTypes.addAll(tokensChildType.generateJavaTypes(codeGenHelper));
+                javaTypes.addAll(tokensChildType.generateJavaTypes(codeGenHelper, childGetterName));
             }
 
             boolean asTopLevel = isChildTypeAsTopLevel(codeGenHelper);

@@ -40,5 +40,43 @@
         }
       ]
     }
+  },
+  {
+    "type": "multi_type_named_multiple",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "contained_a",
+          "named": true
+        },
+        {
+          "type": "contained_b",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "multi_type_named_multiple_required",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "contained_a",
+          "named": true
+        },
+        {
+          "type": "contained_b",
+          "named": true
+        }
+      ]
+    }
   }
 ]
