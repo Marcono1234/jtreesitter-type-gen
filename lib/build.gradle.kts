@@ -42,6 +42,8 @@ val generatedResourcesDir = layout.buildDirectory.dir("generated-resources/main"
 sourceSets.main {
     output.dir(generatedResourcesDir)
 }
+// Note: Including the Git commit ref in a resource file defeats the build cache to some extent; though at least during
+//   development when not committing changes yet the build cache helps
 val createVersionProperties by tasks.registering(WriteProperties::class) {
     dependsOn(getGitCommit)
 

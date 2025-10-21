@@ -1,6 +1,7 @@
 package marcono1234.jtreesitter.type_gen.internal.gen.common_classes;
 
 import com.palantir.javapoet.*;
+import marcono1234.jtreesitter.type_gen.LanguageConfig;
 import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageProviderConfig;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper.LanguageUtilsConfig;
@@ -74,6 +75,46 @@ public class LanguageUtilsGenerator {
         typeBuilder.addField(fieldBuilder.build());
     }
 
+    // Note: Could also consider checking `Language#getName()`, but probably not worth it since it is most likely
+    //   pretty obvious if user accidentally provides wrong Language
+    private void generateLanguageVersionCheck(TypeSpec.Builder typeBuilder, String languageFieldName, LanguageConfig.LanguageVersion expectedVersion) {
+        var language = codeGenHelper.jtreesitterConfig().language();
+        var languageMetadata = codeGenHelper.jtreesitterConfig().languageMetadata();
+
+        String methodName = "checkLanguageVersion";
+        String expectedMajorVar = "expectedMajor";
+        String expectedMinorVar = "expectedMinor";
+        String expectedPatchVar = "expectedPatch";
+        String metadataVar = "metadata";
+        String versionVar = "languageVersion";
+        typeBuilder.addMethod(MethodSpec.methodBuilder(methodName)
+            .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+            .addStatement("int $N = $L", expectedMajorVar, expectedVersion.major())
+            .addStatement("int $N = $L", expectedMinorVar, expectedVersion.minor())
+            .addStatement("int $N = $L", expectedPatchVar, expectedVersion.patch())
+            .addStatement("var $N = $N.$N()", metadataVar, languageFieldName, language.methodGetMetadata())
+            .addStatement("if ($N == null) throw new $T(\"Language metadata is not available\")", metadataVar, IllegalStateException.class)
+            .addStatement("var $N = $N.$N()", versionVar, metadataVar, languageMetadata.methodVersion())
+            // See also https://tree-sitter.github.io/tree-sitter/creating-parsers/6-publishing.html#adhering-to-semantic-versioning
+            .addComment("Only allow 'patch' deviation, and only if 'major' is non-0 (otherwise it is interpreted as `0.<major>.<minor>`)")
+            .addComment("This is stricter than SemVar, but is necessary because addition of node type ('minor' change) could lead to")
+            .addComment("exceptions because generated code has no dedicated typed node class for this new node type")
+            .beginControlFlow(CodeBlock.builder()
+                .add("if (")
+                .add("$N.$N() != $N", versionVar, languageMetadata.methodVersionMajor(), expectedMajorVar)
+                .add(" || $N.$N() != $N", versionVar, languageMetadata.methodVersionMinor(), expectedMinorVar)
+                .add(" || ($N == 0 && $N.$N() != $N)", expectedMajorVar, versionVar, languageMetadata.methodVersionPatch(), expectedPatchVar)
+                .add(")")
+                .build()
+            )
+            .addStatement("throw new $T(\"Unsupported language version, expected \" + $N + \".\" + $N + \".\" + $N + \" but was: \" + $N)", IllegalStateException.class, expectedMajorVar, expectedMinorVar, expectedPatchVar, versionVar)
+            .endControlFlow()
+            .build()
+        );
+
+        typeBuilder.addStaticBlock(CodeBlock.builder().addStatement("$N()", methodName).build());
+    }
+
 
     public JavaFile generateCode() {
         var typeBuilder = TypeSpec.classBuilder(languageUtilsConfig.name())
@@ -83,6 +124,12 @@ public class LanguageUtilsGenerator {
 
         String languageFieldName = "language";
         generateLanguageField(typeBuilder, languageFieldName, languageUtilsConfig.languageProviderConfig());
+
+        // Note: Generate this after the language field has already been initialized (above); otherwise it would read uninitialized field
+        var expectedLanguageVersion = languageUtilsConfig.expectedLanguageVersion();
+        if (expectedLanguageVersion != null) {
+            generateLanguageVersionCheck(typeBuilder, languageFieldName, expectedLanguageVersion);
+        }
 
         typeBuilder.addMethod(generateGetTypeIdMethod(languageFieldName));
         typeBuilder.addMethod(generateGetFieldIdMethod(languageFieldName));

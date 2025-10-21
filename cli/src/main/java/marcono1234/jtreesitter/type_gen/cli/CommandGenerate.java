@@ -1,10 +1,9 @@
 package marcono1234.jtreesitter.type_gen.cli;
 
 import marcono1234.jtreesitter.type_gen.*;
-import marcono1234.jtreesitter.type_gen.cli.converter.ChildAsTopLevelConverter;
-import marcono1234.jtreesitter.type_gen.cli.converter.DisableableArg;
-import marcono1234.jtreesitter.type_gen.cli.converter.DisableableTypeNameConverter;
-import marcono1234.jtreesitter.type_gen.cli.converter.LanguageProviderConverter;
+import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageProviderConfig;
+import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageVersion;
+import marcono1234.jtreesitter.type_gen.cli.converter.*;
 import org.jspecify.annotations.Nullable;
 import picocli.CommandLine;
 
@@ -85,19 +84,46 @@ class CommandGenerate implements Callable<Void> {
     @Nullable
     private String rootNodeType;
 
-    @CommandLine.Option(
-        names = {"--language-provider"},
-        description = {
-            "Name of method or field to obtain a Language instance",
-            "Fully qualified name of a static field (e.g. 'com.example.MyClass#field') or no-args method"
-            + " (e.g. 'com.example.MyClass#method()') which provides a tree-sitter 'Language' object for the language"
-            + " represented by the 'node-types.json' file. If provided, additional code will be generated, exposing"
-            + " for example numeric node and field IDs, and validating at runtime that the names in the 'node-types.json'"
-            + " file actually match the loaded language."
-        },
-        converter = LanguageProviderConverter.class
+    @CommandLine.ArgGroup(
+        exclusive = false
     )
-    private LanguageConfig.@Nullable LanguageProviderConfig languageProvider;
+    @Nullable
+    private LanguageOptions languageOptions;
+
+    // Separate arg group so that any of the non-required options here require that `languageProvider` is specified,
+    // since they all depend on a `Language` instance being available
+    private static class LanguageOptions {
+        @CommandLine.Option(
+            names = {"--language-provider"},
+            description = {
+                "Name of method or field to obtain a Language instance",
+                "Fully qualified name of a static field (e.g. 'com.example.MyClass#field') or no-args method"
+                + " (e.g. 'com.example.MyClass#method()') which provides a tree-sitter 'Language' object for the language"
+                + " represented by the 'node-types.json' file. If provided, additional code will be generated, exposing"
+                + " for example numeric node and field IDs, and validating at runtime that the names in the 'node-types.json'"
+                + " file actually match the loaded language."
+            },
+            converter = LanguageProviderConverter.class,
+            required = true
+        )
+        private LanguageProviderConfig languageProvider;
+
+        @CommandLine.Option(
+            names = {"--expected-language-version"},
+            description = {
+                "Expected version of the language",
+                "Version number in the format '<major>.<minor>.<patch>' which the language should have ('patch' version"
+                + " deviations are permitted). When the expected version is specified, additional validation code is"
+                + " generated which ensures that the loaded language is compatible with the generated code."
+                + " Without this validation incompatibilities could otherwise cause exceptions or incorrect behavior.",
+                "The language / grammar version is specified as 'metadata.version' in the 'tree-sitter.json' file"
+                + " of a grammar.",
+            },
+            converter = LanguageVersionConverter.class
+        )
+        @Nullable
+        private LanguageVersion languageVersion;
+    }
 
     @CommandLine.Option(
         names = {"--nullable-annotation"},
@@ -227,6 +253,22 @@ class CommandGenerate implements Callable<Void> {
         }
     }
 
+    private LanguageConfig getLanguageConfig() {
+        Optional<LanguageProviderConfig> languageProviderConfig = Optional.empty();
+        Optional<LanguageVersion> expectedLanguageVersion = Optional.empty();
+
+        if (languageOptions != null) {
+            languageProviderConfig = Optional.of(languageOptions.languageProvider);
+            expectedLanguageVersion = Optional.ofNullable(languageOptions.languageVersion);
+        }
+
+        return new LanguageConfig(
+            Optional.ofNullable(rootNodeType),
+            languageProviderConfig,
+            expectedLanguageVersion
+        );
+    }
+
     @Override
     public Void call() throws Exception {
         var commandLine = commandSpec.commandLine();
@@ -241,7 +283,7 @@ class CommandGenerate implements Callable<Void> {
         );
 
         var codeGenerator = new CodeGenerator(codeGenConfig);
-        var languageConfig = new LanguageConfig(Optional.ofNullable(rootNodeType), Optional.ofNullable(languageProvider));
+        var languageConfig = getLanguageConfig();
         codeGenerator.generate(nodeTypesFile, languageConfig, outputDir);
 
         commandLine.getOut().println("[SUCCESS] Successfully generated code in directory: " + outputDir);

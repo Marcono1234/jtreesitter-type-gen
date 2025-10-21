@@ -677,12 +677,14 @@ public interface NameGenerator {
 
         @Override
         public String generateFieldTypesName(String parentTypeName, String fieldName, List<String> fieldTypeNames) {
+            // TODO: Change to "FieldType<...>" / "Field<...>"?
             // Suffix makes names consistent and prevents clashes with JDK names, e.g. `String`
             return upperFirstChar(convertSnakeToCamelCase(fieldName)) + "Type";
         }
 
         @Override
         public String generateFieldTokenTypeName(String parentTypeName, String fieldName, List<String> tokenFieldTypesNames) {
+            // TODO: Change to "FieldTokenType<...>" / "FieldToken<...>"?
             // Suffix makes names consistent and prevents clashes with JDK names, e.g. `String`
             return upperFirstChar(convertSnakeToCamelCase(fieldName)) + "TokenType";
         }

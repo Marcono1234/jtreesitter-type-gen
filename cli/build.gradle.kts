@@ -72,14 +72,17 @@ testing {
             val useOptional: Boolean = false,
             val rootNodeTypeName: String? = null,
             val languageProvider: String? = null,
+            val languageVersion: String? = null,
         )
 
         val codeGenTaskConfigs = listOf(
             CodeGenTaskConfig("java"),
             CodeGenTaskConfig("java", useOptional = true),
             CodeGenTaskConfig("json"),
-            CodeGenTaskConfig("json", languageProvider = "languageField"),
-            CodeGenTaskConfig("json", languageProvider = "languageMethod()"),
+            // Note: `languageVersion` here can differ slightly from actual language version as long as version check
+            //   in generated code still considers them compatible
+            CodeGenTaskConfig("json", languageProvider = "languageField", languageVersion = "0.24.8"),
+            CodeGenTaskConfig("json", languageProvider = "languageMethod()", languageVersion = "0.24.8"),
             // TODO: Disabled due to missing / incorrect type information for alias, see https://github.com/tree-sitter/tree-sitter/issues/1654
             // Language("python"),
         )
@@ -133,6 +136,7 @@ testing {
                         taskConfig.useOptional,
                         taskConfig.rootNodeTypeName,
                         languageProvider,
+                        taskConfig.languageVersion,
                     )
                 )
 

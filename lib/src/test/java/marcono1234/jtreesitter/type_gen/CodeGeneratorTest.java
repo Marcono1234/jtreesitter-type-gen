@@ -6,6 +6,7 @@ import io.github.ascopes.jct.workspaces.PathStrategy;
 import io.github.ascopes.jct.workspaces.Workspaces;
 import marcono1234.jtreesitter.type_gen.CodeGenConfig.GeneratedAnnotationConfig.GeneratedAnnotationType;
 import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageProviderConfig;
+import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageVersion;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -120,7 +121,13 @@ class CodeGeneratorTest {
             languageProvider = LanguageProviderConfig.fromString(DUMMY_LANGUAGE_PROVIDER_NAME + "#" + memberName);
         }
 
-        var languageConfig = new LanguageConfig(Optional.ofNullable(rootNode), Optional.ofNullable(languageProvider));
+        LanguageVersion languageVersion = null;
+        var languageVersionMatcher = Pattern.compile("\\(lang-version=(.+?)\\)").matcher(baseFileName);
+        if (languageVersionMatcher.find()) {
+            languageVersion = LanguageVersion.fromString(languageVersionMatcher.group(1));
+        }
+
+        var languageConfig = new LanguageConfig(Optional.ofNullable(rootNode), Optional.ofNullable(languageProvider), Optional.ofNullable(languageVersion));
 
         List<JavaFile> actualGeneratedFiles = new ArrayList<>();
         StringBuilder actualContent = new StringBuilder();
@@ -256,7 +263,7 @@ class CodeGeneratorTest {
 
         Path nodeTypesFile = tempDir.resolve("does-not-exist.json");
 
-        var languageConfig = new LanguageConfig(Optional.empty(), Optional.empty());
+        var languageConfig = new LanguageConfig(Optional.empty(), Optional.empty(), Optional.empty());
         var e = assertThrows(CodeGenException.class, () -> codeGenerator.generate(nodeTypesFile, languageConfig, codeWriter, VERSION_INFO));
         assertEquals("Failed reading node types file: " + nodeTypesFile, e.getMessage());
         assertFalse(calledCodeWriter.get());
@@ -287,7 +294,7 @@ class CodeGeneratorTest {
         Path file = tempDir.resolve("some-file.txt");
         Files.createFile(file);
 
-        var languageConfig = new LanguageConfig(Optional.empty(), Optional.empty());
+        var languageConfig = new LanguageConfig(Optional.empty(), Optional.empty(), Optional.empty());
         var e = assertThrows(CodeGenException.class, () -> codeGenerator.generate(nodeTypesFile, languageConfig, file));
         assertEquals("Output dir is not a directory: " + file, e.getMessage());
     }
@@ -319,7 +326,7 @@ class CodeGeneratorTest {
 
         String rootNode = "does-not-exist";
 
-        var languageConfig = new LanguageConfig(Optional.of(rootNode), Optional.empty());
+        var languageConfig = new LanguageConfig(Optional.of(rootNode), Optional.empty(), Optional.empty());
         var e = assertThrows(CodeGenException.class, () -> codeGenerator.generate(new StringReader(nodeTypesJson), languageConfig, codeWriter, VERSION_INFO));
         assertEquals("Root node type '%s' not found".formatted(rootNode), e.getMessage());
     }
@@ -356,7 +363,7 @@ class CodeGeneratorTest {
 
         String rootNode = "my_node";
 
-        var languageConfig = new LanguageConfig(Optional.of(rootNode), Optional.empty());
+        var languageConfig = new LanguageConfig(Optional.of(rootNode), Optional.empty(), Optional.empty());
         var e = assertThrows(CodeGenException.class, () -> codeGenerator.generate(new StringReader(nodeTypesJson), languageConfig, codeWriter, VERSION_INFO));
         assertEquals(
             "Should not explicitly specify root node type when 'node-types.json' already specifies root node ('my_node')",
@@ -406,7 +413,7 @@ class CodeGeneratorTest {
             // ignored
         };
 
-        var languageConfig = new LanguageConfig(Optional.empty(), Optional.empty());
+        var languageConfig = new LanguageConfig(Optional.empty(), Optional.empty(), Optional.empty());
         var e = assertThrows(NoSuchElementException.class, () -> codeGenerator.generate(new StringReader(nodeTypesJson), languageConfig, codeWriter, VERSION_INFO));
         assertEquals(
             "Unknown type name: as_pattern_target\nPotential tree-sitter bug https://github.com/tree-sitter/tree-sitter/issues/1654",

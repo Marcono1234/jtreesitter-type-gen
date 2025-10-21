@@ -46,6 +46,9 @@ abstract class CodegenCliTask : DefaultTask() {
         @get:Input
         @get:Optional
         val languageProvider: String? = null,
+        @get:Input
+        @get:Optional
+        val languageVersion: String? = null,
     )
 
     init {
@@ -88,6 +91,10 @@ abstract class CodegenCliTask : DefaultTask() {
         }
         codeGenConfig.languageProvider?.let {
             command.add("--language-provider")
+            command.add(it)
+        }
+        codeGenConfig.languageVersion?.let {
+            command.add("--expected-language-version")
             command.add(it)
         }
 

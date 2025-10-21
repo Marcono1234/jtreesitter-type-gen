@@ -1,7 +1,10 @@
 package marcono1234.jtreesitter.type_gen;
 
+import marcono1234.jtreesitter.type_gen.internal.JavaNameValidator;
+
 import java.util.Objects;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 /**
  * Configuration related to a specific {@code node-types.json} file / language.
@@ -17,13 +20,31 @@ import java.util.Optional;
  *      language represented by the {@code node-types.json} file. If provided, additional code will be,
  *      generated exposing for example numeric node and field IDs, and validating at runtime that the names
  *      in the {@code node-types.json} file actually match the loaded language.
+ * @param expectedLanguageVersion
+ *      Expected version number the loaded language should have ({@link LanguageVersion#patch() patch} version
+ *      deviations are permitted). Specifying the expected version ensures that the loaded language is compatible
+ *      with the generated code by generating additional validation code. Incompatibilities could otherwise cause
+ *      exceptions or incorrect behavior.<br/>
+ *      The language / grammar version is specified as {@code metadata.version} in the {@code tree-sitter.json}
+ *      file of a grammar. See also the <a href="https://tree-sitter.github.io/tree-sitter/cli/version.html">Tree-sitter documentation</a>
+ *      for how to set the version.
+ *      <p>Can only be used if {@code languageProviderConfig} is provided.
  */
 // Note: Have to adjust this once multiple root nodes (https://github.com/tree-sitter/tree-sitter/issues/870) or
 //   root nodes selected at runtime (https://github.com/tree-sitter/tree-sitter/issues/711) will be possible
-public record LanguageConfig(Optional<String> rootNodeTypeName, Optional<LanguageProviderConfig> languageProviderConfig) {
+public record LanguageConfig(
+    Optional<String> rootNodeTypeName,
+    Optional<LanguageProviderConfig> languageProviderConfig,
+    Optional<LanguageVersion> expectedLanguageVersion
+) {
     public LanguageConfig {
         Objects.requireNonNull(rootNodeTypeName);
         Objects.requireNonNull(languageProviderConfig);
+        Objects.requireNonNull(expectedLanguageVersion);
+
+        if (expectedLanguageVersion.isPresent() && languageProviderConfig.isEmpty()) {
+            throw new IllegalArgumentException("Must specify language provider when using expectedLanguageVersion");
+        }
     }
 
     /**
@@ -47,7 +68,7 @@ public record LanguageConfig(Optional<String> rootNodeTypeName, Optional<Languag
         record Field(TypeName declaringType, String fieldName) implements LanguageProviderConfig {
             public Field {
                 Objects.requireNonNull(declaringType);
-                Objects.requireNonNull(fieldName);
+                JavaNameValidator.checkMemberName(fieldName);
             }
         }
 
@@ -57,7 +78,7 @@ public record LanguageConfig(Optional<String> rootNodeTypeName, Optional<Languag
         record Method(TypeName declaringType, String methodName) implements LanguageProviderConfig {
             public Method {
                 Objects.requireNonNull(declaringType);
-                Objects.requireNonNull(methodName);
+                JavaNameValidator.checkMemberName(methodName);
             }
         }
 
@@ -85,6 +106,40 @@ public record LanguageConfig(Optional<String> rootNodeTypeName, Optional<Languag
             } else {
                 return new Field(type, memberName);
             }
+        }
+    }
+
+    /**
+     * Tree-sitter language / grammar version, in the format {@code <major>.<minor>.<patch>}.
+     */
+    public record LanguageVersion(int major, int minor, int patch) {
+        public LanguageVersion {
+            if (major < 0 || minor < 0 || patch < 0) {
+                throw new IllegalArgumentException("Version number must not be < 0");
+            }
+        }
+
+        @Override
+        public String toString() {
+            return major + "." + minor + "." + patch;
+        }
+
+        private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)");
+
+        /**
+         * Parses a version from the string representation {@code <major>.<minor>.<patch>}.
+         */
+        public static LanguageVersion fromString(String string) {
+            var matcher = VERSION_PATTERN.matcher(string);
+            if (!matcher.matches()) {
+                throw new IllegalArgumentException("Version should have format '<major>.<minor>.<patch>', but is: " + string);
+            }
+
+            return new LanguageVersion(
+                Integer.parseInt(matcher.group(1)),
+                Integer.parseInt(matcher.group(2)),
+                Integer.parseInt(matcher.group(3))
+            );
         }
     }
 }

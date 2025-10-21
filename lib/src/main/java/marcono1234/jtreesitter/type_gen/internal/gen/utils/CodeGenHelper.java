@@ -4,6 +4,7 @@ import com.palantir.javapoet.*;
 import marcono1234.jtreesitter.type_gen.CodeGenConfig;
 import marcono1234.jtreesitter.type_gen.CodeGenerator;
 import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageProviderConfig;
+import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageVersion;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenJavaType;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenNodeType;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.LanguageUtilsGenerator;
@@ -22,17 +23,17 @@ public class CodeGenHelper {
     private final CodeGenConfig config;
     private final CodeGenerator.Version versionInfo;
     @Nullable // null when no access to the Language object is possible
-    private final LanguageProviderConfig languageProviderConfig;
+    private final LanguageUtilsConfigData languageUtilsConfigData;
     private final Instant generationTime;
     @Nullable // null when `Optional<T>` instead of `@Nullable T` should be generated
     private final AnnotationSpec nullableAnnotation;
     private final ClassName nonEmptyClassName;
     private final AnnotationSpec nonEmptyAnnotation;
 
-    public CodeGenHelper(CodeGenConfig config, CodeGenerator.Version versionInfo, @Nullable LanguageProviderConfig languageProviderConfig) {
+    public CodeGenHelper(CodeGenConfig config, CodeGenerator.Version versionInfo, @Nullable LanguageUtilsConfigData languageUtilsConfigData) {
         this.config = Objects.requireNonNull(config);
         this.versionInfo = Objects.requireNonNull(versionInfo);
-        this.languageProviderConfig = languageProviderConfig;
+        this.languageUtilsConfigData = languageUtilsConfigData;
 
         generationTime = this.config.generatedAnnotationConfig().flatMap(c -> c.generationTime()).orElseGet(Instant::now);
         nullableAnnotation = this.config.nullableAnnotationTypeName()
@@ -40,6 +41,13 @@ public class CodeGenHelper {
             .orElse(null);
         nonEmptyClassName = ClassName.get(config.packageName(), config.nonEmptyTypeName());
         nonEmptyAnnotation = AnnotationSpec.builder(nonEmptyClassName).build();
+    }
+
+    public record LanguageUtilsConfigData(
+        LanguageProviderConfig languageProviderConfig,
+        @Nullable
+        LanguageVersion expectedLanguageVersion
+    ) {
     }
 
     /**
@@ -503,6 +511,7 @@ public class CodeGenHelper {
     public record LanguageUtilsConfig(
         CodeGenHelper codeGenHelper,
         LanguageProviderConfig languageProviderConfig,
+        @Nullable LanguageVersion expectedLanguageVersion,
         String name,
         String methodGetTypeId, String methodGetFieldId
     ) {
@@ -511,14 +520,15 @@ public class CodeGenHelper {
         }
 
         public static @Nullable LanguageUtilsConfig createDefault(CodeGenHelper codeGenHelper) {
-            var languageProviderConfig = codeGenHelper.languageProviderConfig;
-            if (languageProviderConfig == null) {
+            var languageConfig = codeGenHelper.languageUtilsConfigData;
+            if (languageConfig == null) {
                 return null;
             }
 
             return new LanguageUtilsConfig(
                 codeGenHelper,
-                languageProviderConfig,
+                languageConfig.languageProviderConfig(),
+                languageConfig.expectedLanguageVersion(),
                 "LanguageUtils",
                 "getTypeId", "getFieldId"
             );
@@ -544,6 +554,7 @@ public class CodeGenHelper {
      */
     public record JTreestitterConfig(
         Language language,
+        LanguageMetadata languageMetadata,
         Query query,
         QueryCursor queryCursor,
         QueryMatch queryMatch,
@@ -558,7 +569,8 @@ public class CodeGenHelper {
             ClassName className,
             TypeName numericIdType,
             String methodGetTypeId,
-            String methodGetFieldId
+            String methodGetFieldId,
+            String methodGetMetadata
         ) {
             public static final Language DEFAULT = new Language(
                 ClassName.get("io.github.treesitter.jtreesitter", "Language"),
@@ -567,7 +579,8 @@ public class CodeGenHelper {
                 // jtreesitter values more cumbersome and error-prone
                 TypeName.SHORT.annotated(AnnotationSpec.builder(ClassName.get("io.github.treesitter.jtreesitter", "Unsigned")).build()),
                 "getSymbolForName",
-                "getFieldIdForName"
+                "getFieldIdForName",
+                "getMetadata"
             );
 
             /**
@@ -609,6 +622,18 @@ public class CodeGenHelper {
                     .addStatement("return $N", idVar);
                 return codeBuilder.build();
             }
+        }
+
+        /** jtreesitter {@code LanguageMetadata} class */
+        public record LanguageMetadata(
+            String methodVersion,
+            // `LanguageMetadata.Version` methods
+            String methodVersionMajor, String methodVersionMinor, String methodVersionPatch
+        ) {
+            public static final LanguageMetadata DEFAULT = new LanguageMetadata(
+                "version",
+                "major", "minor", "patch"
+            );
         }
 
         /** jtreesitter {@code Query} class */
@@ -710,6 +735,7 @@ public class CodeGenHelper {
 
         public static final JTreestitterConfig DEFAULT = new JTreestitterConfig(
             Language.DEFAULT,
+            LanguageMetadata.DEFAULT,
             Query.DEFAULT,
             QueryCursor.DEFAULT,
             QueryMatch.DEFAULT,

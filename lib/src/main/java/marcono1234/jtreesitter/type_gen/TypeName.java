@@ -26,16 +26,25 @@ public record TypeName(String packageName, String name) {
      */
     public static TypeName fromQualifiedName(String name) {
         int lastDotIndex = name.lastIndexOf('.');
-        if (lastDotIndex == -1) {
-            throw new IllegalArgumentException("Missing package name for: " + name);
+        String packageName = "";
+        if (lastDotIndex == 0) {
+            throw new IllegalArgumentException("Invalid leading dot: " + name);
         }
-        return new TypeName(name.substring(0, lastDotIndex), name.substring(lastDotIndex + 1));
+        if (lastDotIndex != -1) {
+            packageName = name.substring(0, lastDotIndex);
+        }
+        return new TypeName(packageName, name.substring(lastDotIndex + 1));
     }
 
     /**
      * Creates a type name from a class object.
      */
     public static TypeName fromClass(Class<?> c) {
+        // For now don't support array classes; would otherwise need to adjust parsing because it currently would
+        // erroneously treat package name of array component as package of the complete type
+        if (c.isArray()) {
+            throw new IllegalArgumentException("Array classes are not supported");
+        }
         return fromQualifiedName(c.getName());
     }
 }

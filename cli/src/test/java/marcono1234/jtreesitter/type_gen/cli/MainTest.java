@@ -292,6 +292,74 @@ class MainTest {
     }
 
     @Test
+    void generateCommand_ExpectedLanguageVersion(@TempDir Path tempDir) throws IOException {
+        Path nodeTypesFile = tempDir.resolve("node-types.json");
+        Files.writeString(nodeTypesFile, """
+            [
+              {
+                "type": "first",
+                "named": true
+              }
+            ]
+            """);
+        Path outputDir = tempDir.resolve("output");
+
+        assertMainResult(
+            List.of(
+                "--node-types", nodeTypesFile.toString(),
+                "--package", "com.example",
+                "--output-dir", outputDir.toString(),
+                "--language-provider", "com.example.MyClass#field",
+                "--expected-language-version", "1.2.3"
+            ),
+            CommandLine.ExitCode.OK,
+            stdOut -> assertEquals("[SUCCESS] Successfully generated code in directory: " + outputDir, stdOut),
+            stdErr -> assertEquals("", stdErr)
+        );
+
+        assertFiles(outputDir, List.of("com/example/LanguageUtils.java", "com/example/NodeFirst.java", "com/example/NodeUtils.java", "com/example/NonEmpty.java", "com/example/TypedNode.java"));
+        String fileContent = Files.readString(outputDir.resolve("com/example/LanguageUtils.java"));
+        assertContains(fileContent, "checkLanguageVersion();");
+        assertContains(fileContent, "int expectedMajor = 1;");
+        assertContains(fileContent, "int expectedMinor = 2;");
+        assertContains(fileContent, "int expectedPatch = 3;");
+    }
+
+    /** Tests using {@code --expected-language-version} without specifying {@code --language-provider} */
+    @Test
+    void generateCommand_ExpectedLanguageVersion_NoLanguageProvider(@TempDir Path tempDir) throws IOException {
+        Path nodeTypesFile = tempDir.resolve("node-types.json");
+        Files.writeString(nodeTypesFile, """
+            [
+              {
+                "type": "first",
+                "named": true
+              }
+            ]
+            """);
+        Path outputDir = tempDir.resolve("output");
+
+        assertMainResult(
+            List.of(
+                "--node-types", nodeTypesFile.toString(),
+                "--package", "com.example",
+                "--output-dir", outputDir.toString(),
+                // Does not specify `--language-provider`
+                "--expected-language-version", "1.2.3"
+            ),
+            CommandLine.ExitCode.USAGE,
+            stdOut -> assertEquals("", stdOut),
+            stdErr -> assertContains(
+                stdErr,
+                // Note: This exact message depends on picocli implementation details
+                "Error: Missing required argument(s): --language-provider=<languageProvider>"
+            )
+        );
+
+        assertFalse(Files.exists(outputDir));
+    }
+
+    @Test
     void generateCommand_NullableAnnotation(@TempDir Path tempDir) throws IOException {
         Path nodeTypesFile = tempDir.resolve("node-types.json");
         Files.writeString(nodeTypesFile, """

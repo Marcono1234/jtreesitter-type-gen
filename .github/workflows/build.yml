@@ -58,7 +58,7 @@ jobs:
           # See https://tree-sitter.github.io/tree-sitter/using-parsers#building-the-library
           gcc -shared -o ../cli/libtree-sitter.so -fPIC -I lib/include -I lib/src lib/src/lib.c
 
-      - name: Builder tree-sitter-java
+      - name: Build tree-sitter-java
         run: |
           LANG="java"
           git clone --branch v0.23.5 --depth=1 --no-checkout https://github.com/tree-sitter/tree-sitter-$LANG.git tree-sitter-$LANG
@@ -68,17 +68,27 @@ jobs:
           gcc --version
           gcc -shared -o ../cli/liblang-$LANG.so -fPIC -I src/tree_sitter src/parser.c
 
-      - name: Builder tree-sitter-json
+      # Set up tree-sitter CLI to re-generate tree-sitter-json source code using newer tree-sitter version (to include language metadata)
+      # TODO: Remove this (and the `tree-sitter generate` command below) again once newer version of tree-sitter-json is available
+      - name: Set up tree-sitter
+        uses: tree-sitter/setup-action/cli@c4c258862a6a7e43a7aef152256bbf659972c408
+        with:
+          tree-sitter-ref: v0.25.10
+      - name: Build tree-sitter-json
         run: |
           LANG="json"
           git clone --branch v0.24.8 --depth=1 --no-checkout https://github.com/tree-sitter/tree-sitter-$LANG.git tree-sitter-$LANG
           cd tree-sitter-$LANG
-          # Only checkout what is needed for compiling
-          git checkout HEAD -- src
+          ## TODO: Uncomment again (and remove `git checkout HEAD` below) once `tree-sitter generate` is not necessary anymore
+          ## # Only checkout what is needed for compiling
+          ## git checkout HEAD -- src
+          # Re-generate parser source code using newer tree-sitter CLI
+          git checkout HEAD
+          tree-sitter generate
           gcc --version
           gcc -shared -o ../cli/liblang-$LANG.so -fPIC -I src/tree_sitter src/parser.c
 
-      - name: Builder tree-sitter-python
+      - name: Build tree-sitter-python
         run: |
           LANG="python"
           git clone --branch v0.25.0 --depth=1 --no-checkout https://github.com/tree-sitter/tree-sitter-$LANG.git tree-sitter-$LANG

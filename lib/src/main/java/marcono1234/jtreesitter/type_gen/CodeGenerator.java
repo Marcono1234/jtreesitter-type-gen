@@ -9,6 +9,7 @@ import marcono1234.jtreesitter.type_gen.internal.gen.GenRegularNodeType;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenSupertypeNodeType;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.*;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper.LanguageUtilsConfigData;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.NodeType;
 import org.jspecify.annotations.Nullable;
@@ -118,7 +119,14 @@ public class CodeGenerator {
         }
 
         var nodeGens = determineGenElements(nodeTypes, languageConfig.rootNodeTypeName().orElse(null), config.nameGenerator());
-        CodeGenHelper codeGenHelper = new CodeGenHelper(config, versionInfo, languageConfig.languageProviderConfig().orElse(null));
+        var languageUtilsConfigData = languageConfig.languageProviderConfig()
+            .map(languageProvider -> new LanguageUtilsConfigData(
+                languageProvider,
+                // Retrieving expectedLanguageVersion is nested here because it can only be present if a `languageProvider` exists
+                languageConfig.expectedLanguageVersion().orElse(null)
+            ))
+            .orElse(null);
+        CodeGenHelper codeGenHelper = new CodeGenHelper(config, versionInfo, languageUtilsConfigData);
 
         var languageUtilsConfig = codeGenHelper.languageUtilsConfig();
         if (languageUtilsConfig != null) {
