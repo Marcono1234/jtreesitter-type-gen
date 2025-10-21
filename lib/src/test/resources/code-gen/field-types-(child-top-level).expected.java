@@ -151,7 +151,7 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public sealed interface TypedNode permits NodeContainedA, NodeContainedB, NodeRoot, NodeFieldOfEachOtherA, NodeFieldOfEachOtherB, NodeFieldOfEachOtherWithTokenA, NodeFieldOfEachOtherWithTokenB, NodeRoot$MultiTypeNamedType, NodeRoot$SingleTypeNonNamedTokenType, NodeRoot$MultiTypeNonNamedTokenType, NodeRoot$MixedNamedNonNamedType, NodeFieldOfEachOtherA$FType, NodeFieldOfEachOtherB$FType, NodeFieldOfEachOtherWithTokenA$FType, NodeFieldOfEachOtherWithTokenB$FType {
+public sealed interface TypedNode permits NodeContainedA, NodeContainedB, NodeRoot, NodeFieldOfEachOtherA, NodeFieldOfEachOtherB, NodeFieldOfEachOtherWithTokenA, NodeFieldOfEachOtherWithTokenB, NodeRoot$FieldMultiTypeNamed, NodeRoot$FieldTokenSingleTypeNonNamed, NodeRoot$FieldTokenMultiTypeNonNamed, NodeRoot$FieldMixedNamedNonNamed, NodeFieldOfEachOtherA$FieldF, NodeFieldOfEachOtherB$FieldF, NodeFieldOfEachOtherWithTokenA$FieldF, NodeFieldOfEachOtherWithTokenB$FieldF {
   /**
    * Returns the underlying jtreesitter node.
    */
@@ -284,7 +284,7 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeContainedA implements TypedNode, NodeRoot$MultiTypeNamedType, NodeRoot$MixedNamedNonNamedType, NodeFieldOfEachOtherA$FType, NodeFieldOfEachOtherB$FType {
+public final class NodeContainedA implements TypedNode, NodeRoot$FieldMultiTypeNamed, NodeRoot$FieldMixedNamedNonNamed, NodeFieldOfEachOtherA$FieldF, NodeFieldOfEachOtherB$FieldF {
   /**
    * Type name of this node, as defined in the grammar.
    */
@@ -443,7 +443,7 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeContainedB implements TypedNode, NodeRoot$MultiTypeNamedType {
+public final class NodeContainedB implements TypedNode, NodeRoot$FieldMultiTypeNamed {
   /**
    * Type name of this node, as defined in the grammar.
    */
@@ -594,7 +594,7 @@ import javax.annotation.processing.Generated;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public sealed interface NodeRoot$MultiTypeNamedType extends TypedNode permits NodeContainedA, NodeContainedB {
+public sealed interface NodeRoot$FieldMultiTypeNamed extends TypedNode permits NodeContainedA, NodeContainedB {
 }
 
 
@@ -618,12 +618,12 @@ import javax.annotation.processing.Generated;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeRoot$SingleTypeNonNamedTokenType implements TypedNode {
+public final class NodeRoot$FieldTokenSingleTypeNonNamed implements TypedNode {
   private final Node node;
 
   private final TokenType token;
 
-  NodeRoot$SingleTypeNonNamedTokenType(Node node, TokenType token) {
+  NodeRoot$FieldTokenSingleTypeNonNamed(Node node, TokenType token) {
     this.node = node;
     this.token = token;
   }
@@ -642,7 +642,7 @@ public final class NodeRoot$SingleTypeNonNamedTokenType implements TypedNode {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof NodeRoot$SingleTypeNonNamedTokenType other) {
+    if (obj instanceof NodeRoot$FieldTokenSingleTypeNonNamed other) {
       return this.node.equals(other.node);
     }
     return false;
@@ -655,7 +655,7 @@ public final class NodeRoot$SingleTypeNonNamedTokenType implements TypedNode {
 
   @Override
   public String toString() {
-    return "SingleTypeNonNamedTokenType" + "[id=" + Long.toUnsignedString(this.node.getId()) + ",token=" + this.token + "]";
+    return "FieldTokenSingleTypeNonNamed" + "[id=" + Long.toUnsignedString(this.node.getId()) + ",token=" + this.token + "]";
   }
 
   /**
@@ -717,12 +717,12 @@ import javax.annotation.processing.Generated;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeRoot$MultiTypeNonNamedTokenType implements TypedNode {
+public final class NodeRoot$FieldTokenMultiTypeNonNamed implements TypedNode {
   private final Node node;
 
   private final TokenType token;
 
-  NodeRoot$MultiTypeNonNamedTokenType(Node node, TokenType token) {
+  NodeRoot$FieldTokenMultiTypeNonNamed(Node node, TokenType token) {
     this.node = node;
     this.token = token;
   }
@@ -741,7 +741,7 @@ public final class NodeRoot$MultiTypeNonNamedTokenType implements TypedNode {
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof NodeRoot$MultiTypeNonNamedTokenType other) {
+    if (obj instanceof NodeRoot$FieldTokenMultiTypeNonNamed other) {
       return this.node.equals(other.node);
     }
     return false;
@@ -754,7 +754,7 @@ public final class NodeRoot$MultiTypeNonNamedTokenType implements TypedNode {
 
   @Override
   public String toString() {
-    return "MultiTypeNonNamedTokenType" + "[id=" + Long.toUnsignedString(this.node.getId()) + ",token=" + this.token + "]";
+    return "FieldTokenMultiTypeNonNamed" + "[id=" + Long.toUnsignedString(this.node.getId()) + ",token=" + this.token + "]";
   }
 
   /**
@@ -834,12 +834,12 @@ import javax.annotation.processing.Generated;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeRoot$MixedNamedNonNamedTokenType implements NodeRoot$MixedNamedNonNamedType {
+public final class NodeRoot$FieldTokenMixedNamedNonNamed implements NodeRoot$FieldMixedNamedNonNamed {
   private final Node node;
 
   private final TokenType token;
 
-  NodeRoot$MixedNamedNonNamedTokenType(Node node, TokenType token) {
+  NodeRoot$FieldTokenMixedNamedNonNamed(Node node, TokenType token) {
     this.node = node;
     this.token = token;
   }
@@ -858,7 +858,7 @@ public final class NodeRoot$MixedNamedNonNamedTokenType implements NodeRoot$Mixe
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof NodeRoot$MixedNamedNonNamedTokenType other) {
+    if (obj instanceof NodeRoot$FieldTokenMixedNamedNonNamed other) {
       return this.node.equals(other.node);
     }
     return false;
@@ -871,7 +871,7 @@ public final class NodeRoot$MixedNamedNonNamedTokenType implements NodeRoot$Mixe
 
   @Override
   public String toString() {
-    return "MixedNamedNonNamedTokenType" + "[id=" + Long.toUnsignedString(this.node.getId()) + ",token=" + this.token + "]";
+    return "FieldTokenMixedNamedNonNamed" + "[id=" + Long.toUnsignedString(this.node.getId()) + ",token=" + this.token + "]";
   }
 
   /**
@@ -924,7 +924,7 @@ import javax.annotation.processing.Generated;
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeContainedA contained_a}
- * <li>{@linkplain NodeRoot$MixedNamedNonNamedTokenType <i>tokens</i>}
+ * <li>{@linkplain NodeRoot$FieldTokenMixedNamedNonNamed <i>tokens</i>}
  * </ul>
  */
 @Generated(
@@ -932,7 +932,7 @@ import javax.annotation.processing.Generated;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public sealed interface NodeRoot$MixedNamedNonNamedType extends TypedNode permits NodeContainedA, NodeRoot$MixedNamedNonNamedTokenType {
+public sealed interface NodeRoot$FieldMixedNamedNonNamed extends TypedNode permits NodeContainedA, NodeRoot$FieldTokenMixedNamedNonNamed {
 }
 
 
@@ -1072,9 +1072,9 @@ public final class NodeRoot implements TypedNode {
    * <li>required: false
    * </ul>
    */
-  public @Nullable NodeRoot$MultiTypeNamedType getFieldMultiTypeNamed() {
+  public @Nullable NodeRoot$FieldMultiTypeNamed getFieldMultiTypeNamed() {
     var children = this.node.getChildrenByFieldName(FIELD_MULTI_TYPE_NAMED);
-    var namedMapper = NodeRoot$MultiTypeNamedType.class;
+    var namedMapper = NodeRoot$FieldMultiTypeNamed.class;
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
     return NodeUtils.optionalSingleChild(childrenMapped);
   }
@@ -1086,10 +1086,10 @@ public final class NodeRoot implements TypedNode {
    * <li>required: false
    * </ul>
    */
-  public @Nullable NodeRoot$SingleTypeNonNamedTokenType getFieldSingleTypeNonNamed() {
+  public @Nullable NodeRoot$FieldTokenSingleTypeNonNamed getFieldSingleTypeNonNamed() {
     var children = this.node.getChildrenByFieldName(FIELD_SINGLE_TYPE_NON_NAMED);
-    Function<Node, NodeRoot$SingleTypeNonNamedTokenType> mapper = n -> new NodeRoot$SingleTypeNonNamedTokenType(n, NodeRoot$SingleTypeNonNamedTokenType.TokenType.fromNode(n));
-    var childrenMapped = NodeUtils.mapChildren(children, (Class<NodeRoot$SingleTypeNonNamedTokenType>) null, mapper);
+    Function<Node, NodeRoot$FieldTokenSingleTypeNonNamed> mapper = n -> new NodeRoot$FieldTokenSingleTypeNonNamed(n, NodeRoot$FieldTokenSingleTypeNonNamed.TokenType.fromNode(n));
+    var childrenMapped = NodeUtils.mapChildren(children, (Class<NodeRoot$FieldTokenSingleTypeNonNamed>) null, mapper);
     return NodeUtils.optionalSingleChild(childrenMapped);
   }
 
@@ -1100,10 +1100,10 @@ public final class NodeRoot implements TypedNode {
    * <li>required: false
    * </ul>
    */
-  public @Nullable NodeRoot$MultiTypeNonNamedTokenType getFieldMultiTypeNonNamed() {
+  public @Nullable NodeRoot$FieldTokenMultiTypeNonNamed getFieldMultiTypeNonNamed() {
     var children = this.node.getChildrenByFieldName(FIELD_MULTI_TYPE_NON_NAMED);
-    Function<Node, NodeRoot$MultiTypeNonNamedTokenType> mapper = n -> new NodeRoot$MultiTypeNonNamedTokenType(n, NodeRoot$MultiTypeNonNamedTokenType.TokenType.fromNode(n));
-    var childrenMapped = NodeUtils.mapChildren(children, (Class<NodeRoot$MultiTypeNonNamedTokenType>) null, mapper);
+    Function<Node, NodeRoot$FieldTokenMultiTypeNonNamed> mapper = n -> new NodeRoot$FieldTokenMultiTypeNonNamed(n, NodeRoot$FieldTokenMultiTypeNonNamed.TokenType.fromNode(n));
+    var childrenMapped = NodeUtils.mapChildren(children, (Class<NodeRoot$FieldTokenMultiTypeNonNamed>) null, mapper);
     return NodeUtils.optionalSingleChild(childrenMapped);
   }
 
@@ -1114,10 +1114,10 @@ public final class NodeRoot implements TypedNode {
    * <li>required: false
    * </ul>
    */
-  public @Nullable NodeRoot$MixedNamedNonNamedType getFieldMixedNamedNonNamed() {
+  public @Nullable NodeRoot$FieldMixedNamedNonNamed getFieldMixedNamedNonNamed() {
     var children = this.node.getChildrenByFieldName(FIELD_MIXED_NAMED_NON_NAMED);
     Function<Node, NodeContainedA> namedMapper = NodeContainedA::fromNodeThrowing;
-    Function<Node, NodeRoot$MixedNamedNonNamedTokenType> tokenMapper = n -> new NodeRoot$MixedNamedNonNamedTokenType(n, NodeRoot$MixedNamedNonNamedTokenType.TokenType.fromNode(n));
+    Function<Node, NodeRoot$FieldTokenMixedNamedNonNamed> tokenMapper = n -> new NodeRoot$FieldTokenMixedNamedNonNamed(n, NodeRoot$FieldTokenMixedNamedNonNamed.TokenType.fromNode(n));
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, tokenMapper);
     return NodeUtils.optionalSingleChild(childrenMapped);
   }
@@ -1217,7 +1217,7 @@ import javax.annotation.processing.Generated;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public sealed interface NodeFieldOfEachOtherA$FType extends TypedNode permits NodeContainedA, NodeFieldOfEachOtherB {
+public sealed interface NodeFieldOfEachOtherA$FieldF extends TypedNode permits NodeContainedA, NodeFieldOfEachOtherB {
 }
 
 
@@ -1251,7 +1251,7 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeFieldOfEachOtherA implements TypedNode, NodeFieldOfEachOtherB$FType {
+public final class NodeFieldOfEachOtherA implements TypedNode, NodeFieldOfEachOtherB$FieldF {
   /**
    * Type name of this node, as defined in the grammar.
    */
@@ -1309,9 +1309,9 @@ public final class NodeFieldOfEachOtherA implements TypedNode, NodeFieldOfEachOt
    * <li>required: false
    * </ul>
    */
-  public @Nullable NodeFieldOfEachOtherA$FType getFieldF() {
+  public @Nullable NodeFieldOfEachOtherA$FieldF getFieldF() {
     var children = this.node.getChildrenByFieldName(FIELD_F);
-    var namedMapper = NodeFieldOfEachOtherA$FType.class;
+    var namedMapper = NodeFieldOfEachOtherA$FieldF.class;
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
     return NodeUtils.optionalSingleChild(childrenMapped);
   }
@@ -1413,7 +1413,7 @@ import javax.annotation.processing.Generated;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public sealed interface NodeFieldOfEachOtherB$FType extends TypedNode permits NodeContainedA, NodeFieldOfEachOtherA {
+public sealed interface NodeFieldOfEachOtherB$FieldF extends TypedNode permits NodeContainedA, NodeFieldOfEachOtherA {
 }
 
 
@@ -1447,7 +1447,7 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeFieldOfEachOtherB implements TypedNode, NodeFieldOfEachOtherA$FType {
+public final class NodeFieldOfEachOtherB implements TypedNode, NodeFieldOfEachOtherA$FieldF {
   /**
    * Type name of this node, as defined in the grammar.
    */
@@ -1505,9 +1505,9 @@ public final class NodeFieldOfEachOtherB implements TypedNode, NodeFieldOfEachOt
    * <li>required: false
    * </ul>
    */
-  public @Nullable NodeFieldOfEachOtherB$FType getFieldF() {
+  public @Nullable NodeFieldOfEachOtherB$FieldF getFieldF() {
     var children = this.node.getChildrenByFieldName(FIELD_F);
-    var namedMapper = NodeFieldOfEachOtherB$FType.class;
+    var namedMapper = NodeFieldOfEachOtherB$FieldF.class;
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
     return NodeUtils.optionalSingleChild(childrenMapped);
   }
@@ -1610,12 +1610,12 @@ import javax.annotation.processing.Generated;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeFieldOfEachOtherWithTokenA$FTokenType implements NodeFieldOfEachOtherWithTokenA$FType {
+public final class NodeFieldOfEachOtherWithTokenA$FieldTokenF implements NodeFieldOfEachOtherWithTokenA$FieldF {
   private final Node node;
 
   private final TokenType token;
 
-  NodeFieldOfEachOtherWithTokenA$FTokenType(Node node, TokenType token) {
+  NodeFieldOfEachOtherWithTokenA$FieldTokenF(Node node, TokenType token) {
     this.node = node;
     this.token = token;
   }
@@ -1634,7 +1634,7 @@ public final class NodeFieldOfEachOtherWithTokenA$FTokenType implements NodeFiel
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof NodeFieldOfEachOtherWithTokenA$FTokenType other) {
+    if (obj instanceof NodeFieldOfEachOtherWithTokenA$FieldTokenF other) {
       return this.node.equals(other.node);
     }
     return false;
@@ -1647,7 +1647,7 @@ public final class NodeFieldOfEachOtherWithTokenA$FTokenType implements NodeFiel
 
   @Override
   public String toString() {
-    return "FTokenType" + "[id=" + Long.toUnsignedString(this.node.getId()) + ",token=" + this.token + "]";
+    return "FieldTokenF" + "[id=" + Long.toUnsignedString(this.node.getId()) + ",token=" + this.token + "]";
   }
 
   /**
@@ -1700,7 +1700,7 @@ import javax.annotation.processing.Generated;
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeFieldOfEachOtherWithTokenB field_of_each_other_with_token_b}
- * <li>{@linkplain NodeFieldOfEachOtherWithTokenA$FTokenType <i>tokens</i>}
+ * <li>{@linkplain NodeFieldOfEachOtherWithTokenA$FieldTokenF <i>tokens</i>}
  * </ul>
  */
 @Generated(
@@ -1708,7 +1708,7 @@ import javax.annotation.processing.Generated;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public sealed interface NodeFieldOfEachOtherWithTokenA$FType extends TypedNode permits NodeFieldOfEachOtherWithTokenB, NodeFieldOfEachOtherWithTokenA$FTokenType {
+public sealed interface NodeFieldOfEachOtherWithTokenA$FieldF extends TypedNode permits NodeFieldOfEachOtherWithTokenB, NodeFieldOfEachOtherWithTokenA$FieldTokenF {
 }
 
 
@@ -1743,7 +1743,7 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeFieldOfEachOtherWithTokenA implements TypedNode, NodeFieldOfEachOtherWithTokenB$FType {
+public final class NodeFieldOfEachOtherWithTokenA implements TypedNode, NodeFieldOfEachOtherWithTokenB$FieldF {
   /**
    * Type name of this node, as defined in the grammar.
    */
@@ -1801,10 +1801,10 @@ public final class NodeFieldOfEachOtherWithTokenA implements TypedNode, NodeFiel
    * <li>required: false
    * </ul>
    */
-  public @Nullable NodeFieldOfEachOtherWithTokenA$FType getFieldF() {
+  public @Nullable NodeFieldOfEachOtherWithTokenA$FieldF getFieldF() {
     var children = this.node.getChildrenByFieldName(FIELD_F);
     Function<Node, NodeFieldOfEachOtherWithTokenB> namedMapper = NodeFieldOfEachOtherWithTokenB::fromNodeThrowing;
-    Function<Node, NodeFieldOfEachOtherWithTokenA$FTokenType> tokenMapper = n -> new NodeFieldOfEachOtherWithTokenA$FTokenType(n, NodeFieldOfEachOtherWithTokenA$FTokenType.TokenType.fromNode(n));
+    Function<Node, NodeFieldOfEachOtherWithTokenA$FieldTokenF> tokenMapper = n -> new NodeFieldOfEachOtherWithTokenA$FieldTokenF(n, NodeFieldOfEachOtherWithTokenA$FieldTokenF.TokenType.fromNode(n));
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, tokenMapper);
     return NodeUtils.optionalSingleChild(childrenMapped);
   }
@@ -1907,12 +1907,12 @@ import javax.annotation.processing.Generated;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeFieldOfEachOtherWithTokenB$FTokenType implements NodeFieldOfEachOtherWithTokenB$FType {
+public final class NodeFieldOfEachOtherWithTokenB$FieldTokenF implements NodeFieldOfEachOtherWithTokenB$FieldF {
   private final Node node;
 
   private final TokenType token;
 
-  NodeFieldOfEachOtherWithTokenB$FTokenType(Node node, TokenType token) {
+  NodeFieldOfEachOtherWithTokenB$FieldTokenF(Node node, TokenType token) {
     this.node = node;
     this.token = token;
   }
@@ -1931,7 +1931,7 @@ public final class NodeFieldOfEachOtherWithTokenB$FTokenType implements NodeFiel
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof NodeFieldOfEachOtherWithTokenB$FTokenType other) {
+    if (obj instanceof NodeFieldOfEachOtherWithTokenB$FieldTokenF other) {
       return this.node.equals(other.node);
     }
     return false;
@@ -1944,7 +1944,7 @@ public final class NodeFieldOfEachOtherWithTokenB$FTokenType implements NodeFiel
 
   @Override
   public String toString() {
-    return "FTokenType" + "[id=" + Long.toUnsignedString(this.node.getId()) + ",token=" + this.token + "]";
+    return "FieldTokenF" + "[id=" + Long.toUnsignedString(this.node.getId()) + ",token=" + this.token + "]";
   }
 
   /**
@@ -1997,7 +1997,7 @@ import javax.annotation.processing.Generated;
  * <p>Possible types:
  * <ul>
  * <li>{@link NodeFieldOfEachOtherWithTokenA field_of_each_other_with_token_a}
- * <li>{@linkplain NodeFieldOfEachOtherWithTokenB$FTokenType <i>tokens</i>}
+ * <li>{@linkplain NodeFieldOfEachOtherWithTokenB$FieldTokenF <i>tokens</i>}
  * </ul>
  */
 @Generated(
@@ -2005,7 +2005,7 @@ import javax.annotation.processing.Generated;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public sealed interface NodeFieldOfEachOtherWithTokenB$FType extends TypedNode permits NodeFieldOfEachOtherWithTokenA, NodeFieldOfEachOtherWithTokenB$FTokenType {
+public sealed interface NodeFieldOfEachOtherWithTokenB$FieldF extends TypedNode permits NodeFieldOfEachOtherWithTokenA, NodeFieldOfEachOtherWithTokenB$FieldTokenF {
 }
 
 
@@ -2040,7 +2040,7 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeFieldOfEachOtherWithTokenB implements TypedNode, NodeFieldOfEachOtherWithTokenA$FType {
+public final class NodeFieldOfEachOtherWithTokenB implements TypedNode, NodeFieldOfEachOtherWithTokenA$FieldF {
   /**
    * Type name of this node, as defined in the grammar.
    */
@@ -2098,10 +2098,10 @@ public final class NodeFieldOfEachOtherWithTokenB implements TypedNode, NodeFiel
    * <li>required: false
    * </ul>
    */
-  public @Nullable NodeFieldOfEachOtherWithTokenB$FType getFieldF() {
+  public @Nullable NodeFieldOfEachOtherWithTokenB$FieldF getFieldF() {
     var children = this.node.getChildrenByFieldName(FIELD_F);
     Function<Node, NodeFieldOfEachOtherWithTokenA> namedMapper = NodeFieldOfEachOtherWithTokenA::fromNodeThrowing;
-    Function<Node, NodeFieldOfEachOtherWithTokenB$FTokenType> tokenMapper = n -> new NodeFieldOfEachOtherWithTokenB$FTokenType(n, NodeFieldOfEachOtherWithTokenB$FTokenType.TokenType.fromNode(n));
+    Function<Node, NodeFieldOfEachOtherWithTokenB$FieldTokenF> tokenMapper = n -> new NodeFieldOfEachOtherWithTokenB$FieldTokenF(n, NodeFieldOfEachOtherWithTokenB$FieldTokenF.TokenType.fromNode(n));
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, tokenMapper);
     return NodeUtils.optionalSingleChild(childrenMapped);
   }

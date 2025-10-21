@@ -42,7 +42,7 @@ NodeProgram[id=...]
                   - getUnnamedChildren
                     [", "]
                 - getFieldOperator
-                  OperatorTokenType[id=...,token=PLUS_SIGN]
+                  FieldTokenOperator[id=...,token=PLUS_SIGN]
                   - text: +
                 - getFieldRight
                   NodeArrayAccess[id=...]

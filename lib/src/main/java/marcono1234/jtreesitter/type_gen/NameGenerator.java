@@ -363,7 +363,7 @@ public interface NameGenerator {
      * generator. The following code is generated for them:
      * <ul>
      *     <li>a class wrapping the underlying {@code Node} of these tokens (this name generator method here)
-     *     <li>a nested enum which contains all possible token node types specified in the grammar (current this name
+     *     <li>a nested enum which contains all possible token node types specified in the grammar (currently this name
      *     cannot be configured)
      *     <li>the enum constants representing the token node types ({@link #generateFieldTokenName(String, String, String, int)})
      * </ul>
@@ -677,16 +677,17 @@ public interface NameGenerator {
 
         @Override
         public String generateFieldTypesName(String parentTypeName, String fieldName, List<String> fieldTypeNames) {
-            // TODO: Change to "FieldType<...>" / "Field<...>"?
-            // Suffix makes names consistent and prevents clashes with JDK names, e.g. `String`
-            return upperFirstChar(convertSnakeToCamelCase(fieldName)) + "Type";
+            // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
+            return "Field" + upperFirstChar(convertSnakeToCamelCase(fieldName));
         }
 
         @Override
         public String generateFieldTokenTypeName(String parentTypeName, String fieldName, List<String> tokenFieldTypesNames) {
-            // TODO: Change to "FieldTokenType<...>" / "FieldToken<...>"?
-            // Suffix makes names consistent and prevents clashes with JDK names, e.g. `String`
-            return upperFirstChar(convertSnakeToCamelCase(fieldName)) + "TokenType";
+            // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
+            // Note: Should not generate same name as `generateFieldTypesName`; otherwise there can be a name conflict when
+            //   a field can have named and non-named (= 'token') nodes as values in which case an additional superinterface
+            //   with the name obtained from `generateFieldTypesName` is generated
+            return "FieldToken" + upperFirstChar(convertSnakeToCamelCase(fieldName));
         }
 
         @Override
