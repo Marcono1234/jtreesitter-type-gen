@@ -284,7 +284,11 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeContainedA implements TypedNode, NodeRoot$FieldMultiTypeNamed, NodeRoot$FieldMixedNamedNonNamed, NodeFieldOfEachOtherA$FieldF, NodeFieldOfEachOtherB$FieldF {
+public final class NodeContainedA implements TypedNode,
+    NodeRoot$FieldMultiTypeNamed,
+    NodeRoot$FieldMixedNamedNonNamed,
+    NodeFieldOfEachOtherA$FieldF,
+    NodeFieldOfEachOtherB$FieldF {
   /**
    * Type name of this node, as defined in the grammar.
    */

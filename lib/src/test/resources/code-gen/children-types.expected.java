@@ -282,7 +282,10 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeContainedA implements TypedNode, NodeMultiTypeNamed.Child, NodeMultiTypeNamedMultiple.Child, NodeMultiTypeNamedMultipleRequired.Child {
+public final class NodeContainedA implements TypedNode,
+    NodeMultiTypeNamed.Child,
+    NodeMultiTypeNamedMultiple.Child,
+    NodeMultiTypeNamedMultipleRequired.Child {
   /**
    * Type name of this node, as defined in the grammar.
    */
@@ -441,7 +444,10 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeContainedB implements TypedNode, NodeMultiTypeNamed.Child, NodeMultiTypeNamedMultiple.Child, NodeMultiTypeNamedMultipleRequired.Child {
+public final class NodeContainedB implements TypedNode,
+    NodeMultiTypeNamed.Child,
+    NodeMultiTypeNamedMultiple.Child,
+    NodeMultiTypeNamedMultipleRequired.Child {
   /**
    * Type name of this node, as defined in the grammar.
    */
