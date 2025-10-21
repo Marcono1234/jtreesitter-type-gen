@@ -12,6 +12,7 @@ dependencies {
 
     testImplementation(platform(libs.junitBom))
     testImplementation(libs.junit)
+    testRuntimeOnly(libs.junitPlatformLauncher)
 
     // Used to compile generated code
     testImplementation(libs.compilerTesting)

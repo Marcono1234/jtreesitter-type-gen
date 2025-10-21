@@ -129,6 +129,15 @@ class CodeGeneratorTest {
 
         var languageConfig = new LanguageConfig(Optional.ofNullable(rootNode), Optional.ofNullable(languageProvider), Optional.ofNullable(languageVersion));
 
+        /*
+         * TODO: Maybe change the test setup here and write the expected Java code as separate files instead of concatenating it
+         *  in one large file
+         *  That might be better for the Git repository size (since Git stores snapshots, not diffs)
+         *  And also makes it easier to troubleshoot compilation errors because latest versions of java-compiler-testing
+         *  do not include the failing code snippet in the error message anymore, and only using the affected line number
+         *  is difficult due to the concatenation performed here; see also https://github.com/ascopes/java-compiler-testing/issues/720#issuecomment-2351004590
+         *  (could consider raising this as feature request though, to include minimal context in the compilation error messages again)
+         */
         List<JavaFile> actualGeneratedFiles = new ArrayList<>();
         StringBuilder actualContent = new StringBuilder();
         CodeGenerator.JavaCodeWriter codeWriter = javaCode -> {

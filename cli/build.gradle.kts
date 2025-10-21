@@ -11,6 +11,7 @@ dependencies {
 
     testImplementation(platform(libs.junitBom))
     testImplementation(libs.junit)
+    testRuntimeOnly(libs.junitPlatformLauncher)
 }
 
 java {
