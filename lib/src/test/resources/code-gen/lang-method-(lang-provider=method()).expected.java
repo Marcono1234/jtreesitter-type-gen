@@ -364,7 +364,7 @@ public final class NodeContainedA implements TypedNode, NodeSupertype {
    */
   public static @Nullable NodeContainedA fromNode(Node node) {
     NodeContainedA result = null;
-    if (TYPE_NAME.equals(node.getType())) {
+    if (node.getSymbol() == TYPE_ID) {
       result = new NodeContainedA(node);
     }
     return result;
@@ -532,7 +532,7 @@ public final class NodeContainedB implements TypedNode, NodeSupertype {
    */
   public static @Nullable NodeContainedB fromNode(Node node) {
     NodeContainedB result = null;
-    if (TYPE_NAME.equals(node.getType())) {
+    if (node.getSymbol() == TYPE_ID) {
       result = new NodeContainedB(node);
     }
     return result;
@@ -747,7 +747,7 @@ public final class NodeDocument implements TypedNode {
    */
   public static @Nullable NodeDocument fromNode(Node node) {
     NodeDocument result = null;
-    if (TYPE_NAME.equals(node.getType())) {
+    if (node.getSymbol() == TYPE_ID) {
       result = new NodeDocument(node);
     }
     return result;

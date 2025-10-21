@@ -206,8 +206,11 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
 
         String resultVar = "result";
         methodBuilder.addStatement("$T $N = null", ownClassName, resultVar);
+        CodeBlock nodeTypeCheck = codeGenHelper.generatesNumericIdConstants() ?
+            CodeBlock.of("if ($N.$N() == $N)", nodeParam, jtreesitterNode.methodGetTypeId(), typeIdConstant)
+            : CodeBlock.of("if ($N.equals($N.$N()))", typeNameConstant, nodeParam, jtreesitterNode.methodGetType());
         methodBuilder
-            .beginControlFlow("if ($N.equals($N.$N()))", typeNameConstant, nodeParam, jtreesitterNode.methodGetType())
+            .beginControlFlow(nodeTypeCheck)
             .addStatement("$N = new $T($N)", resultVar, ownClassName, nodeParam)
             .endControlFlow();
 

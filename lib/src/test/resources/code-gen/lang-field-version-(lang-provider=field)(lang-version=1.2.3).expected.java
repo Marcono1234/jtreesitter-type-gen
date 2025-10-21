@@ -366,7 +366,7 @@ public final class NodeContainedA implements TypedNode {
    */
   public static @Nullable NodeContainedA fromNode(Node node) {
     NodeContainedA result = null;
-    if (TYPE_NAME.equals(node.getType())) {
+    if (node.getSymbol() == TYPE_ID) {
       result = new NodeContainedA(node);
     }
     return result;
