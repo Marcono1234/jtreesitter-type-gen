@@ -1,7 +1,5 @@
 package marcono1234.jtreesitter.type_gen;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.palantir.javapoet.JavaFile;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenJavaType;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenNodeType;
@@ -13,6 +11,9 @@ import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper.Languag
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.NodeType;
 import org.jspecify.annotations.Nullable;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -24,7 +25,7 @@ import java.util.*;
  * Main class for code generation.
  */
 public class CodeGenerator {
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final JsonMapper objectMapper = new JsonMapper();
 
     private final CodeGenConfig config;
 
@@ -89,7 +90,7 @@ public class CodeGenerator {
         List<NodeType> nodeTypes;
         try {
             nodeTypes = objectMapper.readValue(nodeTypesFile.toFile(), new TypeReference<>() {});
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new CodeGenException("Failed reading node types file: " + nodeTypesFile, e);
         }
         generate(nodeTypes, languageConfig, codeWriter, versionInfo);
@@ -100,7 +101,7 @@ public class CodeGenerator {
         List<NodeType> nodeTypes;
         try {
             nodeTypes = objectMapper.readValue(nodeTypesReader, new TypeReference<>() {});
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new CodeGenException("Failed reading node types", e);
         }
         generate(nodeTypes, languageConfig, codeWriter, versionInfo);
