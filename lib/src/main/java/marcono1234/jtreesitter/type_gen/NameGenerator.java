@@ -368,6 +368,11 @@ public interface NameGenerator {
      *     <li>the enum constants representing the token node types ({@link #generateFieldTokenName(String, String, String, int)})
      * </ul>
      *
+     * <p><b>Important:</b> This method should for the same field not generate the same Java class name as
+     * {@link #generateFieldTypesName(String, String, List)}. Otherwise a name conflict can occur when a field has
+     * named and non-named node types as values, in which case an additional Java superinterface with the name obtained
+     * from {@code generateFieldTypesName} is generated.
+     *
      * <h4>Example</h4>
      * {@snippet lang=json :
      * [
@@ -684,9 +689,6 @@ public interface NameGenerator {
         @Override
         public String generateFieldTokenTypeName(String parentTypeName, String fieldName, List<String> tokenFieldTypesNames) {
             // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
-            // Note: Should not generate same name as `generateFieldTypesName`; otherwise there can be a name conflict when
-            //   a field can have named and non-named (= 'token') nodes as values in which case an additional superinterface
-            //   with the name obtained from `generateFieldTypesName` is generated
             return "FieldToken" + upperFirstChar(convertSnakeToCamelCase(fieldName));
         }
 
