@@ -662,6 +662,13 @@ public interface NameGenerator {
                     .replace(' ', '_').replace('-', '_')
                     .toUpperCase(Locale.ROOT);
             }
+            // If token type consists only of letters and whitespace, use token type as name
+            if (!tokenType.isBlank() && tokenType.matches("[\\sa-zA-Z]+")) {
+                return tokenType.replaceAll("\\s", "_")
+                    .replace('-', '_')
+                    .toUpperCase(Locale.ROOT);
+            }
+
             return "TOKEN_" + index;
         }
 

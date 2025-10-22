@@ -64,6 +64,10 @@
           {
             "type": "{@test}",
             "named": false
+          },
+          {
+            "type": "is not",
+            "named": false
           }
         ]
       },

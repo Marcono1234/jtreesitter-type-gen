@@ -1007,6 +1007,7 @@ public final class NodeRoot implements TypedNode {
      * <li>{@link #HYPHEN_MINUS '-'}
      * <li>{@link #TOKEN_2 '&lt;test&gt;'}
      * <li>{@link #TOKEN_3 '&lbrace;&commat;test&rbrace;'}
+     * <li>{@link #IS_NOT 'is not'}
      * </ul>
      */
     public enum TokenType {
@@ -1028,7 +1029,12 @@ public final class NodeRoot implements TypedNode {
       /**
        * <code>&lbrace;&commat;test&rbrace;</code>
        */
-      TOKEN_3("{@test}");
+      TOKEN_3("{@test}"),
+
+      /**
+       * {@code is not}
+       */
+      IS_NOT("is not");
 
       private final String type;
 
