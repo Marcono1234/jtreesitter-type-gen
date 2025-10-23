@@ -42,13 +42,15 @@ abstract class CodegenCliTask : DefaultTask() {
         val useOptional: Boolean,
         @get:Input
         @get:Optional
-        val rootNodeType: String? = null,
+        val rootNodeType: String?,
         @get:Input
         @get:Optional
-        val languageProvider: String? = null,
+        val languageProvider: String?,
         @get:Input
         @get:Optional
-        val languageVersion: String? = null,
+        val languageVersion: String?,
+        @get:Input
+        val fallbackNodeTypeMapping: Map<String, String>,
     )
 
     init {
@@ -96,6 +98,10 @@ abstract class CodegenCliTask : DefaultTask() {
         codeGenConfig.languageVersion?.let {
             command.add("--expected-language-version")
             command.add(it)
+        }
+        codeGenConfig.fallbackNodeTypeMapping.forEach { key, value ->
+            command.add("--fallback-node-type-mapping")
+            command.add("${key}=${value}")
         }
 
         val process = ProcessBuilder(command)

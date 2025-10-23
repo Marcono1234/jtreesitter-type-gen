@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -14,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class LanguageConfigTest {
     @Test
     void testNew() {
-        var config = new LanguageConfig(Optional.empty(), Optional.empty(), Optional.empty());
+        var config = new LanguageConfig(Optional.empty(), Map.of(), Optional.empty(), Optional.empty());
         assertEquals(Optional.empty(), config.rootNodeTypeName());
         assertEquals(Optional.empty(), config.languageProviderConfig());
         assertEquals(Optional.empty(), config.expectedLanguageVersion());
@@ -23,6 +24,7 @@ class LanguageConfigTest {
         var languageVersion = new LanguageVersion(1, 2, 3);
         config = new LanguageConfig(
             Optional.of("root"),
+            Map.of(),
             Optional.of(languageProvider),
             Optional.of(languageVersion)
         );
@@ -30,7 +32,7 @@ class LanguageConfigTest {
         assertEquals(Optional.of(languageProvider), config.languageProviderConfig());
         assertEquals(Optional.of(languageVersion), config.expectedLanguageVersion());
 
-        var e = assertThrows(IllegalArgumentException.class, () -> new LanguageConfig(Optional.empty(), Optional.empty(), Optional.of(languageVersion)));
+        var e = assertThrows(IllegalArgumentException.class, () -> new LanguageConfig(Optional.empty(), Map.of(), Optional.empty(), Optional.of(languageVersion)));
         assertEquals("Must specify language provider when using expectedLanguageVersion", e.getMessage());
     }
 

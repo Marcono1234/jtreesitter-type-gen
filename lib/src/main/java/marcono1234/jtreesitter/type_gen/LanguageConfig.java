@@ -2,6 +2,7 @@ package marcono1234.jtreesitter.type_gen;
 
 import marcono1234.jtreesitter.type_gen.internal.JavaNameValidator;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -15,6 +16,12 @@ import java.util.regex.Pattern;
  *      'typed tree'.
  *      <p>Starting with tree-sitter 0.24.0 this information is available in the {@code node-types.json} file
  *      (as {@code "root": true}), and must not be specified using this parameter here.
+ * @param fallbackNodeTypeMapping
+ *      Fallback mapping for unknown child node types. In some cases Tree-sitter can generate malformed
+ *      {@code node-types.json} files where a child type uses the name of an 'alias' instead of the actual
+ *      referenced node type (<a href="https://github.com/tree-sitter/tree-sitter/issues/1654">Tree-sitter issue</a>).
+ *      This causes a code generation failure because that type name cannot be resolved. To work around this issue,
+ *      this fallback mapping can be used to map these alias type names to the actual node type they are referencing.
  * @param languageProviderConfig
  *      Configuration for how the generated code can obtain a tree-sitter {@code Language} instance for the
  *      language represented by the {@code node-types.json} file. If provided, additional code will be,
@@ -34,11 +41,13 @@ import java.util.regex.Pattern;
 //   root nodes selected at runtime (https://github.com/tree-sitter/tree-sitter/issues/711) will be possible
 public record LanguageConfig(
     Optional<String> rootNodeTypeName,
+    Map<String, String> fallbackNodeTypeMapping,
     Optional<LanguageProviderConfig> languageProviderConfig,
     Optional<LanguageVersion> expectedLanguageVersion
 ) {
     public LanguageConfig {
         Objects.requireNonNull(rootNodeTypeName);
+        Objects.requireNonNull(fallbackNodeTypeMapping);
         Objects.requireNonNull(languageProviderConfig);
         Objects.requireNonNull(expectedLanguageVersion);
 

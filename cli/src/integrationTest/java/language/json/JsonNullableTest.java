@@ -22,9 +22,15 @@ class JsonNullableTest extends AbstractTypedTreeTest {
         super("json", ".json");
     }
 
+    private TypedTree parseNoError(String source) {
+        var tree = TypedTree.fromTree(parse(source));
+        assertFalse(tree.hasError());
+        return tree;
+    }
+
     @Override
     protected String parseSourceCode(String sourceCode, Function<Object, String> rootNodeConsumer) {
-        try (var tree = TypedTree.fromTree(parse(sourceCode))) {
+        try (var tree = parseNoError(sourceCode)) {
             return rootNodeConsumer.apply(tree.getRootNode());
         }
     }
@@ -40,8 +46,7 @@ class JsonNullableTest extends AbstractTypedTreeTest {
             ]
             """;
 
-        try (var tree = TypedTree.fromTree(parse(source))) {
-            assertFalse(tree.hasError());
+        try (var tree = parseNoError(source)) {
             assertEquals(source, tree.getText());
             // Obtain underlying jtreesitter Tree
             assertEquals(source, tree.getTree().getText());
@@ -89,9 +94,7 @@ class JsonNullableTest extends AbstractTypedTreeTest {
     void testFromNode() {
         String source = "[]";
 
-        try (var tree = TypedTree.fromTree(parse(source))) {
-            assertFalse(tree.hasError());
-
+        try (var tree = parseNoError(source)) {
             var arrayNode = tree.getRootNode().getChildren().getFirst().getNode();
 
             assertInstanceOf(NodeArray.class, NodeArray.fromNode(arrayNode));
@@ -132,9 +135,7 @@ class JsonNullableTest extends AbstractTypedTreeTest {
             [null, 3, ["a", 4, {"b": [5, false]}]]
             """;
 
-        try (var tree = TypedTree.fromTree(parse(source))) {
-            assertFalse(tree.hasError());
-
+        try (var tree = parseNoError(source)) {
             try (var nodes = NodeNumber.findNodes(tree.getRootNode())) {
                 List<String> foundNumbers = nodes.map(NodeNumber::getText).toList();
                 assertEquals(List.of("1", "2", "3", "4", "5"), foundNumbers);
@@ -160,9 +161,7 @@ class JsonNullableTest extends AbstractTypedTreeTest {
         }
 
         source = "{\"a\": 1}";
-        try (var tree = TypedTree.fromTree(parse(source))) {
-            assertFalse(tree.hasError());
-
+        try (var tree = parseNoError(source)) {
             // Tests supertype `NodeValue`
             try (var nodes = NodeValue.findNodes(tree.getRootNode())) {
                 List<String> foundValues = nodes.map(NodeValue::getText).toList();
@@ -174,11 +173,9 @@ class JsonNullableTest extends AbstractTypedTreeTest {
         // Tests using a custom allocator
         source = "[1, 2, 3]";
         try (
-            var tree = TypedTree.fromTree(parse(source));
+            var tree = parseNoError(source);
             var arena = Arena.ofConfined()
         ) {
-            assertFalse(tree.hasError());
-
             List<NodeNumber> nodesList;
             try (var nodes = NodeNumber.findNodes(tree.getRootNode(), arena)) {
                 nodesList = nodes.toList();
@@ -199,9 +196,7 @@ class JsonNullableTest extends AbstractTypedTreeTest {
     void testNodeDelegatingMethods() {
         String source = "[]";
 
-        try (var tree = TypedTree.fromTree(parse(source))) {
-            assertFalse(tree.hasError());
-
+        try (var tree = parseNoError(source)) {
             var typedNode = (NodeArray) tree.getRootNode().getChildren().getFirst();
             assertEquals(NodeArray.TYPE_NAME, typedNode.getNode().getType());
             assertFalse(typedNode.hasError());
@@ -226,9 +221,7 @@ class JsonNullableTest extends AbstractTypedTreeTest {
     void testTreeEquals_HashCode() {
         String source = "true";
 
-        try (var tree = TypedTree.fromTree(parse(source))) {
-            assertFalse(tree.hasError());
-
+        try (var tree = parseNoError(source)) {
             // Note: Currently jtreesitter's Tree does not override `equals` and `hashCode` from Object,
             // therefore don't compare different jtreesitter Tree instances here
 
@@ -254,9 +247,7 @@ class JsonNullableTest extends AbstractTypedTreeTest {
         // Contains `true` twice, but they are separate nodes and should not be considered equal
         String source = "true\ntrue";
 
-        try (var tree = TypedTree.fromTree(parse(source))) {
-            assertFalse(tree.hasError());
-
+        try (var tree = parseNoError(source)) {
             var document = tree.getRootNode();
             NodeTrue nodeA = (NodeTrue) document.getChildren().get(0);
             NodeTrue nodeB = (NodeTrue) document.getChildren().get(1);

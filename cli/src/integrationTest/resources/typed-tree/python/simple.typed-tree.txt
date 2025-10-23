@@ -1,0 +1,136 @@
+NodeModule[id=...]
+- getChildren
+  NodeImportStatement[id=...]
+  - getFieldName
+    NodeDottedName[id=...]
+    - getChildren
+      NodeIdentifier[id=...]
+      - getUnnamedChildren
+      - text: sys
+    - getUnnamedChildren
+  NodeFunctionDefinition[id=...]
+  - getFieldBody
+    NodeBlock[id=...]
+    - getChildren
+      NodeExpressionStatement[id=...]
+      - getChildren
+        NodeString[id=...]
+        - getChildren
+          NodeStringStart[id=...]
+          - getUnnamedChildren
+          - text: """
+          NodeStringContent[id=...]
+          - getChildren
+          - getUnnamedChildren
+          NodeStringEnd[id=...]
+          - getUnnamedChildren
+          - text: """
+        - getUnnamedChildren
+      - getUnnamedChildren
+      NodeExpressionStatement[id=...]
+      - getChildren
+        NodeCall[id=...]
+        - getFieldArguments
+          NodeArgumentList[id=...]
+          - getChildren
+            NodeString[id=...]
+            - getChildren
+              NodeStringStart[id=...]
+              - getUnnamedChildren
+              - text: "
+              NodeStringContent[id=...]
+              - getChildren
+              - getUnnamedChildren
+              NodeStringEnd[id=...]
+              - getUnnamedChildren
+              - text: "
+            - getUnnamedChildren
+          - getUnnamedChildren
+            [(, )]
+        - getFieldFunction
+          NodeIdentifier[id=...]
+          - getUnnamedChildren
+          - text: print
+      - getUnnamedChildren
+      NodeReturnStatement[id=...]
+      - getChild
+        NodeInteger[id=...]
+        - getUnnamedChildren
+        - text: 0
+      - getUnnamedChildren
+        [return]
+    - getFieldAlternative
+  - getFieldName
+    NodeIdentifier[id=...]
+    - getUnnamedChildren
+    - text: main
+  - getFieldParameters
+    NodeParameters[id=...]
+    - getChildren
+    - getUnnamedChildren
+      [(, )]
+  - getFieldReturnType
+    NodeType[id=...]
+    - getChild
+      NodeIdentifier[id=...]
+      - getUnnamedChildren
+      - text: int
+    - getUnnamedChildren
+  - getFieldTypeParameters
+  NodeIfStatement[id=...]
+  - getFieldAlternative
+  - getFieldCondition
+    NodeComparisonOperator[id=...]
+    - getChildren
+      NodeIdentifier[id=...]
+      - getUnnamedChildren
+      - text: __name__
+      NodeString[id=...]
+      - getChildren
+        NodeStringStart[id=...]
+        - getUnnamedChildren
+        - text: '
+        NodeStringContent[id=...]
+        - getChildren
+        - getUnnamedChildren
+        NodeStringEnd[id=...]
+        - getUnnamedChildren
+        - text: '
+      - getUnnamedChildren
+    - getFieldOperators
+      FieldTokenOperators[id=...,token=TOKEN_4]
+      - text: ==
+  - getFieldConsequence
+    NodeBlock[id=...]
+    - getChildren
+      NodeExpressionStatement[id=...]
+      - getChildren
+        NodeCall[id=...]
+        - getFieldArguments
+          NodeArgumentList[id=...]
+          - getChildren
+            NodeCall[id=...]
+            - getFieldArguments
+              NodeArgumentList[id=...]
+              - getChildren
+              - getUnnamedChildren
+                [(, )]
+            - getFieldFunction
+              NodeIdentifier[id=...]
+              - getUnnamedChildren
+              - text: main
+          - getUnnamedChildren
+            [(, )]
+        - getFieldFunction
+          NodeAttribute[id=...]
+          - getFieldAttribute
+            NodeIdentifier[id=...]
+            - getUnnamedChildren
+            - text: exit
+          - getFieldObject
+            NodeIdentifier[id=...]
+            - getUnnamedChildren
+            - text: sys
+      - getUnnamedChildren
+    - getFieldAlternative
+- getUnnamedChildren

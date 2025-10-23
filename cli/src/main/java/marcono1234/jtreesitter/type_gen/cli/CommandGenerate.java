@@ -9,6 +9,7 @@ import picocli.CommandLine;
 
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
@@ -50,7 +51,7 @@ class CommandGenerate implements Callable<Void> {
         description = {
             "Path to the 'node-types.json' file",
             "This file is generated when running 'tree-sitter generate'.",
-            "The official tree-sitter repositories under the https://github.com/tree-sitter/ organization usually contain this under 'src/node-types.json'.",
+            "The official Tree-sitter repositories under the https://github.com/tree-sitter/ organization usually contain this under 'src/node-types.json'.",
             "WARNING: Don't use a 'node-types.json' file from untrusted sources, it could lead to arbitrary code execution.",
         },
         required = true
@@ -77,12 +78,27 @@ class CommandGenerate implements Callable<Void> {
             "Name of the root node type",
             "This is usually the first 'rules' entry in the 'grammar.js' file. If provided, additional code will be"
             + " generated to go from a jtreesitter 'Tree' to a 'typed tree'.",
-            "Starting with tree-sitter 0.24.0 this information is available in the 'node-types.json' file (as"
+            "Starting with Tree-sitter 0.24.0 this information is available in the 'node-types.json' file (as"
             + " '\"root\": true'), and must not be specified using this option here.",
         }
     )
     @Nullable
     private String rootNodeType;
+
+    @CommandLine.Option(
+        names = {"--fallback-node-type-mapping"},
+        description = {
+            "Fallback mapping for child node types",
+            "In some cases Tree-sitter can generate malformed 'node-types.json' files where a child type uses the"
+            + " name of an 'alias' instead of the actual referenced node type. This causes a code generation failure"
+            + " because that type name cannot be resolved. To work around this issue, this option can be used to map"
+            + " these alias type names to the actual node type they are referencing."
+        },
+        // For now don't show this option to the user since it is probably rarely needed
+        hidden = true
+    )
+    @Nullable
+    private Map<String, String> fallbackNodeTypeMapping;
 
     @CommandLine.ArgGroup(
         exclusive = false
@@ -98,7 +114,7 @@ class CommandGenerate implements Callable<Void> {
             description = {
                 "Name of method or field to obtain a Language instance",
                 "Fully qualified name of a static field (e.g. 'com.example.MyClass#field') or no-args method"
-                + " (e.g. 'com.example.MyClass#method()') which provides a tree-sitter 'Language' object for the language"
+                + " (e.g. 'com.example.MyClass#method()') which provides a Tree-sitter 'Language' object for the language"
                 + " represented by the 'node-types.json' file. If provided, additional code will be generated, exposing"
                 + " for example numeric node and field IDs, and validating at runtime that the names in the 'node-types.json'"
                 + " file actually match the loaded language."
@@ -264,6 +280,7 @@ class CommandGenerate implements Callable<Void> {
 
         return new LanguageConfig(
             Optional.ofNullable(rootNodeType),
+            fallbackNodeTypeMapping != null ? fallbackNodeTypeMapping : Map.of(),
             languageProviderConfig,
             expectedLanguageVersion
         );

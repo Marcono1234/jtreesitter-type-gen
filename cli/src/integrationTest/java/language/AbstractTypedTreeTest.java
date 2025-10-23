@@ -71,14 +71,19 @@ public abstract class AbstractTypedTreeTest {
             }
         }
 
+        List<Arguments> arguments;
         try (var files = Files.list(resourcesDir)) {
-            return files
+            // Collect to List first because underlying `Files#list` stream will be closed in this `try` already
+            arguments = files
                 .filter(f -> f.getFileName().toString().endsWith(sourceFileExtension))
                 .map(f -> Arguments.of(f.getFileName().toString(), f))
-                // Collect to List first because underlying `Files#list` stream will be closed in this `try` already
-                .toList()
-                .stream();
+                .toList();
         }
+
+        if (arguments.isEmpty()) {
+            throw new IllegalStateException("Did not find test resources in: " + resourcesDir);
+        }
+        return arguments.stream();
     }
 
     /**

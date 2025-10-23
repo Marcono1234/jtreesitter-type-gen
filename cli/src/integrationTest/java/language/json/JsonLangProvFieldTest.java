@@ -20,9 +20,15 @@ class JsonLangProvFieldTest extends AbstractTypedTreeTest {
         super("json", ".json");
     }
 
+    private TypedTree parseNoError(String source) {
+        var tree = TypedTree.fromTree(parse(source));
+        assertFalse(tree.hasError());
+        return tree;
+    }
+
     @Override
     protected String parseSourceCode(String sourceCode, Function<Object, String> rootNodeConsumer) {
-        try (var tree = TypedTree.fromTree(parse(sourceCode))) {
+        try (var tree = parseNoError(sourceCode)) {
             return rootNodeConsumer.apply(tree.getRootNode());
         }
     }
@@ -36,9 +42,7 @@ class JsonLangProvFieldTest extends AbstractTypedTreeTest {
             {"a": 1}
             """;
 
-        try (var tree = TypedTree.fromTree(parse(source))) {
-            assertFalse(tree.hasError());
-
+        try (var tree = parseNoError(source)) {
             var rootNode = tree.getRootNode();
             assertEquals(rootNode.getNode().getType(), NodeDocument.TYPE_NAME);
             assertEquals(rootNode.getNode().getSymbol(), NodeDocument.TYPE_ID);

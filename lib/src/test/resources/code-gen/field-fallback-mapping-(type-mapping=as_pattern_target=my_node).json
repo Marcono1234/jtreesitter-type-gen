@@ -1,0 +1,22 @@
+[
+  {
+    "type": "as_pattern",
+    "named": true,
+    "fields": {
+      "alias": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "as_pattern_target",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "my_node",
+    "named": true
+  }
+]

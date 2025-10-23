@@ -234,6 +234,52 @@ class MainTest {
     }
 
     @Test
+    void generateCommand_FallbackNodeTypeMapping(@TempDir Path tempDir) throws IOException {
+        Path nodeTypesFile = tempDir.resolve("node-types.json");
+        Files.writeString(nodeTypesFile, """
+            [
+              {
+                "type": "as_pattern",
+                "named": true,
+                "fields": {
+                  "alias": {
+                    "multiple": false,
+                    "required": true,
+                    "types": [
+                      {
+                        "type": "as_pattern_target",
+                        "named": true
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "my_node",
+                "named": true
+              }
+            ]
+            """);
+        Path outputDir = tempDir.resolve("output");
+
+        assertMainResult(
+            List.of(
+                "--node-types", nodeTypesFile.toString(),
+                "--package", "com.example",
+                "--output-dir", outputDir.toString(),
+                "--fallback-node-type-mapping", "as_pattern_target=my_node"
+            ),
+            CommandLine.ExitCode.OK,
+            stdOut -> assertEquals("[SUCCESS] Successfully generated code in directory: " + outputDir, stdOut),
+            stdErr -> assertEquals("", stdErr)
+        );
+
+        assertFiles(outputDir, List.of("com/example/NodeAsPattern.java", "com/example/NodeMyNode.java", "com/example/NodeUtils.java", "com/example/NonEmpty.java", "com/example/TypedNode.java"));
+        // Should contain getter method for field 'alias' which has mapped type 'my_node' as result
+        assertContains(Files.readString(outputDir.resolve("com/example/NodeAsPattern.java")), "public NodeMyNode getFieldAlias() {");
+    }
+
+    @Test
     void generateCommand_LanguageProvider_Method(@TempDir Path tempDir) throws IOException {
         Path nodeTypesFile = tempDir.resolve("node-types.json");
         Files.writeString(nodeTypesFile, """

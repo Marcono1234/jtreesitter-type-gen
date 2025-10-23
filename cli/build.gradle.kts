@@ -74,6 +74,7 @@ testing {
             val rootNodeTypeName: String? = null,
             val languageProvider: String? = null,
             val languageVersion: String? = null,
+            val fallbackNodeTypeMapping: Map<String, String> = emptyMap(),
         )
 
         val codeGenTaskConfigs = listOf(
@@ -84,8 +85,8 @@ testing {
             //   in generated code still considers them compatible
             CodeGenTaskConfig("json", languageProvider = "languageField", languageVersion = "0.24.8"),
             CodeGenTaskConfig("json", languageProvider = "languageMethod()", languageVersion = "0.24.8"),
-            // TODO: Disabled due to missing / incorrect type information for alias, see https://github.com/tree-sitter/tree-sitter/issues/1654
-            // Language("python"),
+            // Manually map type name due to missing / incorrect type information for alias, see https://github.com/tree-sitter/tree-sitter/issues/1654
+            CodeGenTaskConfig("python", fallbackNodeTypeMapping = mapOf("as_pattern_target" to "expression")),
         )
         val nodeTypesDir = layout.projectDirectory.dir("src").dir(testName).dir("node-types-data").asFile
         // Generate unique indices per language name to make sure task names are unique
@@ -138,6 +139,7 @@ testing {
                         taskConfig.rootNodeTypeName,
                         languageProvider,
                         taskConfig.languageVersion,
+                        taskConfig.fallbackNodeTypeMapping,
                     )
                 )
 

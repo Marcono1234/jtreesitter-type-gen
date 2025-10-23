@@ -20,9 +20,15 @@ class JavaNullableTest extends AbstractTypedTreeTest {
         super("java", ".java");
     }
 
+    private TypedTree parseNoError(String source) {
+        var tree = TypedTree.fromTree(parse(source));
+        assertFalse(tree.hasError());
+        return tree;
+    }
+
     @Override
     protected String parseSourceCode(String sourceCode, Function<Object, String> rootNodeConsumer) {
-        try (var tree = TypedTree.fromTree(parse(sourceCode))) {
+        try (var tree = parseNoError(sourceCode)) {
             return rootNodeConsumer.apply(tree.getRootNode());
         }
     }
@@ -37,8 +43,7 @@ class JavaNullableTest extends AbstractTypedTreeTest {
             }
             """;
 
-        try (var tree = TypedTree.fromTree(parse(source))) {
-            assertFalse(tree.hasError());
+        try (var tree = parseNoError(source)) {
             assertEquals(source, tree.getText());
             // Obtain underlying jtreesitter Tree
             assertEquals(source, tree.getTree().getText());
@@ -79,7 +84,7 @@ class JavaNullableTest extends AbstractTypedTreeTest {
     @Test
     void testNullable() {
         String source = "public class Main { }";
-        try (var tree = TypedTree.fromTree(parse(source))) {
+        try (var tree = parseNoError(source)) {
             var classDeclaration = (NodeClassDeclaration) tree.getRootNode().getChildren().getFirst();
             var modifiers = classDeclaration.getChild();
             assertNotNull(modifiers);
@@ -88,7 +93,7 @@ class JavaNullableTest extends AbstractTypedTreeTest {
 
 
         source = "class Main { }";
-        try (var tree = TypedTree.fromTree(parse(source))) {
+        try (var tree = parseNoError(source)) {
             var classDeclaration = (NodeClassDeclaration) tree.getRootNode().getChildren().getFirst();
             var modifiers = classDeclaration.getChild();
             assertNull(modifiers);
@@ -99,9 +104,7 @@ class JavaNullableTest extends AbstractTypedTreeTest {
     void testFromNode() {
         String source = "public class Main { }";
 
-        try (var tree = TypedTree.fromTree(parse(source))) {
-            assertFalse(tree.hasError());
-
+        try (var tree = parseNoError(source)) {
             var classNode = tree.getRootNode().getChildren().getFirst().getNode();
 
             assertInstanceOf(NodeClassDeclaration.class, NodeClassDeclaration.fromNode(classNode));
@@ -147,9 +150,7 @@ class JavaNullableTest extends AbstractTypedTreeTest {
             }
             """;
 
-        try (var tree = TypedTree.fromTree(parse(source))) {
-            assertFalse(tree.hasError());
-
+        try (var tree = parseNoError(source)) {
             try (var nodes = NodeDecimalIntegerLiteral.findNodes(tree.getRootNode())) {
                 List<String> foundInts = nodes.map(NodeDecimalIntegerLiteral::getText).toList();
                 assertEquals(List.of("123", "456"), foundInts);

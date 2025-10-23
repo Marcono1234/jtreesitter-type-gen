@@ -19,9 +19,15 @@ class JavaOptionalTest extends AbstractTypedTreeTest {
         super("java", ".java");
     }
 
+    private TypedTree parseNoError(String source) {
+        var tree = TypedTree.fromTree(parse(source));
+        assertFalse(tree.hasError());
+        return tree;
+    }
+
     @Override
     protected String parseSourceCode(String sourceCode, Function<Object, String> rootNodeConsumer) {
-        try (var tree = TypedTree.fromTree(parse(sourceCode))) {
+        try (var tree = parseNoError(sourceCode)) {
             return rootNodeConsumer.apply(tree.getRootNode());
         }
     }
@@ -29,14 +35,14 @@ class JavaOptionalTest extends AbstractTypedTreeTest {
     @Test
     void test() {
         String source = "public class Main { }";
-        try (var tree = TypedTree.fromTree(parse(source))) {
+        try (var tree = parseNoError(source)) {
             var classDeclaration = (NodeClassDeclaration) tree.getRootNode().getChildren().getFirst();
             var modifiers = classDeclaration.getChild();
             assertEquals(Optional.of("public"), modifiers.flatMap(NodeModifiers::getText));
         }
 
         source = "class Main { }";
-        try (var tree = TypedTree.fromTree(parse(source))) {
+        try (var tree = parseNoError(source)) {
             var classDeclaration = (NodeClassDeclaration) tree.getRootNode().getChildren().getFirst();
             var modifiers = classDeclaration.getChild();
             assertEquals(Optional.empty(), modifiers);
@@ -47,9 +53,7 @@ class JavaOptionalTest extends AbstractTypedTreeTest {
     void testFromNode() {
         String source = "public class Main { }";
 
-        try (var tree = TypedTree.fromTree(parse(source))) {
-            assertFalse(tree.hasError());
-
+        try (var tree = parseNoError(source)) {
             var classNode = tree.getRootNode().getChildren().getFirst().getNode();
 
             assertInstanceOf(NodeClassDeclaration.class, NodeClassDeclaration.fromNode(classNode).orElseThrow());

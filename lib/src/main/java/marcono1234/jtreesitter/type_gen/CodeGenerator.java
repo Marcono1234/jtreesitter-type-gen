@@ -119,7 +119,7 @@ public class CodeGenerator {
             }
         }
 
-        var nodeGens = determineGenElements(nodeTypes, languageConfig.rootNodeTypeName().orElse(null), config.nameGenerator());
+        var nodeGens = determineGenElements(nodeTypes, languageConfig.rootNodeTypeName().orElse(null), config.nameGenerator(), languageConfig.fallbackNodeTypeMapping());
         var languageUtilsConfigData = languageConfig.languageProviderConfig()
             .map(languageProvider -> new LanguageUtilsConfigData(
                 languageProvider,
@@ -172,7 +172,7 @@ public class CodeGenerator {
     private record GenElements(List<GenNodeType> nodeTypes, List<GenJavaType> typedNodeSubtypes, @Nullable GenNodeType rootNode) {
     }
 
-    private GenElements determineGenElements(List<NodeType> nodeTypes, @Nullable String rootNodeTypeCustom, NameGenerator nameGenerator) throws CodeGenException {
+    private GenElements determineGenElements(List<NodeType> nodeTypes, @Nullable String rootNodeTypeCustom, NameGenerator nameGenerator, Map<String, String> fallbackNodeTypeMapping) throws CodeGenException {
         Set<String> allTypeNames = new LinkedHashSet<>();
         List<NodeType> supertypes = new ArrayList<>();
 
@@ -226,20 +226,36 @@ public class CodeGenerator {
 
         var supertypeGens = createSupertypeGens(supertypes, nameGenerator);
 
-        NodeTypeLookup nodeTypeLookup = typeName -> {
-            var nodeGen = regularNodeGens.get(typeName);
-            if (nodeGen != null) {
-                return nodeGen;
+        NodeTypeLookup nodeTypeLookup = new NodeTypeLookup() {
+            private GenNodeType getNodeType(String typeName, boolean canUseFallbackTypeName) {
+                var nodeGen = regularNodeGens.get(typeName);
+                if (nodeGen != null) {
+                    return nodeGen;
+                }
+
+                var supertypeGen = supertypeGens.get(typeName);
+                if (supertypeGen != null) {
+                    return supertypeGen;
+                }
+
+                // Maybe tree-sitter bug: `alias` in grammar does not allow determining original type name in some cases, see https://github.com/tree-sitter/tree-sitter/issues/1654
+                // For now allow users to specify a fallback mapping so that they can work around the issue without having to adjust the generated `node-types.json`
+                String fallbackTypeName = fallbackNodeTypeMapping.get(typeName);
+                if (fallbackTypeName != null) {
+                    // Prevent infinite recursion when type names map between each other
+                    if (!canUseFallbackTypeName) {
+                        throw new IllegalStateException("Node type mapping to '" + typeName + "' should directly map to target node type, not to another fallback mapping");
+                    }
+
+                    return getNodeType(fallbackTypeName, false);
+                }
+                throw new NoSuchElementException("Unknown type name: " + typeName + "\nPotential tree-sitter bug https://github.com/tree-sitter/tree-sitter/issues/1654");
             }
 
-            var supertypeGen = supertypeGens.get(typeName);
-            if (supertypeGen != null) {
-                return supertypeGen;
+            @Override
+            public GenNodeType getNodeType(String typeName) throws NoSuchElementException {
+                return getNodeType(typeName, true);
             }
-
-            // TODO: Maybe tree-sitter bug: `alias` does not allow determining original type name, see https://github.com/tree-sitter/tree-sitter/issues/1654
-            // TODO: Add alias map (Map<String, String>) as workaround?
-            throw new NoSuchElementException("Unknown type name: " + typeName + "\nPotential tree-sitter bug https://github.com/tree-sitter/tree-sitter/issues/1654");
         };
 
         // Populate subtypes now, once all types have been resolved, to support for example supertype referring to other supertype

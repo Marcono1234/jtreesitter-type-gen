@@ -65,14 +65,19 @@ class CodeGeneratorTest {
             }
         }
 
+        List<Arguments> arguments;
         try (var files = Files.list(resourcesDir)) {
-            return files
+            // Collect to List first because underlying `Files#list` stream will be closed in this `try` already
+            arguments = files
                 .filter(f -> f.getFileName().toString().endsWith(JSON_EXTENSION))
                 .map(f -> Arguments.of(f.getFileName().toString(), f))
-                // Collect to List first because underlying `Files#list` stream will be closed in this `try` already
-                .toList()
-                .stream();
+                .toList();
         }
+
+        if (arguments.isEmpty()) {
+            throw new IllegalStateException("Did not find test resources in: " + resourcesDir);
+        }
+        return arguments.stream();
     }
 
     @AfterAll
@@ -114,6 +119,14 @@ class CodeGeneratorTest {
             rootNode = rootNodeMatcher.group(1);
         }
 
+        Map<String, String> fallbackNodeTypeMapping = Map.of();
+        var nodeTypeMappingMatcher = Pattern.compile("\\(type-mapping=(.+?)\\)").matcher(baseFileName);
+        if (nodeTypeMappingMatcher.find()) {
+            String[] mapping = nodeTypeMappingMatcher.group(1).split("=", -1);
+            assertEquals(2, mapping.length);
+            fallbackNodeTypeMapping = Map.of(mapping[0], mapping[1]);
+        }
+
         LanguageProviderConfig languageProvider = null;
         var languageProviderMatcher = Pattern.compile("\\(lang-provider=(.+?(\\(\\))?)\\)").matcher(baseFileName);
         if (languageProviderMatcher.find()) {
@@ -127,7 +140,7 @@ class CodeGeneratorTest {
             languageVersion = LanguageVersion.fromString(languageVersionMatcher.group(1));
         }
 
-        var languageConfig = new LanguageConfig(Optional.ofNullable(rootNode), Optional.ofNullable(languageProvider), Optional.ofNullable(languageVersion));
+        var languageConfig = new LanguageConfig(Optional.ofNullable(rootNode), fallbackNodeTypeMapping, Optional.ofNullable(languageProvider), Optional.ofNullable(languageVersion));
 
         /*
          * TODO: Maybe change the test setup here and write the expected Java code as separate files instead of concatenating it
@@ -272,7 +285,7 @@ class CodeGeneratorTest {
 
         Path nodeTypesFile = tempDir.resolve("does-not-exist.json");
 
-        var languageConfig = new LanguageConfig(Optional.empty(), Optional.empty(), Optional.empty());
+        var languageConfig = new LanguageConfig(Optional.empty(), Map.of(), Optional.empty(), Optional.empty());
         var e = assertThrows(CodeGenException.class, () -> codeGenerator.generate(nodeTypesFile, languageConfig, codeWriter, VERSION_INFO));
         assertEquals("Failed reading node types file: " + nodeTypesFile, e.getMessage());
         assertFalse(calledCodeWriter.get());
@@ -303,7 +316,7 @@ class CodeGeneratorTest {
         Path file = tempDir.resolve("some-file.txt");
         Files.createFile(file);
 
-        var languageConfig = new LanguageConfig(Optional.empty(), Optional.empty(), Optional.empty());
+        var languageConfig = new LanguageConfig(Optional.empty(), Map.of(), Optional.empty(), Optional.empty());
         var e = assertThrows(CodeGenException.class, () -> codeGenerator.generate(nodeTypesFile, languageConfig, file));
         assertEquals("Output dir is not a directory: " + file, e.getMessage());
     }
@@ -335,7 +348,7 @@ class CodeGeneratorTest {
 
         String rootNode = "does-not-exist";
 
-        var languageConfig = new LanguageConfig(Optional.of(rootNode), Optional.empty(), Optional.empty());
+        var languageConfig = new LanguageConfig(Optional.of(rootNode), Map.of(), Optional.empty(), Optional.empty());
         var e = assertThrows(CodeGenException.class, () -> codeGenerator.generate(new StringReader(nodeTypesJson), languageConfig, codeWriter, VERSION_INFO));
         assertEquals("Root node type '%s' not found".formatted(rootNode), e.getMessage());
     }
@@ -372,7 +385,7 @@ class CodeGeneratorTest {
 
         String rootNode = "my_node";
 
-        var languageConfig = new LanguageConfig(Optional.of(rootNode), Optional.empty(), Optional.empty());
+        var languageConfig = new LanguageConfig(Optional.of(rootNode), Map.of(), Optional.empty(), Optional.empty());
         var e = assertThrows(CodeGenException.class, () -> codeGenerator.generate(new StringReader(nodeTypesJson), languageConfig, codeWriter, VERSION_INFO));
         assertEquals(
             "Should not explicitly specify root node type when 'node-types.json' already specifies root node ('my_node')",
@@ -422,7 +435,7 @@ class CodeGeneratorTest {
             // ignored
         };
 
-        var languageConfig = new LanguageConfig(Optional.empty(), Optional.empty(), Optional.empty());
+        var languageConfig = new LanguageConfig(Optional.empty(), Map.of(), Optional.empty(), Optional.empty());
         var e = assertThrows(NoSuchElementException.class, () -> codeGenerator.generate(new StringReader(nodeTypesJson), languageConfig, codeWriter, VERSION_INFO));
         assertEquals(
             "Unknown type name: as_pattern_target\nPotential tree-sitter bug https://github.com/tree-sitter/tree-sitter/issues/1654",
