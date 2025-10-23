@@ -163,7 +163,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
         var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
         var toStringMethod = CodeGenHelper.createToStringMethodSignature()
             // TODO: Include more information, e.g. position information? Or include wrapped node.toString()?
-            .addStatement("return $S + \"[id=\" + $T.toUnsignedString(this.$N.$N()) + \"]\"", javaName, Long.class, nodeField, jtreesitterNode.methodGetId())
+            .addStatement("return $S + \"[id=\" + $T.toUnsignedString($N.$N()) + \"]\"", javaName, Long.class, nodeField, jtreesitterNode.methodGetId())
             .build();
         typeBuilder.addMethod(toStringMethod);
     }
@@ -186,7 +186,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
 
         var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
         var nodeUtils = codeGenHelper.nodeUtilsConfig();
-        methodBuilder.addStatement("return $T.$N(this.$N, false).stream().map(n -> n.$N()).toList()", nodeUtils.className(), nodeUtils.methodGetNonFieldChildren(), nodeField, jtreesitterNode.methodGetType());
+        methodBuilder.addStatement("return $T.$N($N, false).stream().map(n -> n.$N()).toList()", nodeUtils.className(), nodeUtils.methodGetNonFieldChildren(), nodeField, jtreesitterNode.methodGetType());
         return methodBuilder.build();
     }
 

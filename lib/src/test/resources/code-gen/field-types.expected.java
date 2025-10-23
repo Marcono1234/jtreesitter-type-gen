@@ -161,7 +161,7 @@ public sealed interface TypedNode permits NodeContainedA, NodeContainedB, NodeRo
    * Returns the source code of this node, if available.
    */
   default @Nullable String getText() {
-    var result = this.getNode().getText();
+    var result = getNode().getText();
     return result;
   }
 
@@ -169,28 +169,28 @@ public sealed interface TypedNode permits NodeContainedA, NodeContainedB, NodeRo
    * Returns the range of this node.
    */
   default Range getRange() {
-    return this.getNode().getRange();
+    return getNode().getRange();
   }
 
   /**
    * Returns the start point of this node.
    */
   default Point getStartPoint() {
-    return this.getNode().getStartPoint();
+    return getNode().getStartPoint();
   }
 
   /**
    * Returns the end point of this node.
    */
   default Point getEndPoint() {
-    return this.getNode().getEndPoint();
+    return getNode().getEndPoint();
   }
 
   /**
    * Returns whether this node or any of its child nodes represents an ERROR.
    */
   default boolean hasError() {
-    return this.getNode().hasError();
+    return getNode().hasError();
   }
 
   /**
@@ -303,7 +303,7 @@ public final class NodeContainedA implements TypedNode,
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -341,7 +341,7 @@ public final class NodeContainedA implements TypedNode,
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeContainedA> findNodesImpl(TypedNode startNode,
@@ -404,19 +404,19 @@ public final class NodeContainedA implements TypedNode,
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeContainedA other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeContainedA" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeContainedA" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 }
 
@@ -462,7 +462,7 @@ public final class NodeContainedB implements TypedNode, NodeRoot.FieldMultiTypeN
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -500,7 +500,7 @@ public final class NodeContainedB implements TypedNode, NodeRoot.FieldMultiTypeN
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeContainedB> findNodesImpl(TypedNode startNode,
@@ -563,19 +563,19 @@ public final class NodeContainedB implements TypedNode, NodeRoot.FieldMultiTypeN
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeContainedB other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeContainedB" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeContainedB" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 }
 
@@ -673,7 +673,7 @@ public final class NodeRoot implements TypedNode {
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -711,7 +711,7 @@ public final class NodeRoot implements TypedNode {
    * </ul>
    */
   public @Nullable NodeContainedA getFieldSingleTypeNamed() {
-    var children = this.node.getChildrenByFieldName(FIELD_SINGLE_TYPE_NAMED);
+    var children = node.getChildrenByFieldName(FIELD_SINGLE_TYPE_NAMED);
     Function<Node, NodeContainedA> namedMapper = NodeContainedA::fromNodeThrowing;
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
     return NodeUtils.optionalSingleChild(childrenMapped);
@@ -725,7 +725,7 @@ public final class NodeRoot implements TypedNode {
    * </ul>
    */
   public @Nullable FieldMultiTypeNamed getFieldMultiTypeNamed() {
-    var children = this.node.getChildrenByFieldName(FIELD_MULTI_TYPE_NAMED);
+    var children = node.getChildrenByFieldName(FIELD_MULTI_TYPE_NAMED);
     var namedMapper = FieldMultiTypeNamed.class;
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
     return NodeUtils.optionalSingleChild(childrenMapped);
@@ -739,7 +739,7 @@ public final class NodeRoot implements TypedNode {
    * </ul>
    */
   public @Nullable FieldTokenSingleTypeNonNamed getFieldSingleTypeNonNamed() {
-    var children = this.node.getChildrenByFieldName(FIELD_SINGLE_TYPE_NON_NAMED);
+    var children = node.getChildrenByFieldName(FIELD_SINGLE_TYPE_NON_NAMED);
     Function<Node, FieldTokenSingleTypeNonNamed> mapper = n -> new FieldTokenSingleTypeNonNamed(n, FieldTokenSingleTypeNonNamed.TokenType.fromNode(n));
     var childrenMapped = NodeUtils.mapChildren(children, (Class<FieldTokenSingleTypeNonNamed>) null, mapper);
     return NodeUtils.optionalSingleChild(childrenMapped);
@@ -753,7 +753,7 @@ public final class NodeRoot implements TypedNode {
    * </ul>
    */
   public @Nullable FieldTokenMultiTypeNonNamed getFieldMultiTypeNonNamed() {
-    var children = this.node.getChildrenByFieldName(FIELD_MULTI_TYPE_NON_NAMED);
+    var children = node.getChildrenByFieldName(FIELD_MULTI_TYPE_NON_NAMED);
     Function<Node, FieldTokenMultiTypeNonNamed> mapper = n -> new FieldTokenMultiTypeNonNamed(n, FieldTokenMultiTypeNonNamed.TokenType.fromNode(n));
     var childrenMapped = NodeUtils.mapChildren(children, (Class<FieldTokenMultiTypeNonNamed>) null, mapper);
     return NodeUtils.optionalSingleChild(childrenMapped);
@@ -767,7 +767,7 @@ public final class NodeRoot implements TypedNode {
    * </ul>
    */
   public @Nullable FieldMixedNamedNonNamed getFieldMixedNamedNonNamed() {
-    var children = this.node.getChildrenByFieldName(FIELD_MIXED_NAMED_NON_NAMED);
+    var children = node.getChildrenByFieldName(FIELD_MIXED_NAMED_NON_NAMED);
     Function<Node, NodeContainedA> namedMapper = NodeContainedA::fromNodeThrowing;
     Function<Node, FieldTokenMixedNamedNonNamed> tokenMapper = n -> new FieldTokenMixedNamedNonNamed(n, FieldTokenMixedNamedNonNamed.TokenType.fromNode(n));
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, tokenMapper);
@@ -782,7 +782,7 @@ public final class NodeRoot implements TypedNode {
    * </ul>
    */
   public @Nullable FieldMixedMultiNamedNonNamed getFieldMixedMultiNamedNonNamed() {
-    var children = this.node.getChildrenByFieldName(FIELD_MIXED_MULTI_NAMED_NON_NAMED);
+    var children = node.getChildrenByFieldName(FIELD_MIXED_MULTI_NAMED_NON_NAMED);
     var namedMapper = FieldMixedMultiNamedNonNamed.class;
     Function<Node, FieldTokenMixedMultiNamedNonNamed> tokenMapper = n -> new FieldTokenMixedMultiNamedNonNamed(n, FieldTokenMixedMultiNamedNonNamed.TokenType.fromNode(n));
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, tokenMapper);
@@ -848,19 +848,19 @@ public final class NodeRoot implements TypedNode {
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeRoot other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeRoot" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeRoot" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 
   /**
@@ -890,32 +890,32 @@ public final class NodeRoot implements TypedNode {
 
     @Override
     public Node getNode() {
-      return this.node;
+      return node;
     }
 
     /**
      * Returns the token type.
      */
     public TokenType getToken() {
-      return this.token;
+      return token;
     }
 
     @Override
     public boolean equals(Object obj) {
       if (obj instanceof FieldTokenSingleTypeNonNamed other) {
-        return this.node.equals(other.node);
+        return node.equals(other.node);
       }
       return false;
     }
 
     @Override
     public int hashCode() {
-      return this.node.hashCode();
+      return node.hashCode();
     }
 
     @Override
     public String toString() {
-      return "FieldTokenSingleTypeNonNamed" + "[id=" + Long.toUnsignedString(this.node.getId()) + ",token=" + this.token + "]";
+      return "FieldTokenSingleTypeNonNamed" + "[id=" + Long.toUnsignedString(node.getId()) + ",token=" + token + "]";
     }
 
     /**
@@ -940,7 +940,7 @@ public final class NodeRoot implements TypedNode {
        * Returns the grammar type of this token.
        */
       public String getType() {
-        return this.type;
+        return type;
       }
 
       static TokenType fromNode(Node node) {
@@ -972,32 +972,32 @@ public final class NodeRoot implements TypedNode {
 
     @Override
     public Node getNode() {
-      return this.node;
+      return node;
     }
 
     /**
      * Returns the token type.
      */
     public TokenType getToken() {
-      return this.token;
+      return token;
     }
 
     @Override
     public boolean equals(Object obj) {
       if (obj instanceof FieldTokenMultiTypeNonNamed other) {
-        return this.node.equals(other.node);
+        return node.equals(other.node);
       }
       return false;
     }
 
     @Override
     public int hashCode() {
-      return this.node.hashCode();
+      return node.hashCode();
     }
 
     @Override
     public String toString() {
-      return "FieldTokenMultiTypeNonNamed" + "[id=" + Long.toUnsignedString(this.node.getId()) + ",token=" + this.token + "]";
+      return "FieldTokenMultiTypeNonNamed" + "[id=" + Long.toUnsignedString(node.getId()) + ",token=" + token + "]";
     }
 
     /**
@@ -1046,7 +1046,7 @@ public final class NodeRoot implements TypedNode {
        * Returns the grammar type of this token.
        */
       public String getType() {
-        return this.type;
+        return type;
       }
 
       static TokenType fromNode(Node node) {
@@ -1078,32 +1078,32 @@ public final class NodeRoot implements TypedNode {
 
     @Override
     public Node getNode() {
-      return this.node;
+      return node;
     }
 
     /**
      * Returns the token type.
      */
     public TokenType getToken() {
-      return this.token;
+      return token;
     }
 
     @Override
     public boolean equals(Object obj) {
       if (obj instanceof FieldTokenMixedNamedNonNamed other) {
-        return this.node.equals(other.node);
+        return node.equals(other.node);
       }
       return false;
     }
 
     @Override
     public int hashCode() {
-      return this.node.hashCode();
+      return node.hashCode();
     }
 
     @Override
     public String toString() {
-      return "FieldTokenMixedNamedNonNamed" + "[id=" + Long.toUnsignedString(this.node.getId()) + ",token=" + this.token + "]";
+      return "FieldTokenMixedNamedNonNamed" + "[id=" + Long.toUnsignedString(node.getId()) + ",token=" + token + "]";
     }
 
     /**
@@ -1128,7 +1128,7 @@ public final class NodeRoot implements TypedNode {
        * Returns the grammar type of this token.
        */
       public String getType() {
-        return this.type;
+        return type;
       }
 
       static TokenType fromNode(Node node) {
@@ -1171,32 +1171,32 @@ public final class NodeRoot implements TypedNode {
 
     @Override
     public Node getNode() {
-      return this.node;
+      return node;
     }
 
     /**
      * Returns the token type.
      */
     public TokenType getToken() {
-      return this.token;
+      return token;
     }
 
     @Override
     public boolean equals(Object obj) {
       if (obj instanceof FieldTokenMixedMultiNamedNonNamed other) {
-        return this.node.equals(other.node);
+        return node.equals(other.node);
       }
       return false;
     }
 
     @Override
     public int hashCode() {
-      return this.node.hashCode();
+      return node.hashCode();
     }
 
     @Override
     public String toString() {
-      return "FieldTokenMixedMultiNamedNonNamed" + "[id=" + Long.toUnsignedString(this.node.getId()) + ",token=" + this.token + "]";
+      return "FieldTokenMixedMultiNamedNonNamed" + "[id=" + Long.toUnsignedString(node.getId()) + ",token=" + token + "]";
     }
 
     /**
@@ -1227,7 +1227,7 @@ public final class NodeRoot implements TypedNode {
        * Returns the grammar type of this token.
        */
       public String getType() {
-        return this.type;
+        return type;
       }
 
       static TokenType fromNode(Node node) {
@@ -1331,7 +1331,7 @@ public final class NodeFieldOfEachOtherA implements TypedNode, NodeFieldOfEachOt
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -1369,7 +1369,7 @@ public final class NodeFieldOfEachOtherA implements TypedNode, NodeFieldOfEachOt
    * </ul>
    */
   public @Nullable NodeFieldOfEachOtherA$FieldF getFieldF() {
-    var children = this.node.getChildrenByFieldName(FIELD_F);
+    var children = node.getChildrenByFieldName(FIELD_F);
     var namedMapper = NodeFieldOfEachOtherA$FieldF.class;
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
     return NodeUtils.optionalSingleChild(childrenMapped);
@@ -1436,19 +1436,19 @@ public final class NodeFieldOfEachOtherA implements TypedNode, NodeFieldOfEachOt
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeFieldOfEachOtherA other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeFieldOfEachOtherA" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeFieldOfEachOtherA" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 }
 
@@ -1527,7 +1527,7 @@ public final class NodeFieldOfEachOtherB implements TypedNode, NodeFieldOfEachOt
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -1565,7 +1565,7 @@ public final class NodeFieldOfEachOtherB implements TypedNode, NodeFieldOfEachOt
    * </ul>
    */
   public @Nullable NodeFieldOfEachOtherB$FieldF getFieldF() {
-    var children = this.node.getChildrenByFieldName(FIELD_F);
+    var children = node.getChildrenByFieldName(FIELD_F);
     var namedMapper = NodeFieldOfEachOtherB$FieldF.class;
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
     return NodeUtils.optionalSingleChild(childrenMapped);
@@ -1632,19 +1632,19 @@ public final class NodeFieldOfEachOtherB implements TypedNode, NodeFieldOfEachOt
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeFieldOfEachOtherB other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeFieldOfEachOtherB" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeFieldOfEachOtherB" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 }
 
@@ -1724,7 +1724,7 @@ public final class NodeFieldOfEachOtherWithTokenA implements TypedNode, NodeFiel
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -1762,7 +1762,7 @@ public final class NodeFieldOfEachOtherWithTokenA implements TypedNode, NodeFiel
    * </ul>
    */
   public @Nullable NodeFieldOfEachOtherWithTokenA$FieldF getFieldF() {
-    var children = this.node.getChildrenByFieldName(FIELD_F);
+    var children = node.getChildrenByFieldName(FIELD_F);
     Function<Node, NodeFieldOfEachOtherWithTokenB> namedMapper = NodeFieldOfEachOtherWithTokenB::fromNodeThrowing;
     Function<Node, FieldTokenF> tokenMapper = n -> new FieldTokenF(n, FieldTokenF.TokenType.fromNode(n));
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, tokenMapper);
@@ -1830,19 +1830,19 @@ public final class NodeFieldOfEachOtherWithTokenA implements TypedNode, NodeFiel
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeFieldOfEachOtherWithTokenA other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeFieldOfEachOtherWithTokenA" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeFieldOfEachOtherWithTokenA" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 
   /**
@@ -1861,32 +1861,32 @@ public final class NodeFieldOfEachOtherWithTokenA implements TypedNode, NodeFiel
 
     @Override
     public Node getNode() {
-      return this.node;
+      return node;
     }
 
     /**
      * Returns the token type.
      */
     public TokenType getToken() {
-      return this.token;
+      return token;
     }
 
     @Override
     public boolean equals(Object obj) {
       if (obj instanceof FieldTokenF other) {
-        return this.node.equals(other.node);
+        return node.equals(other.node);
       }
       return false;
     }
 
     @Override
     public int hashCode() {
-      return this.node.hashCode();
+      return node.hashCode();
     }
 
     @Override
     public String toString() {
-      return "FieldTokenF" + "[id=" + Long.toUnsignedString(this.node.getId()) + ",token=" + this.token + "]";
+      return "FieldTokenF" + "[id=" + Long.toUnsignedString(node.getId()) + ",token=" + token + "]";
     }
 
     /**
@@ -1911,7 +1911,7 @@ public final class NodeFieldOfEachOtherWithTokenA implements TypedNode, NodeFiel
        * Returns the grammar type of this token.
        */
       public String getType() {
-        return this.type;
+        return type;
       }
 
       static TokenType fromNode(Node node) {
@@ -2004,7 +2004,7 @@ public final class NodeFieldOfEachOtherWithTokenB implements TypedNode, NodeFiel
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -2042,7 +2042,7 @@ public final class NodeFieldOfEachOtherWithTokenB implements TypedNode, NodeFiel
    * </ul>
    */
   public @Nullable NodeFieldOfEachOtherWithTokenB$FieldF getFieldF() {
-    var children = this.node.getChildrenByFieldName(FIELD_F);
+    var children = node.getChildrenByFieldName(FIELD_F);
     Function<Node, NodeFieldOfEachOtherWithTokenA> namedMapper = NodeFieldOfEachOtherWithTokenA::fromNodeThrowing;
     Function<Node, FieldTokenF> tokenMapper = n -> new FieldTokenF(n, FieldTokenF.TokenType.fromNode(n));
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, tokenMapper);
@@ -2110,19 +2110,19 @@ public final class NodeFieldOfEachOtherWithTokenB implements TypedNode, NodeFiel
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeFieldOfEachOtherWithTokenB other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeFieldOfEachOtherWithTokenB" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeFieldOfEachOtherWithTokenB" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 
   /**
@@ -2141,32 +2141,32 @@ public final class NodeFieldOfEachOtherWithTokenB implements TypedNode, NodeFiel
 
     @Override
     public Node getNode() {
-      return this.node;
+      return node;
     }
 
     /**
      * Returns the token type.
      */
     public TokenType getToken() {
-      return this.token;
+      return token;
     }
 
     @Override
     public boolean equals(Object obj) {
       if (obj instanceof FieldTokenF other) {
-        return this.node.equals(other.node);
+        return node.equals(other.node);
       }
       return false;
     }
 
     @Override
     public int hashCode() {
-      return this.node.hashCode();
+      return node.hashCode();
     }
 
     @Override
     public String toString() {
-      return "FieldTokenF" + "[id=" + Long.toUnsignedString(this.node.getId()) + ",token=" + this.token + "]";
+      return "FieldTokenF" + "[id=" + Long.toUnsignedString(node.getId()) + ",token=" + token + "]";
     }
 
     /**
@@ -2191,7 +2191,7 @@ public final class NodeFieldOfEachOtherWithTokenB implements TypedNode, NodeFiel
        * Returns the grammar type of this token.
        */
       public String getType() {
-        return this.type;
+        return type;
       }
 
       static TokenType fromNode(Node node) {

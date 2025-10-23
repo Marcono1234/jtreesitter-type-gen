@@ -93,7 +93,7 @@ public class TypedTreeClassGenerator {
         var getTreeMethod = MethodSpec.methodBuilder(config.methodGetTree())
             .addModifiers(Modifier.PUBLIC)
             .returns(jtreesitterTreeClass)
-            .addStatement("return this.$N", treeField)
+            .addStatement("return $N", treeField)
             .addJavadoc("Returns the underlying jtreesitter tree.")
             .build();
         typeBuilder.addMethod(getTreeMethod);
@@ -122,7 +122,7 @@ public class TypedTreeClassGenerator {
             .addModifiers(Modifier.PUBLIC)
             .returns(rootNodeType.createJavaTypeName(codeGenHelper))
             .addJavadoc("Returns the typed root node.")
-            .addStatement("var $N = this.$N.$N()", rootNodeVar, treeField, jtreesitterTree.methodGetRootNode())
+            .addStatement("var $N = $N.$N()", rootNodeVar, treeField, jtreesitterTree.methodGetRootNode())
             .addStatement("var $N = $T.$N($N)", typedNodeVar, rootNodeType.createJavaTypeName(codeGenHelper), typedNode.methodFromNodeThrowing(), rootNodeVar)
             .addStatement("return $N", typedNodeVar);
         typeBuilder.addMethod(getRootNodeMethodBuilder.build());
@@ -136,7 +136,7 @@ public class TypedTreeClassGenerator {
             .addModifiers(Modifier.PUBLIC)
             .returns(boolean.class)
             .addJavadoc("Returns whether this tree contains any nodes with errors.")
-            .addStatement("return this.$N.$N().$N()", treeField, jtreesitterTree.methodGetRootNode(), jtreesitterNode.methodHasError())
+            .addStatement("return $N.$N().$N()", treeField, jtreesitterTree.methodGetRootNode(), jtreesitterNode.methodHasError())
             .build();
         typeBuilder.addMethod(hasErrorMethod);
 
@@ -145,7 +145,7 @@ public class TypedTreeClassGenerator {
             .addModifiers(Modifier.PUBLIC)
             .addAnnotation(Override.class)
             .addJavadoc("Closes the underlying jtreesitter tree, releasing the resources it holds.")
-            .addStatement("this.$N.close()", treeField)
+            .addStatement("$N.close()", treeField)
             .build();
         typeBuilder.addMethod(closeMethod);
 

@@ -156,7 +156,7 @@ public sealed interface TypedNode permits NodeAsPattern, NodeMyNode {
    * Returns the source code of this node, if available.
    */
   default @Nullable String getText() {
-    var result = this.getNode().getText();
+    var result = getNode().getText();
     return result;
   }
 
@@ -164,28 +164,28 @@ public sealed interface TypedNode permits NodeAsPattern, NodeMyNode {
    * Returns the range of this node.
    */
   default Range getRange() {
-    return this.getNode().getRange();
+    return getNode().getRange();
   }
 
   /**
    * Returns the start point of this node.
    */
   default Point getStartPoint() {
-    return this.getNode().getStartPoint();
+    return getNode().getStartPoint();
   }
 
   /**
    * Returns the end point of this node.
    */
   default Point getEndPoint() {
-    return this.getNode().getEndPoint();
+    return getNode().getEndPoint();
   }
 
   /**
    * Returns whether this node or any of its child nodes represents an ERROR.
    */
   default boolean hasError() {
-    return this.getNode().hasError();
+    return getNode().hasError();
   }
 
   /**
@@ -299,7 +299,7 @@ public final class NodeAsPattern implements TypedNode {
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -337,7 +337,7 @@ public final class NodeAsPattern implements TypedNode {
    * </ul>
    */
   public @Nullable NodeMyNode getFieldAlias() {
-    var children = this.node.getChildrenByFieldName(FIELD_ALIAS);
+    var children = node.getChildrenByFieldName(FIELD_ALIAS);
     Function<Node, NodeMyNode> namedMapper = NodeMyNode::fromNodeThrowing;
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
     return NodeUtils.optionalSingleChild(childrenMapped);
@@ -403,19 +403,19 @@ public final class NodeAsPattern implements TypedNode {
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeAsPattern other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeAsPattern" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeAsPattern" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 }
 
@@ -461,7 +461,7 @@ public final class NodeMyNode implements TypedNode {
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -499,7 +499,7 @@ public final class NodeMyNode implements TypedNode {
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeMyNode> findNodesImpl(TypedNode startNode, SegmentAllocator allocator) {
@@ -561,19 +561,19 @@ public final class NodeMyNode implements TypedNode {
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeMyNode other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeMyNode" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeMyNode" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 }
 

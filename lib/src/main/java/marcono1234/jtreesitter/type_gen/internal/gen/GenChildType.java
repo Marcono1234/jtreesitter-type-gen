@@ -267,7 +267,7 @@ sealed interface GenChildType {
             var getTypeMethod = MethodSpec.methodBuilder(tokenNode.methodGetTypeName())
                 .addModifiers(Modifier.PUBLIC)
                 .returns(String.class)
-                .addStatement("return this.$N", typeField)
+                .addStatement("return $N", typeField)
                 .addJavadoc("Returns the grammar type of this token.")
                 .build();
             typeBuilder.addMethod(getTypeMethod);
@@ -323,7 +323,7 @@ sealed interface GenChildType {
             var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
             var toStringMethod = CodeGenHelper.createToStringMethodSignature()
                 // TODO: Include more information, e.g. position information? Or include wrapped node.toString()?
-                .addStatement("return $S + \"[id=\" + $T.toUnsignedString(this.$N.$N()) + \",token=\" + this.$N + \"]\"", javaName, Long.class, nodeField, jtreesitterNode.methodGetId(), tokenField)
+                .addStatement("return $S + \"[id=\" + $T.toUnsignedString($N.$N()) + \",token=\" + $N + \"]\"", javaName, Long.class, nodeField, jtreesitterNode.methodGetId(), tokenField)
                 .build();
             typeBuilder.addMethod(toStringMethod);
         }
@@ -365,7 +365,7 @@ sealed interface GenChildType {
                 .addModifiers(Modifier.PUBLIC)
                 .returns(tokenClassName)
                 .addJavadoc("Returns the token type.")
-                .addStatement("return this.$N", tokenField)
+                .addStatement("return $N", tokenField)
                 .build();
             typeBuilder.addMethod(getTokenTypeMethod);
 

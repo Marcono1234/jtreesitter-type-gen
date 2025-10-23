@@ -155,7 +155,7 @@ public sealed interface TypedNode permits NodeDocument {
    * Returns the source code of this node, if available.
    */
   default @Nullable String getText() {
-    var result = this.getNode().getText();
+    var result = getNode().getText();
     return result;
   }
 
@@ -163,28 +163,28 @@ public sealed interface TypedNode permits NodeDocument {
    * Returns the range of this node.
    */
   default Range getRange() {
-    return this.getNode().getRange();
+    return getNode().getRange();
   }
 
   /**
    * Returns the start point of this node.
    */
   default Point getStartPoint() {
-    return this.getNode().getStartPoint();
+    return getNode().getStartPoint();
   }
 
   /**
    * Returns the end point of this node.
    */
   default Point getEndPoint() {
-    return this.getNode().getEndPoint();
+    return getNode().getEndPoint();
   }
 
   /**
    * Returns whether this node or any of its child nodes represents an ERROR.
    */
   default boolean hasError() {
-    return this.getNode().hasError();
+    return getNode().hasError();
   }
 
   /**
@@ -286,7 +286,7 @@ public final class NodeDocument implements TypedNode {
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -324,7 +324,7 @@ public final class NodeDocument implements TypedNode {
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeDocument> findNodesImpl(TypedNode startNode,
@@ -387,19 +387,19 @@ public final class NodeDocument implements TypedNode {
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeDocument other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeDocument" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeDocument" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 }
 
@@ -439,7 +439,7 @@ public final class TypedTree implements AutoCloseable {
    * Returns the underlying jtreesitter tree.
    */
   public Tree getTree() {
-    return this.tree;
+    return tree;
   }
 
   /**
@@ -457,7 +457,7 @@ public final class TypedTree implements AutoCloseable {
    * Returns the typed root node.
    */
   public NodeDocument getRootNode() {
-    var rootNode = this.tree.getRootNode();
+    var rootNode = tree.getRootNode();
     var result = NodeDocument.fromNodeThrowing(rootNode);
     return result;
   }
@@ -466,7 +466,7 @@ public final class TypedTree implements AutoCloseable {
    * Returns the source code of the syntax tree, if available.
    */
   public @Nullable String getText() {
-    var result = this.tree.getText();
+    var result = tree.getText();
     return result;
   }
 
@@ -474,7 +474,7 @@ public final class TypedTree implements AutoCloseable {
    * Returns whether this tree contains any nodes with errors.
    */
   public boolean hasError() {
-    return this.tree.getRootNode().hasError();
+    return tree.getRootNode().hasError();
   }
 
   /**
@@ -482,20 +482,20 @@ public final class TypedTree implements AutoCloseable {
    */
   @Override
   public void close() {
-    this.tree.close();
+    tree.close();
   }
 
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof TypedTree other) {
-      return this.tree.equals(other.tree);
+      return tree.equals(other.tree);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.tree.hashCode();
+    return tree.hashCode();
   }
 
   @Override

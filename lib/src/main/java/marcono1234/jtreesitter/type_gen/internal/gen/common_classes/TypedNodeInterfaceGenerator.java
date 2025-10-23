@@ -178,7 +178,7 @@ public class TypedNodeInterfaceGenerator {
             .addModifiers(Modifier.PUBLIC)
             .addAnnotation(Override.class)
             .returns(jtreesitterNode.className())
-            .addStatement("return this.$N", nodeField)
+            .addStatement("return $N", nodeField)
             .build();
         typeBuilder.addMethod(getNodeMethod);
     }

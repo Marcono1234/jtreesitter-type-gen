@@ -167,7 +167,7 @@ public sealed interface TypedNode permits NodeContainedA, NodeContainedB, NodeSu
    * Returns the source code of this node, if available.
    */
   default @Nullable String getText() {
-    var result = this.getNode().getText();
+    var result = getNode().getText();
     return result;
   }
 
@@ -175,28 +175,28 @@ public sealed interface TypedNode permits NodeContainedA, NodeContainedB, NodeSu
    * Returns the range of this node.
    */
   default Range getRange() {
-    return this.getNode().getRange();
+    return getNode().getRange();
   }
 
   /**
    * Returns the start point of this node.
    */
   default Point getStartPoint() {
-    return this.getNode().getStartPoint();
+    return getNode().getStartPoint();
   }
 
   /**
    * Returns the end point of this node.
    */
   default Point getEndPoint() {
-    return this.getNode().getEndPoint();
+    return getNode().getEndPoint();
   }
 
   /**
    * Returns whether this node or any of its child nodes represents an ERROR.
    */
   default boolean hasError() {
-    return this.getNode().hasError();
+    return getNode().hasError();
   }
 
   /**
@@ -316,7 +316,7 @@ public final class NodeContainedA implements TypedNode,
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -354,7 +354,7 @@ public final class NodeContainedA implements TypedNode,
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeContainedA> findNodesImpl(TypedNode startNode,
@@ -417,19 +417,19 @@ public final class NodeContainedA implements TypedNode,
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeContainedA other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeContainedA" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeContainedA" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 }
 
@@ -479,7 +479,7 @@ public final class NodeContainedB implements TypedNode,
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -517,7 +517,7 @@ public final class NodeContainedB implements TypedNode,
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeContainedB> findNodesImpl(TypedNode startNode,
@@ -580,19 +580,19 @@ public final class NodeContainedB implements TypedNode,
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeContainedB other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeContainedB" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeContainedB" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 }
 
@@ -640,7 +640,7 @@ public final class NodeSupertypeChild implements TypedNode {
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -692,7 +692,7 @@ public final class NodeSupertypeChild implements TypedNode {
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeSupertypeChild> findNodesImpl(TypedNode startNode,
@@ -756,19 +756,19 @@ public final class NodeSupertypeChild implements TypedNode {
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeSupertypeChild other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeSupertypeChild" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeSupertypeChild" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 }
 
@@ -815,7 +815,7 @@ public final class NodeMultipleChildren implements TypedNode {
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -867,7 +867,7 @@ public final class NodeMultipleChildren implements TypedNode {
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeMultipleChildren> findNodesImpl(TypedNode startNode,
@@ -931,19 +931,19 @@ public final class NodeMultipleChildren implements TypedNode {
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeMultipleChildren other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeMultipleChildren" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeMultipleChildren" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 
   /**
@@ -1024,7 +1024,7 @@ public final class NodeSelfChildren implements TypedNode, NodeSelfChildren$Child
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -1076,7 +1076,7 @@ public final class NodeSelfChildren implements TypedNode, NodeSelfChildren$Child
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeSelfChildren> findNodesImpl(TypedNode startNode,
@@ -1140,19 +1140,19 @@ public final class NodeSelfChildren implements TypedNode, NodeSelfChildren$Child
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeSelfChildren other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeSelfChildren" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeSelfChildren" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 }
 
@@ -1223,7 +1223,7 @@ public final class NodeSelfIndirectChildren implements TypedNode, NodeSupertypeI
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -1275,7 +1275,7 @@ public final class NodeSelfIndirectChildren implements TypedNode, NodeSupertypeI
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeSelfIndirectChildren> findNodesImpl(TypedNode startNode,
@@ -1339,19 +1339,19 @@ public final class NodeSelfIndirectChildren implements TypedNode, NodeSupertypeI
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeSelfIndirectChildren other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeSelfIndirectChildren" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeSelfIndirectChildren" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 }
 
@@ -1422,7 +1422,7 @@ public final class NodeSelfTransitiveIndirectChildren implements TypedNode, Node
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -1474,7 +1474,7 @@ public final class NodeSelfTransitiveIndirectChildren implements TypedNode, Node
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeSelfTransitiveIndirectChildren> findNodesImpl(TypedNode startNode,
@@ -1538,19 +1538,19 @@ public final class NodeSelfTransitiveIndirectChildren implements TypedNode, Node
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeSelfTransitiveIndirectChildren other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeSelfTransitiveIndirectChildren" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeSelfTransitiveIndirectChildren" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 }
 
@@ -1620,7 +1620,7 @@ public final class NodeChildOfEachOtherA implements TypedNode, NodeChildOfEachOt
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -1672,7 +1672,7 @@ public final class NodeChildOfEachOtherA implements TypedNode, NodeChildOfEachOt
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeChildOfEachOtherA> findNodesImpl(TypedNode startNode,
@@ -1736,19 +1736,19 @@ public final class NodeChildOfEachOtherA implements TypedNode, NodeChildOfEachOt
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeChildOfEachOtherA other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeChildOfEachOtherA" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeChildOfEachOtherA" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 }
 
@@ -1818,7 +1818,7 @@ public final class NodeChildOfEachOtherB implements TypedNode, NodeChildOfEachOt
 
   @Override
   public Node getNode() {
-    return this.node;
+    return node;
   }
 
   /**
@@ -1870,7 +1870,7 @@ public final class NodeChildOfEachOtherB implements TypedNode, NodeChildOfEachOt
    * In that case this method returns the keywords which appear in the parsed source code.
    */
   public List<String> getUnnamedChildren() {
-    return NodeUtils.getNonFieldChildren(this.node, false).stream().map(n -> n.getType()).toList();
+    return NodeUtils.getNonFieldChildren(node, false).stream().map(n -> n.getType()).toList();
   }
 
   private static Stream<NodeChildOfEachOtherB> findNodesImpl(TypedNode startNode,
@@ -1934,19 +1934,19 @@ public final class NodeChildOfEachOtherB implements TypedNode, NodeChildOfEachOt
   @Override
   public boolean equals(Object obj) {
     if (obj instanceof NodeChildOfEachOtherB other) {
-      return this.node.equals(other.node);
+      return node.equals(other.node);
     }
     return false;
   }
 
   @Override
   public int hashCode() {
-    return this.node.hashCode();
+    return node.hashCode();
   }
 
   @Override
   public String toString() {
-    return "NodeChildOfEachOtherB" + "[id=" + Long.toUnsignedString(this.node.getId()) + "]";
+    return "NodeChildOfEachOtherB" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 }
 

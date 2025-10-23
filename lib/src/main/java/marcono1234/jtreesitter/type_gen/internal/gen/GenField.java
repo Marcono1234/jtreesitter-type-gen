@@ -60,7 +60,7 @@ class GenField extends GenChildren {
     protected void addGetChildrenStatement(MethodSpec.Builder methodBuilder, CodeGenHelper codeGenHelper, String nodeJavaFieldName, String childrenVarName) {
         var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
         var codeBuilder = CodeBlock.builder()
-            .add("var $N = this.$N.", childrenVarName, nodeJavaFieldName);
+            .add("var $N = $N.", childrenVarName, nodeJavaFieldName);
 
         if (codeGenHelper.generatesNumericIdConstants()) {
             codeBuilder.add("$N($N)", jtreesitterNode.methodGetChildrenByFieldId(), fieldIdConstant);

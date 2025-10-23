@@ -800,7 +800,7 @@ public class CodeGenHelper {
         String otherCastVar = "other";
         return createEqualsMethodSignature(otherParam)
             .beginControlFlow("if ($N instanceof $T $N)", otherParam, ownType, otherCastVar)
-            .addStatement("return this.$N.equals($N.$N)", delegateField, otherCastVar, delegateField)
+            .addStatement("return $N.equals($N.$N)", delegateField, otherCastVar, delegateField)
             .endControlFlow()
             .addStatement("return false")
             .build();
@@ -822,7 +822,7 @@ public class CodeGenHelper {
      */
     public static MethodSpec createDelegatingHashCodeMethod(String delegateField) {
         return createHashCodeMethodSignature()
-            .addStatement("return this.$N.hashCode()", delegateField)
+            .addStatement("return $N.hashCode()", delegateField)
             .build();
     }
 
@@ -844,7 +844,7 @@ public class CodeGenHelper {
         return MethodSpec.methodBuilder(methodName)
             .addModifiers(Modifier.PUBLIC)
             .returns(returnType)
-            .addStatement("return this.$L.$N()", delegate, methodName);
+            .addStatement("return $L.$N()", delegate, methodName);
     }
 
     /**
@@ -859,7 +859,7 @@ public class CodeGenHelper {
         var builder = MethodSpec.methodBuilder(methodName)
             .addModifiers(Modifier.PUBLIC)
             .returns(getReturnOptionalType(returnType))
-            .addStatement("var $N = this.$L.$N()", resultVar, delegate, methodName);
+            .addStatement("var $N = $L.$N()", resultVar, delegate, methodName);
         addReturnOptionalStatement(builder, resultVar);
         return builder;
     }
