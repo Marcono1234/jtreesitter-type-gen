@@ -7,6 +7,7 @@ import io.github.ascopes.jct.workspaces.Workspaces;
 import marcono1234.jtreesitter.type_gen.CodeGenConfig.GeneratedAnnotationConfig.GeneratedAnnotationType;
 import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageProviderConfig;
 import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageVersion;
+import marcono1234.jtreesitter.type_gen.NameGenerator.TokenNameGenerator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -104,12 +105,15 @@ class CodeGeneratorTest {
         var childAsTopLevel = baseFileName.contains("(child-top-level)") ? CodeGenConfig.ChildTypeAsTopLevel.ALWAYS
             : CodeGenConfig.ChildTypeAsTopLevel.AS_NEEDED;
 
+        var tokenNameGenerator = baseFileName.contains("(token-name-generator)") ? TokenNameGenerator.fromMapping(Map.of("", Map.of("", Map.of("<", "LEFT", ">", "RIGHT"))), true)
+            : TokenNameGenerator.AUTOMATIC;
+
         var config = new CodeGenConfig(
             packageName,
             nullableAsOptional ? Optional.empty() : Optional.of(TypeName.JSPECIFY_NULLABLE_ANNOTATION),
             "NonEmpty",
             childAsTopLevel,
-            NameGenerator.DEFAULT,
+            NameGenerator.createDefault(tokenNameGenerator),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
 
@@ -270,7 +274,7 @@ class CodeGeneratorTest {
             Optional.empty(),
             "NonEmpty",
             CodeGenConfig.ChildTypeAsTopLevel.NEVER,
-            NameGenerator.DEFAULT,
+            NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
         var codeGenerator = new CodeGenerator(config);
@@ -298,7 +302,7 @@ class CodeGeneratorTest {
             Optional.empty(),
             "NonEmpty",
             CodeGenConfig.ChildTypeAsTopLevel.NEVER,
-            NameGenerator.DEFAULT,
+            NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
         var codeGenerator = new CodeGenerator(config);
@@ -328,7 +332,7 @@ class CodeGeneratorTest {
             Optional.empty(),
             "NonEmpty",
             CodeGenConfig.ChildTypeAsTopLevel.NEVER,
-            NameGenerator.DEFAULT,
+            NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
         var codeGenerator = new CodeGenerator(config);
@@ -364,7 +368,7 @@ class CodeGeneratorTest {
             Optional.empty(),
             "NonEmpty",
             CodeGenConfig.ChildTypeAsTopLevel.NEVER,
-            NameGenerator.DEFAULT,
+            NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
         var codeGenerator = new CodeGenerator(config);
@@ -404,7 +408,7 @@ class CodeGeneratorTest {
             Optional.empty(),
             "NonEmpty",
             CodeGenConfig.ChildTypeAsTopLevel.NEVER,
-            NameGenerator.DEFAULT,
+            NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
         var codeGenerator = new CodeGenerator(config);

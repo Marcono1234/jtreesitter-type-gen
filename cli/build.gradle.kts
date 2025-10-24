@@ -8,6 +8,8 @@ dependencies {
     implementation(project(":lib"))
     implementation(libs.picocli)
     implementation(libs.jspecify)
+    // Jackson for reading token name mapping file
+    implementation(libs.jackson.databind)
 
     testImplementation(platform(libs.junitBom))
     testImplementation(libs.junit)

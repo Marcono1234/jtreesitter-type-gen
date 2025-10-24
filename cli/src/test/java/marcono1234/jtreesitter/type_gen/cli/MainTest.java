@@ -514,6 +514,129 @@ class MainTest {
     }
 
     @Test
+    void generateCommand_TokenNameMapping(@TempDir Path tempDir) throws IOException {
+        Path nodeTypesFile = tempDir.resolve("node-types.json");
+        Files.writeString(nodeTypesFile, """
+             [
+              {
+                "type": "my_node",
+                "named": true,
+                "fields": {
+                  "my_field": {
+                    "multiple": false,
+                    "required": true,
+                    "types": [
+                      {
+                        "type": "<",
+                        "named": false
+                      },
+                      {
+                        "type": ">",
+                        "named": false
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+            """);
+
+        Path tokenNameMappingFile = tempDir.resolve("token-name-mapping.json");
+        // Note: For '>' this uses a fallback mapping ("") for the field name
+        Files.writeString(tokenNameMappingFile, """
+            {
+              "my_node": {
+                "my_field": {
+                  "<": "LEFT"
+                },
+                "": {
+                  ">": "RIGHT"
+                }
+              }
+            }
+            """);
+
+        Path outputDir = tempDir.resolve("output");
+
+        assertMainResult(
+            List.of(
+                "--node-types", nodeTypesFile.toString(),
+                "--package", "com.example",
+                "--output-dir", outputDir.toString(),
+                "--token-name-mapping", tokenNameMappingFile.toString()
+            ),
+            CommandLine.ExitCode.OK,
+            stdOut -> assertEquals("[SUCCESS] Successfully generated code in directory: " + outputDir, stdOut),
+            stdErr -> assertEquals("", stdErr)
+        );
+
+        assertFiles(outputDir, List.of("com/example/NodeMyNode.java", "com/example/NodeUtils.java", "com/example/NonEmpty.java", "com/example/TypedNode.java"));
+        String fileContent = Files.readString(outputDir.resolve("com/example/NodeMyNode.java"));
+        assertContains(fileContent, "LEFT(\"<\")");
+        assertContains(fileContent, "RIGHT(\">\")");
+    }
+
+    @Test
+    void generateCommand_TokenNameMapping_NonExhaustive(@TempDir Path tempDir) throws IOException {
+        Path nodeTypesFile = tempDir.resolve("node-types.json");
+        Files.writeString(nodeTypesFile, """
+             [
+              {
+                "type": "my_node",
+                "named": true,
+                "fields": {
+                  "my_field": {
+                    "multiple": false,
+                    "required": true,
+                    "types": [
+                      {
+                        "type": "<",
+                        "named": false
+                      },
+                      {
+                        "type": ">",
+                        "named": false
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+            """);
+
+        Path tokenNameMappingFile = tempDir.resolve("token-name-mapping.json");
+        // Mapping does not contain token type '>'
+        Files.writeString(tokenNameMappingFile, """
+            {
+              "my_node": {
+                "my_field": {
+                  "<": "LEFT"
+                }
+              }
+            }
+            """);
+
+        Path outputDir = tempDir.resolve("output");
+
+        assertMainResult(
+            List.of(
+                "--node-types", nodeTypesFile.toString(),
+                "--package", "com.example",
+                "--output-dir", outputDir.toString(),
+                "--token-name-mapping", tokenNameMappingFile.toString()
+            ),
+            CommandLine.ExitCode.SOFTWARE,
+            stdOut -> assertEquals("", stdOut),
+            stdErr -> {
+                assertContains(stdErr, "[ERROR] Code generation failed");
+                assertContains(stdErr, "Token type not mapped: type = my_node, field = my_field, token = >");
+            }
+        );
+
+        assertFiles(outputDir, List.of());
+    }
+
+    @Test
     void generateCommand_GeneratedAnnotation_Custom(@TempDir Path tempDir) throws IOException {
         Path nodeTypesFile = tempDir.resolve("node-types.json");
         Files.writeString(nodeTypesFile, """

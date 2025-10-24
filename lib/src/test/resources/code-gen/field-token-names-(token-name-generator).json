@@ -1,0 +1,22 @@
+[
+  {
+    "type": "my_node",
+    "named": true,
+    "fields": {
+      "my_field": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "<",
+            "named": false
+          },
+          {
+            "type": ">",
+            "named": false
+          }
+        ]
+      }
+    }
+  }
+]

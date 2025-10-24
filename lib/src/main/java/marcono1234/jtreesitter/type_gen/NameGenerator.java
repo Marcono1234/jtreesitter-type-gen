@@ -1,15 +1,14 @@
 package marcono1234.jtreesitter.type_gen;
 
 import javax.lang.model.SourceVersion;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * {@summary Generates names for generated source code elements (classes, fields, methods ...) based on the
  * information in {@code node-types.json}.}
  * Implementations do not have to use all arguments provided to the generation methods if they can create
- * unique and meaningful names without them. A default implementation is available as {@link #DEFAULT}.
+ * unique and meaningful names without them. A default implementation is available through {@link #createDefault(TokenNameGenerator)}.
  *
  * <p><b>Important:</b> Implementations must make sure to create valid Java identifier names, and must not
  * produce conflicting names, for example by using a specific prefix or suffix to avoid conflicts.
@@ -553,168 +552,269 @@ public interface NameGenerator {
     Optional<String> generateNonNamedChildrenGetter(String parentTypeName, boolean hasNamedChildren, boolean hasFields);
 
     /**
-     * Default name generator, suitable for most use cases.
+     * Generates for a non-named node type a "token" name, see {@link NameGenerator#generateFieldTokenName(String, String, String, int)}
+     * for more details.
+     *
+     * <p>This interface is only used by {@link #createDefault(TokenNameGenerator)}; it is not needed when implementing
+     * a custom {@link NameGenerator}.
      */
-    NameGenerator DEFAULT = new NameGenerator() {
+    interface TokenNameGenerator {
         /**
-         * Converts {@code snake_case} to {@code camelCase}.
+         * Name generator which chooses names automatically. In many cases the generated names will be pretty
+         * generic and not that useful because the generator cannot know the meaning of the token and therefore
+         * cannot choose a useful name.
          */
-        private String convertSnakeToCamelCase(String s) {
-            StringBuilder stringBuilder = new StringBuilder(s.length());
-            int nextStartIndex = 0;
+        TokenNameGenerator AUTOMATIC = fromMapping(Map.of(), false);
 
-            for (int i = 0; i < s.length(); i++) {
-                if (s.charAt(i) == '_') {
-                    stringBuilder.append(s, nextStartIndex, i);
-                    i++;
-                    if (i < s.length()) {
-                        stringBuilder.append(Character.toUpperCase(s.charAt(i)));
-                    }
-                    nextStartIndex = i + 1; // skip uppercased char
-                }
-            }
-
-            // Add remainder of string
-            stringBuilder.append(s, nextStartIndex, s.length());
-            return stringBuilder.toString();
+        /**
+         * Generates the token name for a non-named node type of a non-field child.
+         * See {@link NameGenerator#generateChildrenTokenName(String, String, int)} for a detailed description.
+         */
+        default String generateChildrenTokenName(String parentTypeName, String tokenType, int index) {
+            // See `NameGenerator#generateChildrenTokenName`
+            throw new AssertionError("currently unused");
         }
 
         /**
-         * Converts the string to a Java constant name, e.g. {@code MY_CONSTANT}.
+         * Generates the token name for a non-named node type of a field child.
+         * See {@link NameGenerator#generateFieldTokenName(String, String, String, int)} for a detailed description.
          */
-        private String convertToConstantName(String s) {
-            StringBuilder stringBuilder = new StringBuilder(s.length());
-            int nextStartIndex = 0;
-            boolean wasLower = false;
+        String generateFieldTokenName(String parentTypeName, String fieldName, String tokenType, int index);
 
-            for (int i = 0; i < s.length(); i++) {
-                char c = s.charAt(i);
-                boolean isLower = Character.isLowerCase(c);
-                // Check for switch from lower to upper (respectively lower letter to non-letter)
-                if (wasLower && !isLower) {
-                    stringBuilder.append(s, nextStartIndex, i);
-                    stringBuilder.append('_');
+        /**
+         * Creates a token name generator based on the given mapping.
+         *
+         * @param tokenNameMapping
+         *      Map in the form <code>Map&lt;<i>parentType</i>, Map&lt;<i>fieldName</i>, Map&lt;<i>tokenType</i>, <i>tokenName</i>&gt;&gt;&gt;</code>.
+         *      That means, if a node type {@code MyNode} has a field {@code myField} which has a token of type {@code !=},
+         *      then a map like the following could provide a mapping for it, giving the token the name "NOT_EQUALS":
+         *      {@snippet lang=java :
+         *      Map.of("MyNode", Map.of("myField", Map.of("!=", "NOT_EQUALS")))
+         *      }
+         *      The special key {@code ""} (empty string) can be used as fallback to match any node type respectively
+         *      field name. This can be used to provide a mapping regardless of which node type or which of its fields
+         *      uses the token. For example this gives all tokens of type {@code !=} the name "NOT_EQUALS":
+         *      {@snippet lang = java:
+         *      Map.of("", Map.of("", Map.of("!=", "NOT_EQUALS")))
+         *      }
+         * @param exhaustive
+         *      Whether the mapping is expected to be exhaustive. If {@code true} but no mapping is present for a
+         *      token, an exception is thrown. If {@code false} a token name is automatically generated instead.
+         */
+        static TokenNameGenerator fromMapping(Map<String, Map<String, Map<String, String>>> tokenNameMapping, boolean exhaustive) {
+            Objects.requireNonNull(tokenNameMapping);
 
-                    if (c == '_' || c == '-') {
+            return new TokenNameGenerator() {
+                private String generateDefaultTokenName(String tokenType, int index) {
+                    // Note: Avoid any default names which imply a certain usage, e.g. `*` should not be named "MULTIPLY"
+                    // because it might have a different meaning in the grammar
+
+                    if (tokenType.length() == 1) {
+                        // Use Unicode character name
+                        // TODO: Maybe this should be opt-in since those names are rather verbose, and might depend on Unicode data of JDK
+                        //   (and could therefore break reproducibility); instead use hardcoded names for some common chars?
+                        return Character.getName(tokenType.charAt(0))
+                            .replace(' ', '_').replace('-', '_')
+                            .toUpperCase(Locale.ROOT);
+                    }
+                    // If token type consists only of letters and whitespace, use token type as name
+                    if (!tokenType.isBlank() && tokenType.matches("[\\sa-zA-Z]+")) {
+                        return tokenType.replaceAll("\\s", "_")
+                            .replace('-', '_')
+                            .toUpperCase(Locale.ROOT);
+                    }
+
+                    // Use generic unique name as fallback
+                    return "TOKEN_" + index;
+                }
+
+                @Override
+                public String generateFieldTokenName(String parentTypeName, String fieldName, String tokenType, int index) {
+                    // Fast path for automatically generating all token names
+                    if (!exhaustive && tokenNameMapping.isEmpty()) {
+                        return generateDefaultTokenName(tokenType, index);
+                    }
+
+                    // Uses empty string as fallback key (for type and field name) because it is not a valid type or field name,
+                    // and can be represented in JSON when the `tokenNameMapping` is deserialized from a JSON file
+                    String fallbackKey = "";
+                    /*
+                     * Order of preference:
+                     * 1. typeName, fieldName
+                     * 2. typeName, ""
+                     * 3. "", fieldName  (not sure how useful this combination is, but support it for simplicity and consistency)
+                     * 4. "", ""
+                     */
+                    // Uses Stream to lazily check fallbacks
+                    var tokenName = Stream.of(parentTypeName, fallbackKey)
+                        .flatMap(parent -> Stream.of(fieldName, fallbackKey)
+                            .map(field -> tokenNameMapping.getOrDefault(parent, Map.of()).getOrDefault(field, Map.of()).get(tokenType))
+                        )
+                        .filter(Objects::nonNull)
+                        .findFirst();
+                    if (tokenName.isPresent()) {
+                        return tokenName.get();
+                    } else if (exhaustive) {
+                        throw new IllegalArgumentException("Token type not mapped: type = " + parentTypeName + ", field = " + fieldName + ", token = " + tokenType);
+                    } else {
+                        return generateDefaultTokenName(tokenType, index);
+                    }
+                }
+            };
+        }
+    }
+
+    /**
+     * Creates a default name generator which is suitable for most use cases.
+     */
+    // Note: This specifically supports customizing token names because unlike the other names which might be good
+    //   enough for many use cases, automatic token name generation would produce too generic / not useful names
+    static NameGenerator createDefault(TokenNameGenerator tokenNameGenerator) {
+        Objects.requireNonNull(tokenNameGenerator);
+
+        return new NameGenerator() {
+            /**
+             * Converts {@code snake_case} to {@code camelCase}.
+             */
+            private String convertSnakeToCamelCase(String s) {
+                StringBuilder stringBuilder = new StringBuilder(s.length());
+                int nextStartIndex = 0;
+
+                for (int i = 0; i < s.length(); i++) {
+                    if (s.charAt(i) == '_') {
+                        stringBuilder.append(s, nextStartIndex, i);
                         i++;
+                        if (i < s.length()) {
+                            stringBuilder.append(Character.toUpperCase(s.charAt(i)));
+                        }
+                        nextStartIndex = i + 1; // skip uppercased char
                     }
-                    nextStartIndex = i;
                 }
-                wasLower = isLower;
+
+                // Add remainder of string
+                stringBuilder.append(s, nextStartIndex, s.length());
+                return stringBuilder.toString();
             }
 
-            // Add remainder of string
-            stringBuilder.append(s, nextStartIndex, s.length());
-            return stringBuilder.toString().toUpperCase(Locale.ROOT);
-        }
+            /**
+             * Converts the string to a Java constant name, e.g. {@code MY_CONSTANT}.
+             */
+            private String convertToConstantName(String s) {
+                StringBuilder stringBuilder = new StringBuilder(s.length());
+                int nextStartIndex = 0;
+                boolean wasLower = false;
 
-        private String upperFirstChar(String s) {
-            if (s.isEmpty()) {
-                throw new IllegalArgumentException("Empty string is not supported");
+                for (int i = 0; i < s.length(); i++) {
+                    char c = s.charAt(i);
+                    boolean isLower = Character.isLowerCase(c);
+                    // Check for switch from lower to upper (respectively lower letter to non-letter)
+                    if (wasLower && !isLower) {
+                        stringBuilder.append(s, nextStartIndex, i);
+                        stringBuilder.append('_');
+
+                        if (c == '_' || c == '-') {
+                            i++;
+                        }
+                        nextStartIndex = i;
+                    }
+                    wasLower = isLower;
+                }
+
+                // Add remainder of string
+                stringBuilder.append(s, nextStartIndex, s.length());
+                return stringBuilder.toString().toUpperCase(Locale.ROOT);
             }
 
-            // For simplicity just use first char, don't consider supplementary code points or special Unicode
-            // case conversion rules here
-            return Character.toUpperCase(s.charAt(0)) + s.substring(1);
-        }
+            private String upperFirstChar(String s) {
+                if (s.isEmpty()) {
+                    throw new IllegalArgumentException("Empty string is not supported");
+                }
 
-        @Override
-        public String generateJavaTypeName(String typeName) {
-            // Remove leading '_', for hidden types
-            if (typeName.startsWith("_")) {
-                typeName = typeName.substring(1);
+                // For simplicity just use first char, don't consider supplementary code points or special Unicode
+                // case conversion rules here
+                return Character.toUpperCase(s.charAt(0)) + s.substring(1);
             }
 
-            // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
-            return "Node" + upperFirstChar(convertSnakeToCamelCase(typeName));
-        }
+            @Override
+            public String generateJavaTypeName(String typeName) {
+                // Remove leading '_', for hidden types
+                if (typeName.startsWith("_")) {
+                    typeName = typeName.substring(1);
+                }
 
-        @Override
-        public String generateTypeNameConstant(String typeName) {
-            return "TYPE_NAME";
-        }
-
-        @Override
-        public String generateTypeIdConstant(String typeName) {
-            return "TYPE_ID";
-        }
-
-        @Override
-        public String generateChildrenTypesName(String parentTypeName, List<String> childrenTypeNames) {
-            return "Child";
-        }
-
-        @Override
-        public String generateChildrenTokenTypeName(String parentTypeName, List<String> tokenChildrenTypeNames) {
-            return generateChildrenTypesName(parentTypeName, tokenChildrenTypeNames) + "TokenType";
-        }
-
-        @Override
-        public String generateChildrenTokenName(String parentTypeName, String tokenType, int index) {
-            // Note: Avoid any default names which imply a certain usage, e.g. `*` should not be named "MULTIPLY"
-            // because it might have a different meaning in the grammar
-
-            if (tokenType.length() == 1) {
-                // Use Unicode character name
-                // TODO: Maybe this should be opt-in since those names are rather verbose, and might depend on Unicode data of JDK
-                //   (and could therefore break reproducibility); instead use hardcoded names for some common chars?
-                return Character.getName(tokenType.charAt(0))
-                    .replace(' ', '_').replace('-', '_')
-                    .toUpperCase(Locale.ROOT);
-            }
-            // If token type consists only of letters and whitespace, use token type as name
-            if (!tokenType.isBlank() && tokenType.matches("[\\sa-zA-Z]+")) {
-                return tokenType.replaceAll("\\s", "_")
-                    .replace('-', '_')
-                    .toUpperCase(Locale.ROOT);
+                // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
+                return "Node" + upperFirstChar(convertSnakeToCamelCase(typeName));
             }
 
-            return "TOKEN_" + index;
-        }
+            @Override
+            public String generateTypeNameConstant(String typeName) {
+                return "TYPE_NAME";
+            }
 
-        @Override
-        public String generateChildrenGetterName(String parentTypeName, List<String> childrenTypeNames, boolean multiple, boolean required) {
-            return multiple ? "getChildren" : "getChild";
-        }
+            @Override
+            public String generateTypeIdConstant(String typeName) {
+                return "TYPE_ID";
+            }
 
-        @Override
-        public String generateFieldNameConstant(String parentTypeName, String fieldName) {
-            return "FIELD_" + convertToConstantName(fieldName);
-        }
+            @Override
+            public String generateChildrenTypesName(String parentTypeName, List<String> childrenTypeNames) {
+                return "Child";
+            }
 
-        @Override
-        public String generateFieldIdConstant(String parentTypeName, String fieldName) {
-            return "FIELD_" + convertToConstantName(fieldName) + "_ID";
-        }
+            @Override
+            public String generateChildrenTokenTypeName(String parentTypeName, List<String> tokenChildrenTypeNames) {
+                return generateChildrenTypesName(parentTypeName, tokenChildrenTypeNames) + "TokenType";
+            }
 
-        @Override
-        public String generateFieldTypesName(String parentTypeName, String fieldName, List<String> fieldTypeNames) {
-            // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
-            return "Field" + upperFirstChar(convertSnakeToCamelCase(fieldName));
-        }
+            @Override
+            public String generateChildrenTokenName(String parentTypeName, String tokenType, int index) {
+                return tokenNameGenerator.generateChildrenTokenName(parentTypeName, tokenType, index);
+            }
 
-        @Override
-        public String generateFieldTokenTypeName(String parentTypeName, String fieldName, List<String> tokenFieldTypesNames) {
-            // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
-            return "FieldToken" + upperFirstChar(convertSnakeToCamelCase(fieldName));
-        }
+            @Override
+            public String generateChildrenGetterName(String parentTypeName, List<String> childrenTypeNames, boolean multiple, boolean required) {
+                return multiple ? "getChildren" : "getChild";
+            }
 
-        @Override
-        public String generateFieldTokenName(String parentTypeName, String fieldName, String tokenType, int index) {
-            return generateChildrenTokenName(parentTypeName, tokenType, index);
-        }
+            @Override
+            public String generateFieldNameConstant(String parentTypeName, String fieldName) {
+                return "FIELD_" + convertToConstantName(fieldName);
+            }
 
-        @Override
-        public String generateFieldGetterName(String parentTypeName, String fieldName, List<String> fieldTypesNames, boolean multiple, boolean required) {
-            // Prefix makes names consistent and prevents clashes with Object method names or other generated method names
-            return "getField" + upperFirstChar(convertSnakeToCamelCase(fieldName));
-        }
+            @Override
+            public String generateFieldIdConstant(String parentTypeName, String fieldName) {
+                return "FIELD_" + convertToConstantName(fieldName) + "_ID";
+            }
 
-        @Override
-        public Optional<String> generateNonNamedChildrenGetter(String parentTypeName, boolean hasNamedChildren, boolean hasFields) {
-            // For now only generate if type has no fields, otherwise user likely included non-named children as fields
-            // in their grammar in case they are relevant
-            return hasFields ? Optional.empty() : Optional.of("getUnnamedChildren");
-        }
-    };
+            @Override
+            public String generateFieldTypesName(String parentTypeName, String fieldName, List<String> fieldTypeNames) {
+                // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
+                return "Field" + upperFirstChar(convertSnakeToCamelCase(fieldName));
+            }
+
+            @Override
+            public String generateFieldTokenTypeName(String parentTypeName, String fieldName, List<String> tokenFieldTypesNames) {
+                // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
+                return "FieldToken" + upperFirstChar(convertSnakeToCamelCase(fieldName));
+            }
+
+            @Override
+            public String generateFieldTokenName(String parentTypeName, String fieldName, String tokenType, int index) {
+                return tokenNameGenerator.generateFieldTokenName(parentTypeName, fieldName, tokenType, index);
+            }
+
+            @Override
+            public String generateFieldGetterName(String parentTypeName, String fieldName, List<String> fieldTypesNames, boolean multiple, boolean required) {
+                // Prefix makes names consistent and prevents clashes with Object method names or other generated method names
+                return "getField" + upperFirstChar(convertSnakeToCamelCase(fieldName));
+            }
+
+            @Override
+            public Optional<String> generateNonNamedChildrenGetter(String parentTypeName, boolean hasNamedChildren, boolean hasFields) {
+                // For now only generate if type has no fields, otherwise user likely included non-named children as fields
+                // in their grammar in case they are relevant
+                return hasFields ? Optional.empty() : Optional.of("getUnnamedChildren");
+            }
+        };
+    }
 }

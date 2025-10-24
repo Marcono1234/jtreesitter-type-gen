@@ -9,4 +9,5 @@ module marcono1234.jtreesitter.type_gen.cli {
     requires marcono1234.jtreesitter.type_gen;
     requires info.picocli;
     requires org.jspecify;
+    requires tools.jackson.databind;
 }

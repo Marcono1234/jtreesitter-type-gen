@@ -6,6 +6,9 @@ import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageVersion;
 import marcono1234.jtreesitter.type_gen.cli.converter.*;
 import org.jspecify.annotations.Nullable;
 import picocli.CommandLine;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.nio.file.Path;
 import java.time.Instant;
@@ -174,6 +177,26 @@ class CommandGenerate implements Callable<Void> {
     )
     private CodeGenConfig.ChildTypeAsTopLevel childTypeAsTopLevel;
 
+    @CommandLine.Option(
+        names = {"--token-name-mapping"},
+        description = {
+            "Maps token types to names",
+            "JSON file which provides a mapping of 'token' types (= non-named child node types) to the Java constant"
+            + " names these types should have in the generated code. The mapping file consists of nested JSON objects"
+            + " which have this structure: '{\"parentType\": {\"fieldName\": {\"tokenType\": \"CUSTOM_NAME\"}}}'",
+            "This allows defining the names in the context of a specific enclosing node type and field, for example:",
+            "'{\"MyNode\": {\"myField\": {\"!=\": \"NOT_EQUALS\"}}}'",
+            "For the parent type and field name an empty string (\"\") can be used as fallback to match anything which"
+            + " was not explicitly matched.",
+            "If this option is provided, it must be exhaustive. That is, all token types which occur in the grammar"
+            + " must have a mapped name.",
+            "If this option is not specified, automatic names will be chosen for the token types. However, these names"
+            + " will be rather generic and might not be very useful.",
+        }
+    )
+    @Nullable
+    private Path tokenNameMappingFile;
+
     @SuppressWarnings("DefaultAnnotationParam") // make `exclusive = true` explicit
     @CommandLine.ArgGroup(
         heading = "@Generated options\n",
@@ -286,6 +309,26 @@ class CommandGenerate implements Callable<Void> {
         );
     }
 
+    private NameGenerator createNameGenerator() {
+        var tokenNameGenerator = NameGenerator.TokenNameGenerator.AUTOMATIC;
+        if (tokenNameMappingFile != null) {
+            Map<String, Map<String, Map<String, String>>> tokenNameMapping;
+            try {
+                tokenNameMapping = new JsonMapper().readValue(tokenNameMappingFile, new TypeReference<>() {});
+            } catch (JacksonException e) {
+                throw new IllegalArgumentException("Failed reading tokenNameMappingFile: " + tokenNameMappingFile, e);
+            }
+
+            tokenNameGenerator = NameGenerator.TokenNameGenerator.fromMapping(
+                tokenNameMapping,
+                // Exhaustive mapping; if user specifies custom mapping, it should cover all token types
+                true
+            );
+        }
+
+        return NameGenerator.createDefault(tokenNameGenerator);
+    }
+
     @Override
     public Void call() throws Exception {
         var commandLine = commandSpec.commandLine();
@@ -295,7 +338,7 @@ class CommandGenerate implements Callable<Void> {
             nullableAnnotationTypeName.asOptional(),
             nonEmptyAnnotationSimpleName != null ? nonEmptyAnnotationSimpleName : "NonEmpty",
             childTypeAsTopLevel,
-            NameGenerator.DEFAULT,
+            createNameGenerator(),
             getGeneratedAnnotationConfig()
         );
 
