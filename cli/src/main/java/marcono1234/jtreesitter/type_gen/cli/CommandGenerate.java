@@ -7,6 +7,7 @@ import marcono1234.jtreesitter.type_gen.cli.converter.*;
 import org.jspecify.annotations.Nullable;
 import picocli.CommandLine;
 import tools.jackson.core.JacksonException;
+import tools.jackson.core.StreamReadFeature;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -309,12 +310,18 @@ class CommandGenerate implements Callable<Void> {
         );
     }
 
+    private static final JsonMapper verboseJsonMapper = JsonMapper.builder()
+        // Enhance exceptions for easier troubleshooting; the JSON files are not expected to contain sensitive information
+        // which must not be leaked
+        .enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION)
+        .build();
+
     private NameGenerator createNameGenerator() {
         var tokenNameGenerator = NameGenerator.TokenNameGenerator.AUTOMATIC;
         if (tokenNameMappingFile != null) {
             Map<String, Map<String, Map<String, String>>> tokenNameMapping;
             try {
-                tokenNameMapping = new JsonMapper().readValue(tokenNameMappingFile, new TypeReference<>() {});
+                tokenNameMapping = verboseJsonMapper.readValue(tokenNameMappingFile, new TypeReference<>() {});
             } catch (JacksonException e) {
                 throw new IllegalArgumentException("Failed reading tokenNameMappingFile: " + tokenNameMappingFile, e);
             }

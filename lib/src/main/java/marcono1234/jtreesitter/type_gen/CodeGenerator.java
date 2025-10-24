@@ -12,6 +12,7 @@ import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.NodeType;
 import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JacksonException;
+import tools.jackson.core.StreamReadFeature;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -25,7 +26,11 @@ import java.util.*;
  * Main class for code generation.
  */
 public class CodeGenerator {
-    private static final JsonMapper objectMapper = new JsonMapper();
+    private static final JsonMapper verboseJsonMapper = JsonMapper.builder()
+        // Enhance exceptions for easier troubleshooting; the JSON files are not expected to contain sensitive information
+        // which must not be leaked
+        .enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION)
+        .build();
 
     private final CodeGenConfig config;
 
@@ -89,7 +94,7 @@ public class CodeGenerator {
     void generate(Path nodeTypesFile, LanguageConfig languageConfig, JavaCodeWriter codeWriter, Version versionInfo) throws CodeGenException {
         List<NodeType> nodeTypes;
         try {
-            nodeTypes = objectMapper.readValue(nodeTypesFile.toFile(), new TypeReference<>() {});
+            nodeTypes = verboseJsonMapper.readValue(nodeTypesFile.toFile(), new TypeReference<>() {});
         } catch (JacksonException e) {
             throw new CodeGenException("Failed reading node types file: " + nodeTypesFile, e);
         }
@@ -100,7 +105,7 @@ public class CodeGenerator {
     void generate(Reader nodeTypesReader, LanguageConfig languageConfig, JavaCodeWriter codeWriter, Version versionInfo) throws CodeGenException {
         List<NodeType> nodeTypes;
         try {
-            nodeTypes = objectMapper.readValue(nodeTypesReader, new TypeReference<>() {});
+            nodeTypes = verboseJsonMapper.readValue(nodeTypesReader, new TypeReference<>() {});
         } catch (JacksonException e) {
             throw new CodeGenException("Failed reading node types", e);
         }
