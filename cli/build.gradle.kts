@@ -24,19 +24,17 @@ java {
 // Create JAR with dependencies
 // Note: Don't try to replace original JAR, that can prevent Gradle from caching results, see https://github.com/GradleUp/shadow/issues/174
 tasks.shadowJar {
-    isEnableRelocation = false
+    enableAutoRelocation = false
     duplicatesStrategy = DuplicatesStrategy.FAIL
 
     manifest {
         attributes(
             "Main-Class" to "marcono1234.jtreesitter.type_gen.cli.Main",
-
-            // Note: Depending on the dependencies, might have to set `Multi-Release: true`, see https://github.com/johnrengelman/shadow/issues/449
         )
     }
 
-    // Exclude `module-info` from dependencies, see also https://github.com/johnrengelman/shadow/issues/729
-    exclude("META-INF/versions/*/module-info.class")
+    // Exclude conflicting license files from dependencies
+    exclude("META-INF/LICENSE", "META-INF/NOTICE")
 }
 // Run shadow task by default
 tasks.assemble {
