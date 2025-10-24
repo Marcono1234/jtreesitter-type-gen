@@ -1006,7 +1006,13 @@ public final class NodeRoot implements TypedNode {
      * <li>{@link #PLUS_SIGN '+'}
      * <li>{@link #HYPHEN_MINUS '-'}
      * <li>{@link #TOKEN_2 '&lt;test&gt;'}
-     * <li>{@link #TOKEN_3 '&lbrace;&commat;test&rbrace;'}
+     * <li>{@link #TOKEN_3 '&lt;test'}
+     * <li>{@link #TOKEN_4 'test&gt;'}
+     * <li>{@link #TOKEN_5 '&amp;test'}
+     * <li>{@link #TOKEN_6 '&lbrace;&commat;test&rbrace;'}
+     * <li>{@link #TOKEN_7 '&lbrace;test'}
+     * <li>{@link #TOKEN_8 '&commat;test'}
+     * <li>{@link #TOKEN_9 'test&rbrace;'}
      * <li>{@link #IS_NOT 'is not'}
      * </ul>
      */
@@ -1027,9 +1033,39 @@ public final class NodeRoot implements TypedNode {
       TOKEN_2("<test>"),
 
       /**
+       * {@code <test}
+       */
+      TOKEN_3("<test"),
+
+      /**
+       * {@code test>}
+       */
+      TOKEN_4("test>"),
+
+      /**
+       * {@code &test}
+       */
+      TOKEN_5("&test"),
+
+      /**
        * <code>&lbrace;&commat;test&rbrace;</code>
        */
-      TOKEN_3("{@test}"),
+      TOKEN_6("{@test}"),
+
+      /**
+       * <code>&lbrace;test</code>
+       */
+      TOKEN_7("{test"),
+
+      /**
+       * <code>&commat;test</code>
+       */
+      TOKEN_8("@test"),
+
+      /**
+       * <code>test&rbrace;</code>
+       */
+      TOKEN_9("test}"),
 
       /**
        * {@code is not}

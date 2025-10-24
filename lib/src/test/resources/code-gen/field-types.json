@@ -62,7 +62,31 @@
             "named": false
           },
           {
+            "type": "<test",
+            "named": false
+          },
+          {
+            "type": "test>",
+            "named": false
+          },
+          {
+            "type": "&test",
+            "named": false
+          },
+          {
             "type": "{@test}",
+            "named": false
+          },
+          {
+            "type": "{test",
+            "named": false
+          },
+          {
+            "type": "@test",
+            "named": false
+          },
+          {
+            "type": "test}",
             "named": false
           },
           {
