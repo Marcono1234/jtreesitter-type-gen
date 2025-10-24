@@ -38,7 +38,7 @@ class GenChildren {
     /**
      * @see GenChildType#refersToTypeThroughInterface(GenRegularNodeType, Set)
      */
-    public boolean refersToTypeThroughInterface(GenRegularNodeType type, Set<GenJavaType> seenTypes) {
+    public boolean refersToTypeThroughInterface(GenRegularNodeType type, Set<GenRegularNodeType> seenTypes) {
         return this.type.refersToTypeThroughInterface(type, seenTypes);
     }
 

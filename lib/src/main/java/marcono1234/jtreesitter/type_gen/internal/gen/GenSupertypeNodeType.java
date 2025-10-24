@@ -115,14 +115,9 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
     }
 
     @Override
-    public boolean refersToType(GenRegularNodeType type, Set<GenJavaType> seenTypes) {
+    public boolean refersToType(GenRegularNodeType type, Set<GenRegularNodeType> seenTypes) {
         checkPopulatedSubtypes();
-
-        if (seenTypes.add(this)) {
-            return subtypes.stream().anyMatch(t -> t.refersToType(type, seenTypes));
-        } else {
-            return false;
-        }
+        return subtypes.stream().anyMatch(t -> t.refersToType(type, seenTypes));
     }
 
     @Override

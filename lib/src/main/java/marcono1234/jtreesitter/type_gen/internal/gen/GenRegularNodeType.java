@@ -139,7 +139,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
     }
 
     @Override
-    public boolean refersToType(GenRegularNodeType type, Set<GenJavaType> seenTypes) {
+    public boolean refersToType(GenRegularNodeType type, Set<GenRegularNodeType> seenTypes) {
         checkPopulatedChildren();
 
         if (seenTypes.add(this)) {

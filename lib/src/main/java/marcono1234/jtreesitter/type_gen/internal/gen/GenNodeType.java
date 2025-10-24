@@ -30,7 +30,7 @@ public sealed interface GenNodeType extends GenJavaType permits GenRegularNodeTy
      * Returns whether this type directly (e.g. as subtype of a supertype node) or indirectly (e.g. through child)
      * refers to the type. To avoid infinite recursion, already seen types are tracked in {@code seenTypes}.
      */
-    boolean refersToType(GenRegularNodeType type, Set<GenJavaType> seenTypes);
+    boolean refersToType(GenRegularNodeType type, Set<GenRegularNodeType> seenTypes);
 
     /**
      * Adds a Java interface which should be implemented by this type.

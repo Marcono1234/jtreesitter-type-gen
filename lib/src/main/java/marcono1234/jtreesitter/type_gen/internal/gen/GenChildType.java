@@ -54,7 +54,7 @@ sealed interface GenChildType {
      *
      * @see GenNodeType#refersToType(GenRegularNodeType, Set)
      */
-    boolean refersToTypeThroughInterface(GenRegularNodeType type, Set<GenJavaType> seenTypes);
+    boolean refersToTypeThroughInterface(GenRegularNodeType type, Set<GenRegularNodeType> seenTypes);
 
     record JavaTypeConfig(TypeSpec.Builder type, boolean asTopLevel) {}
 
@@ -171,7 +171,7 @@ sealed interface GenChildType {
         }
 
         @Override
-        public boolean refersToTypeThroughInterface(GenRegularNodeType type, Set<GenJavaType> seenTypes) {
+        public boolean refersToTypeThroughInterface(GenRegularNodeType type, Set<GenRegularNodeType> seenTypes) {
             // Irrelevant since no new Java interface is generated for this type
             return false;
         }
@@ -230,7 +230,7 @@ sealed interface GenChildType {
         }
 
         @Override
-        public boolean refersToTypeThroughInterface(GenRegularNodeType type, Set<GenJavaType> seenTypes) {
+        public boolean refersToTypeThroughInterface(GenRegularNodeType type, Set<GenRegularNodeType> seenTypes) {
             // Irrelevant since a Java class and not an interface is generated for this type
             return false;
         }
@@ -426,12 +426,8 @@ sealed interface GenChildType {
         }
 
         @Override
-        public boolean refersToTypeThroughInterface(GenRegularNodeType type, Set<GenJavaType> seenTypes) {
-            if (seenTypes.add(this)) {
-                return types.stream().anyMatch(t -> t.refersToType(type, seenTypes));
-            } else {
-                return false;
-            }
+        public boolean refersToTypeThroughInterface(GenRegularNodeType type, Set<GenRegularNodeType> seenTypes) {
+            return types.stream().anyMatch(t -> t.refersToType(type, seenTypes));
         }
 
         @Override
