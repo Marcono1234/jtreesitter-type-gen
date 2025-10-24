@@ -11,6 +11,45 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 class NameGeneratorTest {
+    /**
+     * Tests for {@link NameGenerator#createDefault(TokenNameGenerator)}.
+     *
+     * <p>Tests specific to the token name generation are covered by {@link TokenNameGeneratorTest}.
+     */
+    @Nested
+    class DefaultTest {
+        private final NameGenerator nameGenerator = NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC);
+
+        @ParameterizedTest
+        // Some of these verify that the result is somewhat reasonable, and that no exception occurs
+        @CsvSource({
+            "name,NodeName",
+            "_name,NodeName",
+            "name_,NodeName",
+            "first_second,NodeFirstSecond",
+            "__first__second__,NodeFirst_second_",
+        })
+        void generateJavaTypeName(String typeName, String expectedJavaName) {
+            assertEquals(expectedJavaName, nameGenerator.generateJavaTypeName(typeName));
+        }
+
+        @ParameterizedTest
+        // Some of these verify that the result is somewhat reasonable, and that no exception occurs
+        @CsvSource({
+            "name,FIELD_NAME",
+            "_name,FIELD__NAME",
+            "name_,FIELD_NAME_",
+            "first_second,FIELD_FIRST_SECOND",
+            "__first__second__,FIELD___FIRST__SECOND__",
+            "firstSecond,FIELD_FIRST_SECOND",
+            "first1second2,FIELD_FIRST_1SECOND_2",
+            "nAmE,FIELD_N_AM_E",
+        })
+        void generateFieldNameConstant(String fieldName, String expectedJavaName) {
+            assertEquals(expectedJavaName, nameGenerator.generateFieldNameConstant("parent", fieldName));
+        }
+    }
+
     @Nested
     class TokenNameGeneratorTest {
         @ParameterizedTest

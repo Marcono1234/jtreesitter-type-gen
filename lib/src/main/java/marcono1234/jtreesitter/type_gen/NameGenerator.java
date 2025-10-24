@@ -692,7 +692,9 @@ public interface NameGenerator {
                 }
 
                 // Add remainder of string
-                stringBuilder.append(s, nextStartIndex, s.length());
+                if (nextStartIndex < s.length()) {
+                    stringBuilder.append(s, nextStartIndex, s.length());
+                }
                 return stringBuilder.toString();
             }
 
