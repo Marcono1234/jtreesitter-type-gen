@@ -548,7 +548,7 @@ public interface NameGenerator {
      *      (by returning an empty {@code Optional})
      * @return Java method name, or empty {@code Optional} if no getter should be generated
      */
-    // TODO should this also allow customizing the Javadoc of the generated method? Currently it is quite generic
+    // TODO: Should this also allow customizing the Javadoc of the generated method? Currently it is quite generic
     Optional<String> generateNonNamedChildrenGetter(String parentTypeName, boolean hasNamedChildren, boolean hasFields);
 
     /**

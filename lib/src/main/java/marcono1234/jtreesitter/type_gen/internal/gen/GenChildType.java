@@ -272,7 +272,7 @@ sealed interface GenChildType {
                 .build();
             typeBuilder.addMethod(getTypeMethod);
 
-            // TODO: Should generate HTML table instead?
+            // TODO: Should generate HTML table instead of list?
             typeBuilder.addJavadoc("\n<ul>");
             for (var token : tokensToJavaConstants.entrySet()) {
                 String typeName = token.getKey();

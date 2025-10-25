@@ -33,7 +33,6 @@ public class TypedNodeInterfaceGenerator {
             jtreesitterNode.className(), config.methodFromNode(), config.methodFromNodeThrowing())
         .addJavadoc("\nor with the corresponding methods on the specific typed node classes.");
 
-        // TODO: Is this really helpful?
         typeBuilder.addJavadoc("\n\n<h2>Node subtypes</h2>");
         codeGenHelper.addJavadocTypeMapping(typeBuilder, nodeTypes, null);
     }

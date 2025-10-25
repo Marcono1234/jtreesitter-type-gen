@@ -1,5 +1,3 @@
-// TODO Rename, maybe "jtreesitter-lang-nodes-gen", "jtreesitter-static-bindings-gen", ...?
-//   maybe name based on terminology of https://tree-sitter.github.io/tree-sitter/using-parsers/6-static-node-types.html
 rootProject.name = "jtreesitter-type-gen"
 include("lib", "cli")
 

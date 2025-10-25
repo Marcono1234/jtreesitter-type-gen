@@ -219,7 +219,7 @@ public class CodeGenHelper {
      * Adds Javadoc which for each Java type in {@code types} mentions its node type name.
      */
     public void addJavadocTypeMapping(TypeSpec.Builder builder, List<GenNodeType> types, @Nullable GenJavaType tokensType) {
-        // TODO should generate HTML table instead of list?
+        // TODO: Should generate HTML table instead of list?
         builder.addJavadoc("\n<ul>");
         for (var type : types) {
             builder.addJavadoc("\n<li>{@link $T $L}", type.createJavaTypeName(this), CodeGenHelper.escapeJavadocText(type.getTypeName()));
@@ -760,7 +760,7 @@ public class CodeGenHelper {
      * Config for the Java FFM API (package {@code java.lang.foreign}).
      */
     // Note: This config class exists because this project is currently built with JDK 21 but the FFM API classes only became stable in JDK 22
-    // TODO: Remove once this project is built with JDK > 21
+    // TODO: Remove or simplify once this project is built with JDK > 21
     public record FFMApiConfig(
         ClassName classSegmentAllocator,
         ClassName classArena,
@@ -782,7 +782,6 @@ public class CodeGenHelper {
     /**
      * Creates the signature for an {@code Object#equals} override.
      */
-    // TODO: Does JavaPoet define convenience methods for this?
     public static MethodSpec.Builder createEqualsMethodSignature(String otherParam) {
         return MethodSpec.methodBuilder("equals")
             .addModifiers(Modifier.PUBLIC)

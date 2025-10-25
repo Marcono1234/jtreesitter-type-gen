@@ -236,7 +236,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
 
         if (!fields.isEmpty()) {
             typeBuilder.addJavadoc("\n<p>Fields:");
-            // TODO should generate HTML table instead of list?
+            // TODO: Should generate HTML table instead of list?
             typeBuilder.addJavadoc("\n<ul>");
             for (var field : fields) {
                 typeBuilder.addJavadoc("\n<li>{@link #$N $L}", field.getGetterName(), CodeGenHelper.escapeJavadocText(field.getFieldName()));
