@@ -9,7 +9,7 @@ junit = "6.0.0"
 
 [libraries]
 jspecify = { module = "org.jspecify:jspecify", version = "1.0.0" }
-jackson-databind = { module = "tools.jackson.core:jackson-databind", version = "3.0.0" }
+jackson-databind = { module = "tools.jackson.core:jackson-databind", version = "3.0.1" }
 # Don't use official JavaPoet because it is not actively maintained anymore, see https://github.com/square/javapoet/discussions/866
 # Instead uses https://github.com/palantir/javapoet
 javapoet = { module = "com.palantir.javapoet:javapoet", version = "0.7.0" }
