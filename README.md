@@ -83,7 +83,7 @@ See also the [Usage section](#usage) below for details.
 
 ### Generating the code
 
-First obtain the standalone jtreesitter-type-gen CLI JAR, either from the [GitHub Releases](https://github.com/Marcono1234/jtreesitter-type-gen/releases) or by [building it yourself](#building). In the following that JAR will be referred to as `cli.jar`.
+First obtain the standalone jtreesitter-type-gen CLI JAR, either from the [GitHub Releases](https://github.com/Marcono1234/jtreesitter-type-gen/releases) or by [building it yourself](#building). In the following that JAR will be referred to as `jtreesitter-type-gen.jar`.
 
 The following options are required:
 - `--node-types=<nodeTypesFile>`\
@@ -95,7 +95,7 @@ The following options are required:
 
 To see all available options, run:
 ```sh
-java jar cli.jar --help
+java -jar jtreesitter-type-gen.jar --help
 ```
 
 > [!TIP]\
@@ -135,7 +135,7 @@ Using [tree-sitter-json v0.24.8 `node-types.json`](https://github.com/tree-sitte
 
 Generate the code:
 ```sh
-java -jar cli.jar --node-types=node-types.json --package=com.example --output-dir=generated-src
+java -jar jtreesitter-type-gen.jar --node-types=node-types.json --package=com.example --output-dir=generated-src
 ```
 
 Use the generated source:
@@ -174,7 +174,7 @@ This project uses Gradle for building. To only create the final artifacts, run:
 ./gradlew clean assemble
 ```
 
-This produces the CLI standalone JAR as `cli/build/libs/cli-<version>-all.jar`.
+This produces the CLI standalone JAR as `cli/build/libs/jtreesitter-type-gen-<version>.jar`.
 
 To perform a full build (except for integration tests, see [section below](#running-integration-test)), run:
 ```shell

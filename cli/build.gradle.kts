@@ -22,7 +22,6 @@ java {
 }
 
 // Create JAR with dependencies
-// Note: Don't try to replace original JAR, that can prevent Gradle from caching results, see https://github.com/GradleUp/shadow/issues/174
 tasks.shadowJar {
     enableAutoRelocation = false
     duplicatesStrategy = DuplicatesStrategy.FAIL
@@ -35,6 +34,10 @@ tasks.shadowJar {
 
     // Exclude conflicting license files from dependencies
     exclude("META-INF/LICENSE", "META-INF/NOTICE")
+
+    // Specify custom name because default one `cli-<version>-all.jar` is not that helpful to users
+    // But don't try to replace original JAR, that can prevent Gradle from caching results, see https://github.com/GradleUp/shadow/issues/174
+    archiveFileName = "jtreesitter-type-gen-${project.version}.jar"
 }
 // Run shadow task by default
 tasks.assemble {

@@ -36,7 +36,7 @@ import java.util.concurrent.Callable;
         + " output directory where to place the generated source files ('" + CommandGenerate.OPTION_OUTPUT_DIR + "').",
         "",
         "Example:",
-        "  java -jar cli.jar " + CommandGenerate.OPTION_NODE_TYPES + "=node-types.json " + CommandGenerate.OPTION_PACKAGE + "=com.example " + CommandGenerate.OPTION_OUTPUT_DIR + "=generated-src",
+        "  java -jar jtreesitter-type-gen.jar " + CommandGenerate.OPTION_NODE_TYPES + "=node-types.json " + CommandGenerate.OPTION_PACKAGE + "=com.example " + CommandGenerate.OPTION_OUTPUT_DIR + "=generated-src",
         "",
         "The other options can be used to further tweak the generated code.",
         ""

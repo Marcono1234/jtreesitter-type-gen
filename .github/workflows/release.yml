@@ -42,6 +42,6 @@ jobs:
         uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090  # v2.4.1
         with:
           name: jtreesitter-type-gen ${{ steps.get_version.outputs.version }}
-          files: cli/build/libs/cli-*-all.jar
+          files: cli/build/libs/jtreesitter-type-gen-*.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
