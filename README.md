@@ -70,11 +70,12 @@ See also the [Usage section](#usage) below for details.
 
 ### Requirements
 
-- JDK 22 or newer (for usage with jtreesitter)\
-  Note that [building](#building) this project and performing the code generation only requires JDK 21 or newer, which can be beneficial when performing code generation on a machine which only has JDK 21 installed.
-- same requirements as jtreesitter, namely:
-    - Tree-sitter native library (e.g. `tree-sitter.dll`); must be on the library path
-    - native library for your Tree-sitter parser
+- Code generation: JDK 21 or newer
+- Usage of the generated code:\
+  same requirements as jtreesitter, namely:
+  - JDK 22 or newer
+  - Tree-sitter native library (e.g. `tree-sitter.dll`), see also the [jtreesitter documentation](https://tree-sitter.github.io/java-tree-sitter/io/github/treesitter/jtreesitter/package-summary.html#libraries)
+  - native library for your Tree-sitter parser
 - `node-types.json` for your parser\
   This is generated as `src/node-types.json` when you run `tree-sitter generate` for your grammar, see also the [Tree-sitter documentation](https://tree-sitter.github.io/tree-sitter/creating-parsers/1-getting-started.html#generate).
   For the official Tree-sitter grammars you usually find this in the Git repository, for example <https://github.com/tree-sitter/tree-sitter-json/blob/v0.21.0/src/node-types.json>.
@@ -96,6 +97,11 @@ The following options are required:
 To see all available options, run:
 ```sh
 java -jar jtreesitter-type-gen.jar --help
+```
+
+To see the version information of the CLI, and to see the minimum required jtreesitter version, run:
+```sh
+java -jar jtreesitter-type-gen.jar --version
 ```
 
 > [!TIP]\
