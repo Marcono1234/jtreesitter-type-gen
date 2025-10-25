@@ -1,0 +1,58 @@
+# Use manual CodeQL setup because CodeQL autobuild uses too old JDK, causing a build failure
+name: CodeQL
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '17 19 * * 4'
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - language: actions
+          build-mode: none
+        - language: java-kotlin
+          build-mode: manual
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+
+      - name: Set up Java
+        if: ${{ matrix.language == 'java-kotlin' }}
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: 22
+
+      - name: Set up Gradle
+        if: ${{ matrix.language == 'java-kotlin' }}
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Run manual Java build
+        if: ${{ matrix.language == 'java-kotlin' }}
+        # Running `compileTestJava` (and implicitly `compileJava`) should probably suffice; don't compile the integration tests
+        # Don't automatically download JDK toolchain; existing JDK of this workflow should be compatible
+        run: ./gradlew clean compileTestJava --no-daemon --no-build-cache -Porg.gradle.java.installations.auto-download=false
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: "/language:${{matrix.language}}"
