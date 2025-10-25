@@ -919,7 +919,7 @@ public final class NodeRoot implements TypedNode {
     }
 
     /**
-     * Token type:
+     * Token types:
      * <ul>
      * <li>{@link #PLUS_SIGN '+'}
      * </ul>
@@ -1001,7 +1001,7 @@ public final class NodeRoot implements TypedNode {
     }
 
     /**
-     * Token type:
+     * Token types:
      * <ul>
      * <li>{@link #PLUS_SIGN '+'}
      * <li>{@link #HYPHEN_MINUS '-'}
@@ -1143,7 +1143,7 @@ public final class NodeRoot implements TypedNode {
     }
 
     /**
-     * Token type:
+     * Token types:
      * <ul>
      * <li>{@link #HYPHEN_MINUS '-'}
      * </ul>
@@ -1236,7 +1236,7 @@ public final class NodeRoot implements TypedNode {
     }
 
     /**
-     * Token type:
+     * Token types:
      * <ul>
      * <li>{@link #PLUS_SIGN '+'}
      * <li>{@link #HYPHEN_MINUS '-'}
@@ -1926,7 +1926,7 @@ public final class NodeFieldOfEachOtherWithTokenA implements TypedNode, NodeFiel
     }
 
     /**
-     * Token type:
+     * Token types:
      * <ul>
      * <li>{@link #PLUS_SIGN '+'}
      * </ul>
@@ -2206,7 +2206,7 @@ public final class NodeFieldOfEachOtherWithTokenB implements TypedNode, NodeFiel
     }
 
     /**
-     * Token type:
+     * Token types:
      * <ul>
      * <li>{@link #HYPHEN_MINUS '-'}
      * </ul>

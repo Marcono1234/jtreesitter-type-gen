@@ -253,7 +253,7 @@ sealed interface GenChildType {
 
             var typeBuilder = TypeSpec.enumBuilder(className)
                 .addModifiers(Modifier.PUBLIC)
-                .addJavadoc("Token type:"); // remaining Javadoc is generated below
+                .addJavadoc("Token types:"); // remaining Javadoc is generated below
 
             String typeField = "type";
             typeBuilder.addField(String.class, typeField, Modifier.PRIVATE, Modifier.FINAL);

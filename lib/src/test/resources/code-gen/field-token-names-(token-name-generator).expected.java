@@ -461,7 +461,7 @@ public final class NodeMyNode implements TypedNode {
     }
 
     /**
-     * Token type:
+     * Token types:
      * <ul>
      * <li>{@link #LEFT '&lt;'}
      * <li>{@link #RIGHT '&gt;'}
