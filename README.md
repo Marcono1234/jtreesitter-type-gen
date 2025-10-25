@@ -211,3 +211,16 @@ To update the expected test output, run:
 When running the above command, test execution will intentionally fail to indicate that the expected output was adjusted; nonetheless the expected test output was updated. When running without `-Dtest-update-expected` again it will run the tests as usual.
 
 If any expected output changed, verify if the changes are reasonable and then commit them with Git.
+
+## Similar projects
+
+- (Python) <https://github.com/JoranHonig/python-tree-sitter-types>
+  > Generate python types for tree-sitter parsers
+- (Rust) <https://github.com/Jakobeha/type-sitter>
+  > Generate typed wrappers for tree-sitter grammars from node-types.json and queries
+- (Rust) <https://crates.io/crates/ts-typed-ast>
+  > Typed AST generator for tree-sitter
+- (Rust) <https://github.com/tibordp/tree-sitter-visitor>
+  > Procedural macro for generating a visitor trait for Tree Sitter Rust bindings
+- (TypeScript) <https://github.com/asgerf/dts-tree-sitter>
+  > Generate TypeScript .d.ts files for using tree-sitter grammars
