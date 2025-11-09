@@ -61,7 +61,7 @@ jobs:
         uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090  # v2.4.1
         with:
           tag_name: v${{ inputs.releaseVersion }}
-          name: jtreesitter-type-gen ${{ steps.get_version.outputs.version }}
+          name: jtreesitter-type-gen ${{ inputs.releaseVersion }}
           files: cli/build/libs/jtreesitter-type-gen-*.jar
 
       - name: Prepare next snapshot
