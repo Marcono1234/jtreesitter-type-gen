@@ -4,10 +4,10 @@ import picocli.CommandLine;
 
 import java.util.LinkedHashMap;
 import java.util.Locale;
-import java.util.Map;
+import java.util.SequencedMap;
 
 class EnumConverter<E extends Enum<E>> implements CommandLine.ITypeConverter<E> {
-    private final Map<String, E> nameToConstant;
+    private final SequencedMap<String, E> nameToConstant;
 
     public EnumConverter(Class<E> enumClass) {
         nameToConstant = new LinkedHashMap<>();

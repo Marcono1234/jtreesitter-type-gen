@@ -141,9 +141,9 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
         }
     }
 
-    private Set<GenRegularNodeType> getAllSubtypeClasses() {
+    private SequencedSet<GenRegularNodeType> getAllSubtypeClasses() {
         // Uses Set for the case that same node type appears multiple times as (transitive) subtype
-        Set<GenRegularNodeType> allSubtypes = new LinkedHashSet<>();
+        SequencedSet<GenRegularNodeType> allSubtypes = new LinkedHashSet<>();
         getAllSubtypeClasses(this, allSubtypes::add);
         return allSubtypes;
     }

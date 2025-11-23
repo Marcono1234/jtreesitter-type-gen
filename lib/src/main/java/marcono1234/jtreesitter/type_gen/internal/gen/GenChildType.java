@@ -104,7 +104,7 @@ sealed interface GenChildType {
         if (!nonNamedTypes.isEmpty()) {
             String javaName = nameGenerator.generateTokenClassName(nonNamedTypes);
 
-            Map<String, String> tokensToJavaConstants = new LinkedHashMap<>();
+            SequencedMap<String, String> tokensToJavaConstants = new LinkedHashMap<>();
             for (int i = 0; i < nonNamedTypes.size(); i++) {
                 String tokenType = nonNamedTypes.get(i);
                 String constantName = nameGenerator.generateTokenTypeConstantName(tokenType, i);
@@ -194,12 +194,13 @@ sealed interface GenChildType {
         private final GenRegularNodeType enclosingNodeType;
         private final String javaName;
         /** Map from token type name to Java constant name */
-        private final Map<String, String> tokensToJavaConstants;
+        // SequencedMap for deterministic order
+        private final SequencedMap<String, String> tokensToJavaConstants;
         /** Initialized after construction */
         @Nullable
         private GenJavaInterface interfaceToImplement;
 
-        public UnnamedTokensChildType(GenRegularNodeType enclosingNodeType, String javaName, Map<String, String> tokensToJavaConstants) {
+        public UnnamedTokensChildType(GenRegularNodeType enclosingNodeType, String javaName, SequencedMap<String, String> tokensToJavaConstants) {
             this.enclosingNodeType = enclosingNodeType;
             this.javaName = javaName;
             this.tokensToJavaConstants = tokensToJavaConstants;

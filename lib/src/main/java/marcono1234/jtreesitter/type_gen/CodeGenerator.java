@@ -113,7 +113,7 @@ public class CodeGenerator {
     }
 
     private void generate(List<NodeType> nodeTypes, LanguageConfig languageConfig, JavaCodeWriter codeWriter, Version versionInfo) throws CodeGenException {
-        Map<String, NodeType> nodeTypesByName = new LinkedHashMap<>();
+        SequencedMap<String, NodeType> nodeTypesByName = new LinkedHashMap<>();
         for (NodeType nodeType : nodeTypes) {
             if (nodeType.named) {
                 String name = nodeType.type;
@@ -154,8 +154,8 @@ public class CodeGenerator {
         }
     }
 
-    private Map<String, GenSupertypeNodeType> createSupertypeGens(List<NodeType> supertypes, NameGenerator nameGenerator) throws CodeGenException {
-        Map<String, GenSupertypeNodeType> supertypeGens = new LinkedHashMap<>();
+    private SequencedMap<String, GenSupertypeNodeType> createSupertypeGens(List<NodeType> supertypes, NameGenerator nameGenerator) throws CodeGenException {
+        SequencedMap<String, GenSupertypeNodeType> supertypeGens = new LinkedHashMap<>();
         for (var supertype : supertypes) {
             String typeName = supertype.type;
             var interfaceGen = GenSupertypeNodeType.create(supertype, nameGenerator);
@@ -178,10 +178,10 @@ public class CodeGenerator {
     }
 
     private GenElements determineGenElements(List<NodeType> nodeTypes, @Nullable String rootNodeTypeCustom, NameGenerator nameGenerator, Map<String, String> fallbackNodeTypeMapping) throws CodeGenException {
-        Set<String> allTypeNames = new LinkedHashSet<>();
+        SequencedSet<String> allTypeNames = new LinkedHashSet<>();
         List<NodeType> supertypes = new ArrayList<>();
 
-        Map<String, GenRegularNodeType> regularNodeGens = new LinkedHashMap<>();
+        SequencedMap<String, GenRegularNodeType> regularNodeGens = new LinkedHashMap<>();
         String rootNodeTypeJson = null;
 
         for (var nodeType : nodeTypes) {
