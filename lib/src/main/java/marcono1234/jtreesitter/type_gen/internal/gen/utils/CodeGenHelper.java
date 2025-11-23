@@ -779,6 +779,27 @@ public class CodeGenHelper {
 
     // TODO: Make the following methods non-static to allow customizing them in the future?
 
+    public static ParameterSpec paramFromField(FieldSpec field) {
+        return ParameterSpec.builder(field.type(), field.name()).build();
+    }
+
+    public static MethodSpec.Builder createInitializingConstructorBuilder(FieldSpec... fields) {
+        var builder = MethodSpec.constructorBuilder();
+        for (var field : fields) {
+            builder.addParameter(paramFromField(field))
+                .addStatement("this.$1N = $1N", field);
+        }
+        return builder;
+    }
+
+    /**
+     * Creates a package-private constructor (as {@link MethodSpec}) which initializes the specified fields by
+     * assigning them values from the corresponding constructor parameters.
+     */
+    public static MethodSpec createInitializingConstructor(FieldSpec... fields) {
+        return createInitializingConstructorBuilder(fields).build();
+    }
+
     /**
      * Creates the signature for an {@code Object#equals} override.
      */

@@ -1,9 +1,6 @@
 package marcono1234.jtreesitter.type_gen.internal.gen;
 
-import com.palantir.javapoet.ClassName;
-import com.palantir.javapoet.MethodSpec;
-import com.palantir.javapoet.ParameterizedTypeName;
-import com.palantir.javapoet.TypeSpec;
+import com.palantir.javapoet.*;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.NodeUtilsGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.TypedNodeInterfaceGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
@@ -15,6 +12,8 @@ import javax.lang.model.element.Modifier;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+
+import static marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper.createInitializingConstructor;
 
 /**
  * Type of a {@link GenChildren}.
@@ -256,13 +255,10 @@ sealed interface GenChildType {
                 .addModifiers(Modifier.PUBLIC)
                 .addJavadoc("Token types:"); // remaining Javadoc is generated below
 
-            String typeField = "type";
-            typeBuilder.addField(String.class, typeField, Modifier.PRIVATE, Modifier.FINAL);
+            var typeField = FieldSpec.builder(String.class, "type", Modifier.PRIVATE, Modifier.FINAL).build();
+            typeBuilder.addField(typeField);
 
-            var constructor = MethodSpec.constructorBuilder()
-                .addParameter(String.class, typeField)
-                .addStatement("this.$N = $N", typeField, typeField)
-                .build();
+            var constructor = createInitializingConstructor(typeField);
             typeBuilder.addMethod(constructor);
 
             var getTypeMethod = MethodSpec.methodBuilder(tokenNode.methodGetTypeName())
