@@ -141,58 +141,72 @@ public record CodeGenConfig(
                 return name;
             }
 
+            @Override
             public String generateJavaTypeName(String typeName) {
                 return validateTypeName(nameGenerator.generateJavaTypeName(typeName));
             }
 
+            @Override
             public String generateTypeNameConstant(String typeName) {
                 return validateMemberName(nameGenerator.generateTypeNameConstant(typeName));
             }
 
+            @Override
             public String generateTypeIdConstant(String typeName) {
                 return validateMemberName(nameGenerator.generateTypeIdConstant(typeName));
             }
 
+            @Override
             public String generateChildrenTypesName(String parentTypeName, List<String> childrenTypeNames) {
                 return validateTypeName(nameGenerator.generateChildrenTypesName(parentTypeName, childrenTypeNames));
             }
 
+            @Override
             public String generateChildrenTokenTypeName(String parentTypeName, List<String> tokenChildrenTypeNames) {
                 return validateTypeName(nameGenerator.generateChildrenTokenTypeName(parentTypeName, tokenChildrenTypeNames));
             }
 
+            @Override
             public String generateChildrenTokenName(String parentTypeName, String tokenType, int index) {
                 return validateMemberName(nameGenerator.generateChildrenTokenName(parentTypeName, tokenType, index));
             }
 
+            @Override
             public String generateChildrenGetterName(String parentTypeName, List<String> childrenTypeNames, boolean multiple, boolean required) {
                 return validateMemberName(nameGenerator.generateChildrenGetterName(parentTypeName, childrenTypeNames, multiple, required));
             }
 
+            @Override
             public String generateFieldNameConstant(String parentTypeName, String fieldName) {
                 return validateMemberName(nameGenerator.generateFieldNameConstant(parentTypeName, fieldName));
             }
 
+            @Override
             public String generateFieldIdConstant(String parentTypeName, String fieldName) {
                 return validateMemberName(nameGenerator.generateFieldIdConstant(parentTypeName, fieldName));
             }
 
+            @Override
             public String generateFieldTypesName(String parentTypeName, String fieldName, List<String> fieldTypesNames) {
                 return validateTypeName(nameGenerator.generateFieldTypesName(parentTypeName, fieldName, fieldTypesNames));
             }
 
+            @Override
             public String generateFieldTokenTypeName(String parentTypeName, String fieldName, List<String> tokenFieldTypesNames) {
                 return validateTypeName(nameGenerator.generateFieldTokenTypeName(parentTypeName, fieldName, tokenFieldTypesNames));
             }
 
+            @Override
             public String generateFieldTokenName(String parentTypeName, String fieldName, String tokenType, int index) {
                 return validateMemberName(nameGenerator.generateFieldTokenName(parentTypeName, fieldName, tokenType, index));
             }
 
+            @Override
             public String generateFieldGetterName(String parentTypeName, String fieldName, List<String> fieldTypesNames, boolean multiple, boolean required) {
                 return validateMemberName(nameGenerator.generateFieldGetterName(parentTypeName, fieldName, fieldTypesNames, multiple, required));
             }
 
+            @Override
             public Optional<String> generateNonNamedChildrenGetter(String parentTypeName, boolean hasNamedChildren, boolean hasFields) {
                 return nameGenerator.generateNonNamedChildrenGetter(parentTypeName, hasNamedChildren, hasFields)
                     .map(this::validateMemberName);
