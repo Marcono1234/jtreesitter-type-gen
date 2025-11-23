@@ -153,7 +153,7 @@ public interface NameGenerator {
      *
      * <p><b>Note:</b> Currently this method is effectively unused. tree-sitter does not list non-named
      * children in the {@code node-types.json} file at the moment. As workaround an unspecific method for obtaining
-     * non-named children is generated, see {@link #generateNonNamedChildrenGetter(String, boolean, boolean)}.
+     * non-named children is generated, see {@link #generateNonNamedChildrenGetterName(String, boolean, boolean)}.
      */
     default String generateChildrenTokenTypeName(String parentTypeName, List<String> tokenChildrenTypeNames) {
         throw new AssertionError("currently unused");
@@ -164,7 +164,7 @@ public interface NameGenerator {
      *
      * <p><b>Note:</b> Currently this method is effectively unused. tree-sitter does not list non-named
      * children in the {@code node-types.json} file at the moment. As workaround an unspecific method for obtaining
-     * non-named children is generated, see {@link #generateNonNamedChildrenGetter(String, boolean, boolean)}.
+     * non-named children is generated, see {@link #generateNonNamedChildrenGetterName(String, boolean, boolean)}.
      */
     default String generateChildrenTokenName(String parentTypeName, String tokenType, int index) {
         throw new AssertionError("currently unused");
@@ -322,11 +322,11 @@ public interface NameGenerator {
      *         "required": true,
      *         "types": [
      *           {
-     *             "type": "field_type_a",  // @highlight substring="field_type_a"
+     *             "type": "field_type_a",
      *             "named": true
      *           },
      *           {
-     *             "type": "field_type_b",  // @highlight substring="field_type_b"
+     *             "type": "field_type_b",
      *             "named": true
      *           }
      *         ]
@@ -348,11 +348,10 @@ public interface NameGenerator {
      *
      * @param parentTypeName name of the parent node type
      * @param fieldName name of the field
-     * @param fieldTypesNames all field types
      * @return Java interface name
-     * @see #generateFieldGetterName(String, String, List, boolean, boolean)
+     * @see #generateFieldGetterName(String, String, boolean, boolean)
      */
-    String generateFieldTypesName(String parentTypeName, String fieldName, List<String> fieldTypesNames);
+    String generateFieldTypesName(String parentTypeName, String fieldName);
 
     /**
      * For the non-named field types of a node type generates the name of the Java class representing those field types.
@@ -368,7 +367,7 @@ public interface NameGenerator {
      * </ul>
      *
      * <p><b>Important:</b> This method should for the same field not generate the same Java class name as
-     * {@link #generateFieldTypesName(String, String, List)}. Otherwise a name conflict can occur when a field has
+     * {@link #generateFieldTypesName(String, String)}. Otherwise a name conflict can occur when a field has
      * named and non-named node types as values, in which case an additional Java superinterface with the name obtained
      * from {@code generateFieldTypesName} is generated.
      *
@@ -494,11 +493,11 @@ public interface NameGenerator {
      *         "required": true,
      *         "types": [
      *           {
-     *             "type": "field_type_a",  // @highlight substring="field_type_a"
+     *             "type": "field_type_a",
      *             "named": true
      *           },
      *           {
-     *             "type": "field_type_b",  // @highlight substring="field_type_b"
+     *             "type": "field_type_b",
      *             "named": true
      *           }
      *         ]
@@ -524,13 +523,12 @@ public interface NameGenerator {
      *
      * @param parentTypeName name of the parent node type
      * @param fieldName name of the field
-     * @param fieldTypesNames all field types
      * @param multiple whether the getter method may return more than one field node
      * @param required whether the getter method returns at least one field node
      * @return Java method name
-     * @see #generateFieldTypesName(String, String, List)
+     * @see #generateFieldTypesName(String, String)
      */
-    String generateFieldGetterName(String parentTypeName, String fieldName, List<String> fieldTypesNames, boolean multiple, boolean required);
+    String generateFieldGetterName(String parentTypeName, String fieldName, boolean multiple, boolean required);
 
     /**
      * For the non-named children of a node type generates the name of the getter method for obtaining the children
@@ -549,7 +547,7 @@ public interface NameGenerator {
      * @return Java method name, or empty {@code Optional} if no getter should be generated
      */
     // TODO: Should this also allow customizing the Javadoc of the generated method? Currently it is quite generic
-    Optional<String> generateNonNamedChildrenGetter(String parentTypeName, boolean hasNamedChildren, boolean hasFields);
+    Optional<String> generateNonNamedChildrenGetterName(String parentTypeName, boolean hasNamedChildren, boolean hasFields);
 
     /**
      * Generates for a non-named node type a "token" name, see {@link NameGenerator#generateFieldTokenName(String, String, String, int)}
@@ -789,7 +787,7 @@ public interface NameGenerator {
             }
 
             @Override
-            public String generateFieldTypesName(String parentTypeName, String fieldName, List<String> fieldTypeNames) {
+            public String generateFieldTypesName(String parentTypeName, String fieldName) {
                 // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
                 return "Field" + upperFirstChar(convertSnakeToCamelCase(fieldName));
             }
@@ -806,13 +804,13 @@ public interface NameGenerator {
             }
 
             @Override
-            public String generateFieldGetterName(String parentTypeName, String fieldName, List<String> fieldTypesNames, boolean multiple, boolean required) {
+            public String generateFieldGetterName(String parentTypeName, String fieldName, boolean multiple, boolean required) {
                 // Prefix makes names consistent and prevents clashes with Object method names or other generated method names
                 return "getField" + upperFirstChar(convertSnakeToCamelCase(fieldName));
             }
 
             @Override
-            public Optional<String> generateNonNamedChildrenGetter(String parentTypeName, boolean hasNamedChildren, boolean hasFields) {
+            public Optional<String> generateNonNamedChildrenGetterName(String parentTypeName, boolean hasNamedChildren, boolean hasFields) {
                 // For now only generate if type has no fields, otherwise user likely included non-named children as fields
                 // in their grammar in case they are relevant
                 return hasFields ? Optional.empty() : Optional.of("getUnnamedChildren");

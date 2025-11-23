@@ -102,15 +102,14 @@ class GenField extends GenChildren {
         boolean multiple = fieldTypeRaw.multiple;
         boolean required = fieldTypeRaw.required;
 
-        List<String> fieldTypeNames = fieldTypeRaw.types.stream().map(t -> t.type).toList();
         String nameConstant = nameGenerator.generateFieldNameConstant(parentTypeName, fieldName);
         String idConstant = nameGenerator.generateFieldIdConstant(parentTypeName, fieldName);
-        String getterName = nameGenerator.generateFieldGetterName(parentTypeName, fieldName, fieldTypeNames, multiple, required);
+        String getterName = nameGenerator.generateFieldGetterName(parentTypeName, fieldName, multiple, required);
 
         GenChildType.ChildTypeNameGenerator fieldTypeNameGenerator = new GenChildType.ChildTypeNameGenerator() {
             @Override
             public String generateInterfaceName(List<String> allChildTypes) {
-                return nameGenerator.generateFieldTypesName(parentTypeName, fieldName, allChildTypes);
+                return nameGenerator.generateFieldTypesName(parentTypeName, fieldName);
             }
 
             @Override

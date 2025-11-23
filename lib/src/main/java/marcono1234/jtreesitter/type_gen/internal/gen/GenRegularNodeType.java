@@ -75,7 +75,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
             fieldsRaw = Map.of();
         }
 
-        String getNonNamedChildrenMethodName = nameGenerator.generateNonNamedChildrenGetter(typeName, childrenRaw != null, !fieldsRaw.isEmpty()).orElse(null);
+        String getNonNamedChildrenMethodName = nameGenerator.generateNonNamedChildrenGetterName(typeName, childrenRaw != null, !fieldsRaw.isEmpty()).orElse(null);
         return new GenRegularNodeType(typeName, javaName, typeNameConstant, typeIdConstant, childrenRaw, fieldsRaw, getNonNamedChildrenMethodName);
     }
 

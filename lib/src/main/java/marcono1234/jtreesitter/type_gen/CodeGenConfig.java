@@ -187,8 +187,8 @@ public record CodeGenConfig(
             }
 
             @Override
-            public String generateFieldTypesName(String parentTypeName, String fieldName, List<String> fieldTypesNames) {
-                return validateTypeName(nameGenerator.generateFieldTypesName(parentTypeName, fieldName, fieldTypesNames));
+            public String generateFieldTypesName(String parentTypeName, String fieldName) {
+                return validateTypeName(nameGenerator.generateFieldTypesName(parentTypeName, fieldName));
             }
 
             @Override
@@ -202,13 +202,13 @@ public record CodeGenConfig(
             }
 
             @Override
-            public String generateFieldGetterName(String parentTypeName, String fieldName, List<String> fieldTypesNames, boolean multiple, boolean required) {
-                return validateMemberName(nameGenerator.generateFieldGetterName(parentTypeName, fieldName, fieldTypesNames, multiple, required));
+            public String generateFieldGetterName(String parentTypeName, String fieldName, boolean multiple, boolean required) {
+                return validateMemberName(nameGenerator.generateFieldGetterName(parentTypeName, fieldName, multiple, required));
             }
 
             @Override
-            public Optional<String> generateNonNamedChildrenGetter(String parentTypeName, boolean hasNamedChildren, boolean hasFields) {
-                return nameGenerator.generateNonNamedChildrenGetter(parentTypeName, hasNamedChildren, hasFields)
+            public Optional<String> generateNonNamedChildrenGetterName(String parentTypeName, boolean hasNamedChildren, boolean hasFields) {
+                return nameGenerator.generateNonNamedChildrenGetterName(parentTypeName, hasNamedChildren, hasFields)
                     .map(this::validateMemberName);
             }
         };
