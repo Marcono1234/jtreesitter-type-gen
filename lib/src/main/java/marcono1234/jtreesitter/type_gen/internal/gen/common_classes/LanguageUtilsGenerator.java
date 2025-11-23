@@ -55,13 +55,13 @@ public class LanguageUtilsGenerator {
         var providerDeclaringType = CodeGenHelper.createClassName(languageProviderConfig.declaringType());
         switch (languageProviderConfig) {
             case LanguageProviderConfig.Field field -> {
-                fieldBuilder.initializer("$T.$N", providerDeclaringType, field.fieldName());
+                fieldBuilder.initializer("$T.requireNonNull($T.$N)", Objects.class, providerDeclaringType, field.fieldName());
             }
             case LanguageProviderConfig.Method method -> {
                 // Generates code which tries to call provider method, handling checked exceptions
                 var code = CodeBlock.builder()
                     .beginControlFlow("try")
-                    .addStatement("$N = $T.$N()", fieldName, providerDeclaringType, method.methodName())
+                    .addStatement("$N = $T.requireNonNull($T.$N())", fieldName, Objects.class, providerDeclaringType, method.methodName())
                     .nextControlFlow("catch ($T | $T e)", Error.class, RuntimeException.class)
                     .addStatement("throw e")
                     .nextControlFlow("catch ($T e)", Throwable.class)

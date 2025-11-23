@@ -7,6 +7,7 @@ import java.lang.IllegalArgumentException;
 import java.lang.RuntimeException;
 import java.lang.String;
 import java.lang.Throwable;
+import java.util.Objects;
 import javax.annotation.processing.Generated;
 import org.example.lang.LangProvider;
 
@@ -23,7 +24,7 @@ final class LanguageUtils {
 
   static {
     try {
-      language = LangProvider.method();
+      language = Objects.requireNonNull(LangProvider.method());
     } catch (Error | RuntimeException e) {
       throw e;
     } catch (Throwable e) {

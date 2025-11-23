@@ -4,6 +4,7 @@ import io.github.treesitter.jtreesitter.Language;
 import io.github.treesitter.jtreesitter.Unsigned;
 import java.lang.IllegalArgumentException;
 import java.lang.String;
+import java.util.Objects;
 import javax.annotation.processing.Generated;
 import org.example.lang.LangProvider;
 
@@ -16,7 +17,7 @@ import org.example.lang.LangProvider;
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
 final class LanguageUtils {
-  private static final Language language = LangProvider.field;
+  private static final Language language = Objects.requireNonNull(LangProvider.field);
 
   private LanguageUtils() {
   }
