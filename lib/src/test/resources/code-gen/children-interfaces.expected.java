@@ -232,7 +232,7 @@ public sealed interface TypedNode permits NodeContainedA, NodeContainedB, NodeSu
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Unknown node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Unknown node type: " + node.getType());
     }
     return typedNode;
   }
@@ -341,7 +341,7 @@ public final class NodeContainedA implements TypedNode,
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -504,7 +504,7 @@ public final class NodeContainedB implements TypedNode,
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -665,7 +665,7 @@ public final class NodeSupertypeChild implements TypedNode {
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -840,7 +840,7 @@ public final class NodeMultipleChildren implements TypedNode {
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -1049,7 +1049,7 @@ public final class NodeSelfChildren implements TypedNode, NodeSelfChildren$Child
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -1248,7 +1248,7 @@ public final class NodeSelfIndirectChildren implements TypedNode, NodeSupertypeI
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -1447,7 +1447,7 @@ public final class NodeSelfTransitiveIndirectChildren implements TypedNode, Node
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -1645,7 +1645,7 @@ public final class NodeChildOfEachOtherA implements TypedNode, NodeChildOfEachOt
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -1843,7 +1843,7 @@ public final class NodeChildOfEachOtherB implements TypedNode, NodeChildOfEachOt
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -2008,7 +2008,7 @@ public sealed interface NodeSupertype extends TypedNode permits NodeContainedA, 
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -2132,7 +2132,7 @@ public sealed interface NodeSupertypeIndirect extends TypedNode, NodeSelfIndirec
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -2256,7 +2256,7 @@ public sealed interface NodeSupertypeTransitiveIndirect1 extends TypedNode, Node
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -2381,7 +2381,7 @@ public sealed interface NodeSupertypeTransitiveIndirect2 extends TypedNode, Node
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }

@@ -220,7 +220,7 @@ public sealed interface TypedNode permits NodeContained, NodeSingleOptional, Nod
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional.orElse(null);
     if (typedNode == null) {
-      throw new IllegalArgumentException("Unknown node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Unknown node type: " + node.getType());
     }
     return typedNode;
   }
@@ -319,7 +319,7 @@ public final class NodeContained implements TypedNode {
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional.orElse(null);
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -480,7 +480,7 @@ public final class NodeSingleOptional implements TypedNode {
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional.orElse(null);
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -656,7 +656,7 @@ public final class NodeSingleRequired implements TypedNode {
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional.orElse(null);
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -832,7 +832,7 @@ public final class NodeMultipleOptional implements TypedNode {
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional.orElse(null);
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -1008,7 +1008,7 @@ public final class NodeMultipleRequired implements TypedNode {
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional.orElse(null);
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }

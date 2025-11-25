@@ -277,7 +277,7 @@ public class CodeGenHelper {
 
             methodBuilder
                 .beginControlFlow("if ($N == null)", typedNodeVar)
-                .addStatement("throw new $T($S + \": \" + $N.$N())", thrownExceptionType, wrongNodeMessage, nodeParam, jtreesitterNode.methodGetType())
+                .addStatement("throw new $T($S + $N.$N())", thrownExceptionType, wrongNodeMessage + ": ", nodeParam, jtreesitterNode.methodGetType())
                 .endControlFlow()
                 .addStatement("return $N", typedNodeVar);
 

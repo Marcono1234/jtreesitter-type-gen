@@ -216,7 +216,7 @@ public sealed interface TypedNode permits NodeFirst, NodeSecond, NodeThird {
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Unknown node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Unknown node type: " + node.getType());
     }
     return typedNode;
   }
@@ -315,7 +315,7 @@ public final class NodeFirst implements TypedNode {
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -473,7 +473,7 @@ public final class NodeSecond implements TypedNode {
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -631,7 +631,7 @@ public final class NodeThird implements TypedNode {
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }

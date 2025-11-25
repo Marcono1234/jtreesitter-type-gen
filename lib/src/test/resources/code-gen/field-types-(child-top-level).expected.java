@@ -224,7 +224,7 @@ public sealed interface TypedNode permits NodeContainedA, NodeContainedB, NodeRo
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Unknown node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Unknown node type: " + node.getType());
     }
     return typedNode;
   }
@@ -327,7 +327,7 @@ public final class NodeContainedA implements TypedNode,
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -486,7 +486,7 @@ public final class NodeContainedB implements TypedNode, NodeRoot$FieldMultiTypeN
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -1053,7 +1053,7 @@ public final class NodeRoot implements TypedNode {
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -1304,7 +1304,7 @@ public final class NodeFieldOfEachOtherA implements TypedNode, NodeFieldOfEachOt
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -1500,7 +1500,7 @@ public final class NodeFieldOfEachOtherB implements TypedNode, NodeFieldOfEachOt
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -1797,7 +1797,7 @@ public final class NodeFieldOfEachOtherWithTokenA implements TypedNode, NodeFiel
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -2095,7 +2095,7 @@ public final class NodeFieldOfEachOtherWithTokenB implements TypedNode, NodeFiel
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }

@@ -214,7 +214,7 @@ public sealed interface TypedNode permits NodeAsPattern, NodeMyNode {
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Unknown node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Unknown node type: " + node.getType());
     }
     return typedNode;
   }
@@ -324,7 +324,7 @@ public final class NodeAsPattern implements TypedNode {
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
@@ -486,7 +486,7 @@ public final class NodeMyNode implements TypedNode {
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type" + ": " + node.getType());
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
     }
     return typedNode;
   }
