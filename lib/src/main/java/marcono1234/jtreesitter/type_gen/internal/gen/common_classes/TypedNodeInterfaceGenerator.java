@@ -5,6 +5,7 @@ import marcono1234.jtreesitter.type_gen.internal.gen.GenJavaType;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenNodeType;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenRegularNodeType;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
+import org.jspecify.annotations.Nullable;
 
 import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
@@ -79,6 +80,8 @@ public class TypedNodeInterfaceGenerator {
     }
 
     /**
+     * @param superinterface
+     *      custom superinterface the {@code TypedNode} interface should extend
      * @param nodeTypes
      *      all node types specified in {@code node-types.json} for which classes were generated
      * @param subtypes
@@ -86,9 +89,13 @@ public class TypedNodeInterfaceGenerator {
      *      were generated, e.g. to combine multiple node child types
      * @return the generated Java code
      */
-    public JavaFile generateCode(List<GenNodeType> nodeTypes, List<GenJavaType> subtypes) {
+    public JavaFile generateCode(@Nullable TypeName superinterface, List<GenNodeType> nodeTypes, List<GenJavaType> subtypes) {
         var typeBuilder = TypeSpec.interfaceBuilder(config.name())
             .addModifiers(Modifier.PUBLIC, Modifier.SEALED);
+
+        if (superinterface != null) {
+            typeBuilder.addSuperinterface(superinterface);
+        }
 
         for (var subtype : subtypes) {
             typeBuilder.addPermittedSubclass(subtype.createJavaTypeName(codeGenHelper));
