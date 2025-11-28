@@ -26,6 +26,8 @@ import java.util.Optional;
  *      Whether to generate Java types for node children as top-level classes.
  * @param nameGenerator
  *      Determines the names for fields, methods, classes, ... in the generated code.
+ * @param typedQueryNameGenerator
+ *      TODO
  * @param generatedAnnotationConfig
  *      Configuration for {@code @Generated} annotations placed on generated classes; empty if such annotations
  *      should be not added.
@@ -41,6 +43,7 @@ public record CodeGenConfig(
     String nonEmptyTypeName,
     ChildTypeAsTopLevel childTypeAsTopLevel,
     NameGenerator nameGenerator,
+    Optional<TypedQueryNameGenerator> typedQueryNameGenerator,
     Optional<GeneratedAnnotationConfig> generatedAnnotationConfig
 ) {
     public CodeGenConfig {
@@ -49,6 +52,7 @@ public record CodeGenConfig(
         JavaNameValidator.checkTypeName(nonEmptyTypeName, false);
         Objects.requireNonNull(childTypeAsTopLevel);
         nameGenerator = validatingNameGenerator(nameGenerator);
+        typedQueryNameGenerator = typedQueryNameGenerator.map(CodeGenConfig::validatingTypedQueryNameGenerator);
         Objects.requireNonNull(generatedAnnotationConfig);
     }
 
@@ -128,19 +132,19 @@ public record CodeGenConfig(
         }
     }
 
-    private NameGenerator validatingNameGenerator(NameGenerator nameGenerator) {
+    private static String validateTypeName(String name) {
+        JavaNameValidator.checkTypeName(name, false);
+        return name;
+    }
+
+    private static String validateMemberName(String name) {
+        JavaNameValidator.checkMemberName(name);
+        return name;
+    }
+
+    private static NameGenerator validatingNameGenerator(NameGenerator nameGenerator) {
         Objects.requireNonNull(nameGenerator);
         return new NameGenerator() {
-            private String validateTypeName(String name) {
-                JavaNameValidator.checkTypeName(name, false);
-                return name;
-            }
-
-            private String validateMemberName(String name) {
-                JavaNameValidator.checkMemberName(name);
-                return name;
-            }
-
             @Override
             public String generateJavaTypeName(String typeName) {
                 return validateTypeName(nameGenerator.generateJavaTypeName(typeName));
@@ -209,7 +213,42 @@ public record CodeGenConfig(
             @Override
             public Optional<String> generateNonNamedChildrenGetterName(String parentTypeName, boolean hasNamedChildren, boolean hasFields) {
                 return nameGenerator.generateNonNamedChildrenGetterName(parentTypeName, hasNamedChildren, hasFields)
-                    .map(this::validateMemberName);
+                    .map(CodeGenConfig::validateMemberName);
+            }
+        };
+    }
+
+    private static TypedQueryNameGenerator validatingTypedQueryNameGenerator(TypedQueryNameGenerator nameGenerator) {
+        Objects.requireNonNull(nameGenerator);
+        return new TypedQueryNameGenerator() {
+            @Override
+            public String generateJavaTypeName(String typeName) {
+                return validateTypeName(nameGenerator.generateJavaTypeName(typeName));
+            }
+
+            @Override
+            public String generateBuilderMethodName(String typeName) {
+                return validateMemberName(nameGenerator.generateBuilderMethodName(typeName));
+            }
+
+            @Override
+            public String generateAsSubtypeMethod(String typeName, String supertypeName) {
+                return validateMemberName(nameGenerator.generateAsSubtypeMethod(typeName, supertypeName));
+            }
+
+            @Override
+            public String generateWithFieldMethodName(String parentTypeName, String fieldName) {
+                return validateMemberName(nameGenerator.generateWithFieldMethodName(parentTypeName, fieldName));
+            }
+
+            @Override
+            public String generateWithoutFieldMethodName(String parentTypeName, String fieldName) {
+                return validateMemberName(nameGenerator.generateWithoutFieldMethodName(parentTypeName, fieldName));
+            }
+
+            @Override
+            public String generateFieldTokenMethodName(String parentTypeName, String fieldName, List<String> tokenFieldTypesNames) {
+                return validateMemberName(nameGenerator.generateFieldTokenMethodName(parentTypeName, fieldName, tokenFieldTypesNames));
             }
         };
     }

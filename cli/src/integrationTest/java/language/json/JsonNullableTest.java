@@ -5,12 +5,19 @@ import io.github.treesitter.jtreesitter.Point;
 import io.github.treesitter.jtreesitter.Range;
 import language.AbstractTypedTreeTest;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import util.TestHelper;
 
 import java.lang.foreign.Arena;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 
 /**
  * Tests the generated code for tree-sitter-json, with nullable annotations.
@@ -266,6 +273,45 @@ class JsonNullableTest extends AbstractTypedTreeTest {
             assertNotSame(nodeA, otherA);
             assertEquals(nodeA.hashCode(), otherA.hashCode());
             assertTrue(nodeA.equals(otherA));
+        }
+    }
+
+    // TODO
+    @Test
+    void typedQuery() {
+        var q = new TypedQuery.Builder<List<NodeString>>();
+        var query = q.nodeObject()
+            .withChildren(
+                q.nodePair()
+                    .withFieldKey(q.nodeString()/*.textEq("a")*/)
+                    .withFieldValue(
+                        q.nodeArray()
+                            .withChildren(
+                                q.nodeString()
+                                    .matching(s ->
+                                        s.allMatch(str -> str.getText().length() == 3)
+                                    )
+                                    .captured(List::add)
+                            )
+                    )
+            )
+            .buildQuery(language);
+
+        var source = """
+            [
+            {},
+            {"a": 1},
+            true,
+            false,
+            {"a": [1, "b", 2, "bc", "x"]}
+            ]
+            """;
+        try (var tree = parseNoError(source); query; var queryMatches = query.findMatches(tree.getRootNode().getNode())) {
+            queryMatches.forEach(m -> {
+                var l = new ArrayList<NodeString>();
+                m.collectCaptures(l);
+                l.forEach(s -> System.out.println(s.getText()));
+            });
         }
     }
 }

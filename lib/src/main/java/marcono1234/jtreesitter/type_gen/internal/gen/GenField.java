@@ -19,7 +19,7 @@ import java.util.function.Consumer;
  *
  * <p>Use {@link #create} to create instances.
  */
-class GenField extends GenChildren {
+public class GenField extends GenChildren {
     /**
      * Tree-sitter node field name.
      */
@@ -45,6 +45,11 @@ class GenField extends GenChildren {
     /** Gets the tree-sitter node field name. */
     public String getFieldName() {
         return fieldName;
+    }
+
+    /** Name of the Java constant field in the generated class storing the field name. */
+    public String getFieldNameConstant() {
+        return fieldNameConstant;
     }
 
     @Override

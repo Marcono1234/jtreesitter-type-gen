@@ -198,6 +198,15 @@ class CommandGenerate implements Callable<Void> {
     @Nullable
     private Path tokenNameMappingFile;
 
+    @CommandLine.Option(
+        names = {"--generate-typed-query"},
+        description = {
+            "TODO", // TODO
+            "Warning: Generation of the 'typed query' code is currently experimental. Feedback is appreciated!",
+        }
+    )
+    private boolean generateTypedQuery = false;
+
     @SuppressWarnings("DefaultAnnotationParam") // make `exclusive = true` explicit
     @CommandLine.ArgGroup(
         heading = "@Generated options\n",
@@ -340,12 +349,22 @@ class CommandGenerate implements Callable<Void> {
     public Void call() throws Exception {
         var commandLine = commandSpec.commandLine();
 
+        var nameGenerator = createNameGenerator();
+        Optional<TypedQueryNameGenerator> typedQueryNameGenerator = Optional.empty();
+
+        if (generateTypedQuery) {
+            commandSpec.commandLine().getOut()
+                .println("[WARNING] Generation of the 'typed query' code is currently experimental. Feedback is appreciated!");
+            typedQueryNameGenerator = Optional.of(TypedQueryNameGenerator.createDefault(nameGenerator));
+        }
+
         var codeGenConfig = new CodeGenConfig(
             packageName,
             nullableAnnotationTypeName.asOptional(),
             nonEmptyAnnotationSimpleName != null ? nonEmptyAnnotationSimpleName : "NonEmpty",
             childTypeAsTopLevel,
-            createNameGenerator(),
+            nameGenerator,
+            typedQueryNameGenerator,
             getGeneratedAnnotationConfig()
         );
 

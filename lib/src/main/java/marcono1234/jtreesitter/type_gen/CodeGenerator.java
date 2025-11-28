@@ -6,6 +6,7 @@ import marcono1234.jtreesitter.type_gen.internal.gen.GenNodeType;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenRegularNodeType;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenSupertypeNodeType;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.*;
+import marcono1234.jtreesitter.type_gen.internal.gen.typed_query.TypedQueryGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper.LanguageUtilsConfigData;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
@@ -151,6 +152,14 @@ public class CodeGenerator {
 
         if (nodeGens.rootNode != null) {
             codeWriter.write(new TypedTreeClassGenerator(codeGenHelper).generateCode(nodeGens.rootNode));
+        }
+
+        var typedQueryNameGenerator = config.typedQueryNameGenerator().orElse(null);
+        if (typedQueryNameGenerator != null) {
+            var javaFiles = new TypedQueryGenerator(codeGenHelper, typedQueryNameGenerator).generateCode(nodeGens.nodeTypes);
+            for (var javaFile : javaFiles) {
+                codeWriter.write(javaFile);
+            }
         }
     }
 

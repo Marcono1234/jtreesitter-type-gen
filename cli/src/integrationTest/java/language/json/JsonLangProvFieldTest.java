@@ -5,6 +5,8 @@ import io.github.treesitter.jtreesitter.Language;
 import language.AbstractTypedTreeTest;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -71,5 +73,50 @@ class JsonLangProvFieldTest extends AbstractTypedTreeTest {
             assertEquals(valueNode, pairNode.getChildByFieldName(NodePair.FIELD_VALUE).orElseThrow());
             assertEquals(valueNode, pairNode.getChildByFieldId(NodePair.FIELD_VALUE_ID).orElseThrow());
         }
+    }
+
+    /**
+     * Simple typed query test which ensures that the {@link Language} is obtained automatically from the
+     * language provider.
+     */
+    @Test
+    void typedQuery() {
+        var q = new TypedQuery.Builder<List<NodePair>>();
+        var query = q.nodePair()
+            .withFieldValue(q.nodeNumber().textEq("12"))
+            .captured(List::add)
+            .buildQuery();
+
+        var source = """
+            {
+              "a": 1,
+              "b": 12,
+              "c": 123
+            }
+            """;
+        try (var tree = parseNoError(source); query; var queryMatches = query.findMatches(tree.getRootNode().getNode())) {
+            var l = new ArrayList<NodePair>();
+            queryMatches.forEach(m -> m.collectCaptures(l));
+            assertEquals(List.of("\"b\": 12"), l.stream().map(NodePair::getText).toList());
+        }
+    }
+
+    @Test
+    void typedQuery_UnnamedNodeValidation() {
+        var q = new TypedQuery.Builder<List<NodePair>>();
+        assertDoesNotThrow(() -> q.unnamedNode(":"));
+
+        var e = assertThrows(IllegalArgumentException.class, () -> q.unnamedNode("x"));
+        assertEquals("Unknown unnamed node type: x", e.getMessage());
+
+        // Should also fail when trying to use named node type
+        e = assertThrows(IllegalArgumentException.class, () -> q.unnamedNode(NodeObject.TYPE_NAME));
+        assertEquals("Unknown unnamed node type: " + NodeObject.TYPE_NAME, e.getMessage());
+
+        e = assertThrows(IllegalArgumentException.class, () -> q.unnamedNode("unknown", ":"));
+        assertEquals("Unknown supertype node type: unknown", e.getMessage());
+
+        e = assertThrows(IllegalArgumentException.class, () -> q.unnamedNode(NodeValue.TYPE_NAME, ":"));
+        assertEquals("Node type '" + NodeValue.TYPE_NAME + "' is not a supertype of ':'", e.getMessage());
     }
 }

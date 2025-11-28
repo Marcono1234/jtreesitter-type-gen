@@ -20,6 +20,11 @@ import java.util.stream.Stream;
 
 @SuppressWarnings({"CodeBlock2Expr", "Convert2MethodRef"}) // Suppress IntelliJ warnings for rewriting lambda expressions
 public class CodeGenHelper {
+    /**
+     * Annotation {@code @SuppressWarnings("unchecked")}
+     */
+    public static final AnnotationSpec SUPPRESS_WARNINGS_UNCHECKED = AnnotationSpec.builder(SuppressWarnings.class).addMember("value", "$S", "unchecked").build();
+
     private final CodeGenConfig config;
     private final CodeGenerator.Version versionInfo;
     @Nullable // null when no access to the Language object is possible
@@ -518,6 +523,7 @@ public class CodeGenHelper {
         LanguageProviderConfig languageProviderConfig,
         @Nullable LanguageVersion expectedLanguageVersion,
         String name,
+        String fieldLanguage,
         String methodGetTypeId, String methodGetFieldId
     ) {
         public ClassName className() {
@@ -535,6 +541,7 @@ public class CodeGenHelper {
                 languageConfig.languageProviderConfig(),
                 languageConfig.expectedLanguageVersion(),
                 "LanguageUtils",
+                "language",
                 "getTypeId", "getFieldId"
             );
         }
@@ -561,8 +568,10 @@ public class CodeGenHelper {
         Language language,
         LanguageMetadata languageMetadata,
         Query query,
+        QueryPredicate queryPredicate,
         QueryCursor queryCursor,
         QueryMatch queryMatch,
+        QueryCapture queryCapture,
         Tree tree,
         TreeCursor treeCursor,
         Node node,
@@ -574,6 +583,7 @@ public class CodeGenHelper {
             ClassName className,
             TypeName numericIdType,
             String methodGetTypeId,
+            String methodGetSubtypes,
             String methodGetFieldId,
             String methodGetMetadata
         ) {
@@ -584,6 +594,7 @@ public class CodeGenHelper {
                 // jtreesitter values more cumbersome and error-prone
                 TypeName.SHORT.annotated(AnnotationSpec.builder(ClassName.get("io.github.treesitter.jtreesitter", "Unsigned")).build()),
                 "getSymbolForName",
+                "getSubtypes",
                 "getFieldIdForName",
                 "getMetadata"
             );
@@ -650,6 +661,19 @@ public class CodeGenHelper {
             );
         }
 
+        /** jtreesitter {@code QueryPredicate} class */
+        public record QueryPredicate(
+            ClassName className,
+            String methodGetArgs,
+            String methodGetName
+        ) {
+            public static final QueryPredicate DEFAULT = new QueryPredicate(
+                ClassName.get("io.github.treesitter.jtreesitter", "QueryPredicate"),
+                "getArgs",
+                "getName"
+            );
+        }
+
         /**
          * jtreesitter {@code QueryCursor}
          *
@@ -674,10 +698,25 @@ public class CodeGenHelper {
 
         /** jtreesitter {@code QueryMatch} */
         public record QueryMatch(
+            ClassName className,
+            String methodCaptures,
             String methodFindNodes
         ) {
             public static final QueryMatch DEFAULT = new QueryMatch(
+                ClassName.get("io.github.treesitter.jtreesitter", "QueryMatch"),
+                "captures",
                 "findNodes"
+            );
+        }
+
+        /** jtreesitter {@code QueryCapture} */
+        public record QueryCapture(
+            String methodNode,
+            String methodName
+        ) {
+            public static final QueryCapture DEFAULT = new QueryCapture(
+                "node",
+                "name"
             );
         }
 
@@ -742,8 +781,10 @@ public class CodeGenHelper {
             Language.DEFAULT,
             LanguageMetadata.DEFAULT,
             Query.DEFAULT,
+            QueryPredicate.DEFAULT,
             QueryCursor.DEFAULT,
             QueryMatch.DEFAULT,
+            QueryCapture.DEFAULT,
             Tree.DEFAULT,
             TreeCursor.DEFAULT,
             Node.DEFAULT,
@@ -798,6 +839,10 @@ public class CodeGenHelper {
      */
     public static MethodSpec createInitializingConstructor(FieldSpec... fields) {
         return createInitializingConstructorBuilder(fields).build();
+    }
+
+    public static MethodSpec canonicalRecordConstructor(ParameterSpec... params) {
+        return MethodSpec.constructorBuilder().addParameters(List.of(params)).build();
     }
 
     /**
@@ -882,6 +927,15 @@ public class CodeGenHelper {
             .addStatement("var $N = $L.$N()", resultVar, delegate, methodName);
         addReturnOptionalStatement(builder, resultVar);
         return builder;
+    }
+
+    public static CodeBlock createNonNullCheck(String varName) {
+        return CodeBlock.of("$T.requireNonNull($N)", Objects.class, varName);
+    }
+
+    // Remove if https://github.com/palantir/javapoet/issues/363 ever gets implemented
+    public static WildcardTypeName unboundedWildcard() {
+        return WildcardTypeName.subtypeOf(Object.class);
     }
 
     /**

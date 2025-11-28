@@ -107,13 +107,20 @@ class CodeGeneratorTest {
 
         var tokenNameGenerator = baseFileName.contains("(token-name-generator)") ? TokenNameGenerator.fromMapping(Map.of("", Map.of("", Map.of("<", "LEFT", ">", "RIGHT"))), true)
             : TokenNameGenerator.AUTOMATIC;
+        var nameGenerator = NameGenerator.createDefault(tokenNameGenerator);
+
+        // TODO: Add tests for this, including children, fields (optional, required), extra, unnamed
+        //   and separate test with field provider (field and method)
+        var typedQueryNameGenerator = baseFileName.contains("(typed-query)") ? TypedQueryNameGenerator.createDefault(nameGenerator)
+            : null;
 
         var config = new CodeGenConfig(
             packageName,
             nullableAsOptional ? Optional.empty() : Optional.of(TypeName.JSPECIFY_NULLABLE_ANNOTATION),
             "NonEmpty",
             childAsTopLevel,
-            NameGenerator.createDefault(tokenNameGenerator),
+            nameGenerator,
+            Optional.ofNullable(typedQueryNameGenerator),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
 
@@ -275,6 +282,7 @@ class CodeGeneratorTest {
             "NonEmpty",
             CodeGenConfig.ChildTypeAsTopLevel.NEVER,
             NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
+            Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
         var codeGenerator = new CodeGenerator(config);
@@ -303,6 +311,7 @@ class CodeGeneratorTest {
             "NonEmpty",
             CodeGenConfig.ChildTypeAsTopLevel.NEVER,
             NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
+            Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
         var codeGenerator = new CodeGenerator(config);
@@ -333,6 +342,7 @@ class CodeGeneratorTest {
             "NonEmpty",
             CodeGenConfig.ChildTypeAsTopLevel.NEVER,
             NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
+            Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
         var codeGenerator = new CodeGenerator(config);
@@ -369,6 +379,7 @@ class CodeGeneratorTest {
             "NonEmpty",
             CodeGenConfig.ChildTypeAsTopLevel.NEVER,
             NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
+            Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
         var codeGenerator = new CodeGenerator(config);
@@ -409,6 +420,7 @@ class CodeGeneratorTest {
             "NonEmpty",
             CodeGenConfig.ChildTypeAsTopLevel.NEVER,
             NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
+            Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
         var codeGenerator = new CodeGenerator(config);

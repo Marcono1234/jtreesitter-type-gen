@@ -15,4 +15,19 @@ public class TestHelper {
         var languageSymbolLookup = SymbolLookup.libraryLookup(libPath, Arena.global());
         return Language.load(languageSymbolLookup, "tree_sitter_" + langName);
     }
+
+    /**
+     * Gets the underlying Tree-sitter query string from the given {@code TypedQuery} object.
+     */
+    // Has to use class `Object` because `TypedQuery` class differs per language
+    public static String getQueryString(Object typedQuery) {
+        try {
+            // Generated code contains this non-public field for test assertions
+            var field = typedQuery.getClass().getDeclaredField("queryString");
+            field.setAccessible(true);
+            return (String) field.get(typedQuery);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

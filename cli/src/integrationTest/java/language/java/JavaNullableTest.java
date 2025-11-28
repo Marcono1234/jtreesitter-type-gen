@@ -2,13 +2,21 @@ package language.java;
 
 import com.example.java.*;
 import language.AbstractTypedTreeTest;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+import util.TestHelper;
 
 import java.lang.foreign.Arena;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 
 /**
  * Tests the generated code for tree-sitter-java, with nullable annotations.
@@ -198,6 +206,107 @@ class JavaNullableTest extends AbstractTypedTreeTest {
                     assertTrue(parent.getChildren().contains(node));
                 });
             }
+        }
+    }
+
+    static Stream<Arguments.ArgumentSet> queryStringArgs() {
+        var q = new TypedQuery.Builder<>();
+
+        return Stream.of(
+            argumentSet("unnamed node",
+                q.unnamedNode("{"),
+                "\"{\""
+            ),
+            // TODO: Not yet supported by tree-sitter; requires https://github.com/tree-sitter/tree-sitter/pull/4894 to be released
+            // argumentSet("unnamed node with supertype",
+            //     q.unnamedNode("statement", ";"),
+            //     ""
+            // ),
+            argumentSet("any named node",
+                q.anyNamedNode(),
+                "(_)"
+            ),
+            argumentSet("any node",
+                q.anyNode(),
+                "_"
+            ),
+            argumentSet("error node",
+                q.errorNode(),
+                "(ERROR)"
+            ),
+            argumentSet("missing node",
+                q.missingNode(),
+                "(MISSING)"
+            ),
+            argumentSet("group",
+                q.group(q.nodeStringLiteral(), q.nodeNullLiteral()),
+                "((string_literal) (null_literal) )"
+            ),
+            argumentSet("alternation",
+                q.alternation(q.nodeStringLiteral(), q.nodeNullLiteral()),
+                "[(string_literal) (null_literal) ]"
+            )
+            // TODO more tests (children, fields, predicates, custom predicate, captures, subtypes, ...), also more complex
+        );
+    }
+
+    @MethodSource("queryStringArgs")
+    @ParameterizedTest
+    void typedQuery_QueryString(TypedQuery.QNode<?, ?> node, String expectedQueryString) {
+        try (var query = node.buildQuery(language)) {
+            String queryString = TestHelper.getQueryString(query);
+            assertEquals(expectedQueryString, queryString);
+        }
+    }
+
+    // TODO: Add typed query test for 'extra' (for Java that is `NodeLineComment` or `NodeBlockComment`); however node-types.json does not include `"extra": true` yet
+
+    // TODO Enable once supported by tree-sitter
+    @Disabled("Not yet supported by tree-sitter; requires https://github.com/tree-sitter/tree-sitter/pull/4894 to be released")
+    @Test
+    void typedQuery_UnnamedSupertype() {
+        var q = new TypedQuery.Builder<>();
+        var query = q.unnamedNode(";").buildQuery(language);
+        var querySupertype = q.unnamedNode(NodeStatement.TYPE_NAME, ";").buildQuery(language);
+
+        try (query; querySupertype) {
+            assertEquals("\";\"", TestHelper.getQueryString(query));
+            assertEquals("(" + NodeStatement.TYPE_NAME + "/\";\")", TestHelper.getQueryString(querySupertype));
+
+            try (var tree = parseNoError("int i = 1;")) {
+                var matches = query.findMatches(tree.getRootNode().getNode()).toList();
+                assertEquals(1, matches.size());
+
+                var matchesSupertype = querySupertype.findMatches(tree.getRootNode().getNode()).toList();
+                // Query with supertype should only find standalone ';', but not ';' as part of non-empty statement
+                assertEquals(0, matchesSupertype.size());
+            }
+
+            try (var tree = parseNoError(";")) {
+                var matches = query.findMatches(tree.getRootNode().getNode()).toList();
+                assertEquals(1, matches.size());
+
+                var matchesSupertype = querySupertype.findMatches(tree.getRootNode().getNode()).toList();
+                // Query with supertype should have found standalone ';'
+                assertEquals(1, matchesSupertype.size());
+            }
+        }
+    }
+
+    @Test
+    void typedQuery_QuantifiedMatching() {
+        var q = new TypedQuery.Builder<>();
+        var streamLengths = new ArrayList<Long>();
+        var query = q.nodeBlock().oneOrMore().matching(stream -> {
+            streamLengths.add(stream.count());
+            return true;
+        }).buildQuery(language);
+
+        try (query; var tree = parseNoError("{} {}")) {
+            assertEquals("((block)+ @p0 (#p0?))", TestHelper.getQueryString(query));
+            assertEquals(1, query.findMatches(tree.getRootNode().getNode()).count());
+            // Predicate should have been called with a Stream with > 1 elements
+            assertEquals(List.of(2L), streamLengths);
         }
     }
 }

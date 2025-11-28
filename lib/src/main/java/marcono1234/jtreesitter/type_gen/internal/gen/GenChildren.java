@@ -18,9 +18,9 @@ import java.util.function.Consumer;
  *
  * <p>Use {@link #create} to create instances.
  */
-class GenChildren {
+public class GenChildren {
     protected final String getterName;
-    protected final GenChildType type;
+    private final GenChildType type;
     protected final boolean multiple;
     protected final boolean required;
 
@@ -33,6 +33,24 @@ class GenChildren {
 
     public String getGetterName() {
         return getterName;
+    }
+
+    public GenChildType getGenChildType() {
+        return type;
+    }
+
+    /**
+     * Whether the tree-sitter grammar permits multiple occurrences of this child.
+     */
+    public boolean isMultiple() {
+        return multiple;
+    }
+
+    /**
+     * Whether the tree-sitter grammar requires that this child is present.
+     */
+    public boolean isRequired() {
+        return required;
     }
 
     /**

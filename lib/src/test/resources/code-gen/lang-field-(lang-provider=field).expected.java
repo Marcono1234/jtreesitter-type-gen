@@ -17,7 +17,7 @@ import org.example.lang.LangProvider;
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
 final class LanguageUtils {
-  private static final Language language = Objects.requireNonNull(LangProvider.field);
+  static final Language language = Objects.requireNonNull(LangProvider.field);
 
   private LanguageUtils() {
   }

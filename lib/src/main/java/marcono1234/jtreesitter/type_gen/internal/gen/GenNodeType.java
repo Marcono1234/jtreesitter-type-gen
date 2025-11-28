@@ -17,9 +17,19 @@ public sealed interface GenNodeType extends GenJavaType permits GenRegularNodeTy
     String getTypeName();
 
     /**
+     * Whether the grammar defines this as 'extra' node which can appear anywhere.
+     */
+    boolean isExtra();
+
+    /**
      * Gets the Java class name for the generated class.
      */
     String getJavaName();
+
+    /**
+     * Gets the name of the Java field in the generated class which stores the value of {@link #getTypeName()}.
+     */
+    String getTypeNameConstant();
 
     @Override
     default ClassName createJavaTypeName(CodeGenHelper codeGenHelper) {
@@ -36,6 +46,11 @@ public sealed interface GenNodeType extends GenJavaType permits GenRegularNodeTy
      * Adds a Java interface which should be implemented by this type.
      */
     void addInterfaceToImplement(GenJavaInterface i);
+
+    /**
+     * Gets the node supertypes of this type.
+     */
+    List<GenSupertypeNodeType> getSupertypes();
 
     List<JavaFile> generateJavaCode(CodeGenHelper codeGenHelper);
 }

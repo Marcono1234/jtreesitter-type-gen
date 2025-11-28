@@ -78,15 +78,18 @@ testing {
             val languageProvider: String? = null,
             val languageVersion: String? = null,
             val fallbackNodeTypeMapping: Map<String, String> = emptyMap(),
+            // Don't generate typed query classes by default for the tests because it generates quite a lot of
+            // additional classes, which can decrease build performance; only enable it for the tests which need it
+            val generateTypedQuery: Boolean = false,
         )
 
         val codeGenTaskConfigs = listOf(
-            CodeGenTaskConfig("java"),
+            CodeGenTaskConfig("java", generateTypedQuery = true),
             CodeGenTaskConfig("java", useOptional = true),
             CodeGenTaskConfig("json"),
             // Note: `languageVersion` here can differ slightly from actual language version as long as version check
             //   in generated code still considers them compatible
-            CodeGenTaskConfig("json", languageProvider = "languageField", languageVersion = "0.24.8"),
+            CodeGenTaskConfig("json", languageProvider = "languageField", languageVersion = "0.24.8", generateTypedQuery = true),
             CodeGenTaskConfig("json", languageProvider = "languageMethod()", languageVersion = "0.24.8"),
             // Manually map type name due to missing / incorrect type information for alias, see https://github.com/tree-sitter/tree-sitter/issues/1654
             CodeGenTaskConfig("python", fallbackNodeTypeMapping = mapOf("as_pattern_target" to "expression")),
@@ -143,6 +146,7 @@ testing {
                         languageProvider,
                         taskConfig.languageVersion,
                         taskConfig.fallbackNodeTypeMapping,
+                        taskConfig.generateTypedQuery,
                     )
                 )
 

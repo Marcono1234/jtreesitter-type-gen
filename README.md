@@ -59,6 +59,8 @@ As you can see, the generated API includes:
 - Type-safe getters for node children
 - Type-safe getters for node fields
 
+TODO: Mention typed query
+
 See also the [Usage section](#usage) below for details.
 
 ## Usage
@@ -115,6 +117,8 @@ java -jar jtreesitter-type-gen.jar --version
 > - `--generated-time`\
 >   Set a custom 'generated time' to make the generated code reproducible. By default, the current time is included as value for `@Generated` annotations in the generated code.
 
+TODO: Mention typed query
+
 ### Using the generated code
 
 A few 'base' interfaces and classes are generated regardless of which `node-types.json` is used:
@@ -134,6 +138,8 @@ For all named node types a dedicated typed node class is generated:
 - Methods for accessing typed children and fields are provided
 
 Switching between `TypedNode` and jtreesitter's `Node` (using `getNode` and `fromNode`) can be useful when functionality is needed which is only available through jtreesitter's `Node`. For convenience `TypedNode` directly exposes some of `Node`'s method as well (which simply delegate to the same method of the underlying node).
+
+TODO: Mention typed query
 
 ### Example
 
