@@ -396,7 +396,7 @@ public class CodeGenHelper {
 
             if (!hasAllocatorParam) {
                 methodBuilder
-                    // The nodes are allocated with the Arena of the Query, so they cannot / should not be used anymore after the Query was closed
+                    // The nodes are allocated with the Arena of the QueryCursor, so they cannot / should not be used anymore after the QueryCursor was closed
                     .addJavadoc("\nAfter the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,")
                     .addJavadoc("\nincluding exceptions being thrown or possibly even a JVM crash.")
                     // Add link to overload with custom 'allocator' parameter
@@ -412,7 +412,9 @@ public class CodeGenHelper {
                 .addJavadoc("\n}")
                 .addJavadoc("\n}");
 
+            methodBuilder.addStatement(createNonNullCheck(startNodeParam));
             if (hasAllocatorParam) {
+                methodBuilder.addStatement(createNonNullCheck(allocatorParam));
                 methodBuilder.addStatement("return $N($N, $N)", implMethodName, startNodeParam, allocatorParam);
             } else {
                 methodBuilder.addStatement("return $N($N, null)", implMethodName, startNodeParam);
@@ -882,6 +884,14 @@ public class CodeGenHelper {
             .addStatement("var $N = $L.$N()", resultVar, delegate, methodName);
         addReturnOptionalStatement(builder, resultVar);
         return builder;
+    }
+
+    public static CodeBlock createNonNullCheck(String varName) {
+        return CodeBlock.of("$T.requireNonNull($N)", Objects.class, varName);
+    }
+
+    public static CodeBlock createNonNullCheck(ParameterSpec param) {
+        return createNonNullCheck(param.name());
     }
 
     /**

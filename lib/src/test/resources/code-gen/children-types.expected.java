@@ -269,6 +269,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -373,6 +374,8 @@ public final class NodeContainedA implements TypedNode,
    * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
    */
   public static Stream<NodeContainedA> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -394,6 +397,7 @@ public final class NodeContainedA implements TypedNode,
    * }
    */
   public static Stream<NodeContainedA> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -431,6 +435,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -535,6 +540,8 @@ public final class NodeContainedB implements TypedNode,
    * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
    */
   public static Stream<NodeContainedB> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -556,6 +563,7 @@ public final class NodeContainedB implements TypedNode,
    * }
    */
   public static Stream<NodeContainedB> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -593,6 +601,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -711,6 +720,8 @@ public final class NodeSingleTypeNamed implements TypedNode {
    */
   public static Stream<NodeSingleTypeNamed> findNodes(TypedNode startNode,
       SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -732,6 +743,7 @@ public final class NodeSingleTypeNamed implements TypedNode {
    * }
    */
   public static Stream<NodeSingleTypeNamed> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -769,6 +781,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -886,6 +899,8 @@ public final class NodeMultiTypeNamed implements TypedNode {
    */
   public static Stream<NodeMultiTypeNamed> findNodes(TypedNode startNode,
       SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -907,6 +922,7 @@ public final class NodeMultiTypeNamed implements TypedNode {
    * }
    */
   public static Stream<NodeMultiTypeNamed> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -955,6 +971,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -1072,6 +1089,8 @@ public final class NodeMultiTypeNamedMultiple implements TypedNode {
    */
   public static Stream<NodeMultiTypeNamedMultiple> findNodes(TypedNode startNode,
       SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -1093,6 +1112,7 @@ public final class NodeMultiTypeNamedMultiple implements TypedNode {
    * }
    */
   public static Stream<NodeMultiTypeNamedMultiple> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -1141,6 +1161,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -1258,6 +1279,8 @@ public final class NodeMultiTypeNamedMultipleRequired implements TypedNode {
    */
   public static Stream<NodeMultiTypeNamedMultipleRequired> findNodes(TypedNode startNode,
       SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -1279,6 +1302,7 @@ public final class NodeMultiTypeNamedMultipleRequired implements TypedNode {
    * }
    */
   public static Stream<NodeMultiTypeNamedMultipleRequired> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 

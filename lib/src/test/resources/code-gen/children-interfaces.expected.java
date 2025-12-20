@@ -279,6 +279,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -390,6 +391,8 @@ public final class NodeContainedA implements TypedNode,
    * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
    */
   public static Stream<NodeContainedA> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -411,6 +414,7 @@ public final class NodeContainedA implements TypedNode,
    * }
    */
   public static Stream<NodeContainedA> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -448,6 +452,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -553,6 +558,8 @@ public final class NodeContainedB implements TypedNode,
    * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
    */
   public static Stream<NodeContainedB> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -574,6 +581,7 @@ public final class NodeContainedB implements TypedNode,
    * }
    */
   public static Stream<NodeContainedB> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -611,6 +619,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -729,6 +738,8 @@ public final class NodeSupertypeChild implements TypedNode {
    */
   public static Stream<NodeSupertypeChild> findNodes(TypedNode startNode,
       SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -750,6 +761,7 @@ public final class NodeSupertypeChild implements TypedNode {
    * }
    */
   public static Stream<NodeSupertypeChild> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -787,6 +799,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -904,6 +917,8 @@ public final class NodeMultipleChildren implements TypedNode {
    */
   public static Stream<NodeMultipleChildren> findNodes(TypedNode startNode,
       SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -925,6 +940,7 @@ public final class NodeMultipleChildren implements TypedNode {
    * }
    */
   public static Stream<NodeMultipleChildren> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -996,6 +1012,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -1113,6 +1130,8 @@ public final class NodeSelfChildren implements TypedNode, NodeSelfChildren$Child
    */
   public static Stream<NodeSelfChildren> findNodes(TypedNode startNode,
       SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -1134,6 +1153,7 @@ public final class NodeSelfChildren implements TypedNode, NodeSelfChildren$Child
    * }
    */
   public static Stream<NodeSelfChildren> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -1195,6 +1215,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -1312,6 +1333,8 @@ public final class NodeSelfIndirectChildren implements TypedNode, NodeSupertypeI
    */
   public static Stream<NodeSelfIndirectChildren> findNodes(TypedNode startNode,
       SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -1333,6 +1356,7 @@ public final class NodeSelfIndirectChildren implements TypedNode, NodeSupertypeI
    * }
    */
   public static Stream<NodeSelfIndirectChildren> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -1394,6 +1418,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -1511,6 +1536,8 @@ public final class NodeSelfTransitiveIndirectChildren implements TypedNode, Node
    */
   public static Stream<NodeSelfTransitiveIndirectChildren> findNodes(TypedNode startNode,
       SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -1532,6 +1559,7 @@ public final class NodeSelfTransitiveIndirectChildren implements TypedNode, Node
    * }
    */
   public static Stream<NodeSelfTransitiveIndirectChildren> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -1592,6 +1620,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -1709,6 +1738,8 @@ public final class NodeChildOfEachOtherA implements TypedNode, NodeChildOfEachOt
    */
   public static Stream<NodeChildOfEachOtherA> findNodes(TypedNode startNode,
       SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -1730,6 +1761,7 @@ public final class NodeChildOfEachOtherA implements TypedNode, NodeChildOfEachOt
    * }
    */
   public static Stream<NodeChildOfEachOtherA> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -1790,6 +1822,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -1907,6 +1940,8 @@ public final class NodeChildOfEachOtherB implements TypedNode, NodeChildOfEachOt
    */
   public static Stream<NodeChildOfEachOtherB> findNodes(TypedNode startNode,
       SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -1928,6 +1963,7 @@ public final class NodeChildOfEachOtherB implements TypedNode, NodeChildOfEachOt
    * }
    */
   public static Stream<NodeChildOfEachOtherB> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -1961,6 +1997,7 @@ import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -2049,6 +2086,8 @@ public sealed interface NodeSupertype extends TypedNode permits NodeContainedA, 
    * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
    */
   static Stream<NodeSupertype> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -2070,6 +2109,7 @@ public sealed interface NodeSupertype extends TypedNode permits NodeContainedA, 
    * }
    */
   static Stream<NodeSupertype> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 }
@@ -2085,6 +2125,7 @@ import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -2173,6 +2214,8 @@ public sealed interface NodeSupertypeIndirect extends TypedNode, NodeSelfIndirec
    * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
    */
   static Stream<NodeSupertypeIndirect> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -2194,6 +2237,7 @@ public sealed interface NodeSupertypeIndirect extends TypedNode, NodeSelfIndirec
    * }
    */
   static Stream<NodeSupertypeIndirect> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 }
@@ -2209,6 +2253,7 @@ import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -2298,6 +2343,8 @@ public sealed interface NodeSupertypeTransitiveIndirect1 extends TypedNode, Node
    */
   static Stream<NodeSupertypeTransitiveIndirect1> findNodes(TypedNode startNode,
       SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -2319,6 +2366,7 @@ public sealed interface NodeSupertypeTransitiveIndirect1 extends TypedNode, Node
    * }
    */
   static Stream<NodeSupertypeTransitiveIndirect1> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 }
@@ -2334,6 +2382,7 @@ import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -2423,6 +2472,8 @@ public sealed interface NodeSupertypeTransitiveIndirect2 extends TypedNode, Node
    */
   static Stream<NodeSupertypeTransitiveIndirect2> findNodes(TypedNode startNode,
       SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -2444,6 +2495,7 @@ public sealed interface NodeSupertypeTransitiveIndirect2 extends TypedNode, Node
    * }
    */
   static Stream<NodeSupertypeTransitiveIndirect2> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 }

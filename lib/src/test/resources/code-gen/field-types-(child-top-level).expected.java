@@ -271,6 +271,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -376,6 +377,8 @@ public final class NodeContainedA implements TypedNode,
    * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
    */
   public static Stream<NodeContainedA> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -397,6 +400,7 @@ public final class NodeContainedA implements TypedNode,
    * }
    */
   public static Stream<NodeContainedA> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -434,6 +438,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -535,6 +540,8 @@ public final class NodeContainedB implements TypedNode, NodeRoot$FieldMultiTypeN
    * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
    */
   public static Stream<NodeContainedB> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -556,6 +563,7 @@ public final class NodeContainedB implements TypedNode, NodeRoot$FieldMultiTypeN
    * }
    */
   public static Stream<NodeContainedB> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -957,6 +965,7 @@ import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -1161,6 +1170,8 @@ public final class NodeRoot implements TypedNode {
    * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
    */
   public static Stream<NodeRoot> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -1182,6 +1193,7 @@ public final class NodeRoot implements TypedNode {
    * }
    */
   public static Stream<NodeRoot> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -1241,6 +1253,7 @@ import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -1357,6 +1370,8 @@ public final class NodeFieldOfEachOtherA implements TypedNode, NodeFieldOfEachOt
    */
   public static Stream<NodeFieldOfEachOtherA> findNodes(TypedNode startNode,
       SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -1378,6 +1393,7 @@ public final class NodeFieldOfEachOtherA implements TypedNode, NodeFieldOfEachOt
    * }
    */
   public static Stream<NodeFieldOfEachOtherA> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -1437,6 +1453,7 @@ import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -1553,6 +1570,8 @@ public final class NodeFieldOfEachOtherB implements TypedNode, NodeFieldOfEachOt
    */
   public static Stream<NodeFieldOfEachOtherB> findNodes(TypedNode startNode,
       SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -1574,6 +1593,7 @@ public final class NodeFieldOfEachOtherB implements TypedNode, NodeFieldOfEachOt
    * }
    */
   public static Stream<NodeFieldOfEachOtherB> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -1733,6 +1753,7 @@ import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -1851,6 +1872,8 @@ public final class NodeFieldOfEachOtherWithTokenA implements TypedNode, NodeFiel
    */
   public static Stream<NodeFieldOfEachOtherWithTokenA> findNodes(TypedNode startNode,
       SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -1872,6 +1895,7 @@ public final class NodeFieldOfEachOtherWithTokenA implements TypedNode, NodeFiel
    * }
    */
   public static Stream<NodeFieldOfEachOtherWithTokenA> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -2031,6 +2055,7 @@ import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -2149,6 +2174,8 @@ public final class NodeFieldOfEachOtherWithTokenB implements TypedNode, NodeFiel
    */
   public static Stream<NodeFieldOfEachOtherWithTokenB> findNodes(TypedNode startNode,
       SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -2170,6 +2197,7 @@ public final class NodeFieldOfEachOtherWithTokenB implements TypedNode, NodeFiel
    * }
    */
   public static Stream<NodeFieldOfEachOtherWithTokenB> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 

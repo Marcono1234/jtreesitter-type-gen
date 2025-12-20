@@ -322,6 +322,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -429,6 +430,8 @@ public final class NodeContainedA implements TypedNode, NodeSupertype {
    * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
    */
   public static Stream<NodeContainedA> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -450,6 +453,7 @@ public final class NodeContainedA implements TypedNode, NodeSupertype {
    * }
    */
   public static Stream<NodeContainedA> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -488,6 +492,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -611,6 +616,8 @@ public final class NodeContainedB implements TypedNode, NodeSupertype {
    * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
    */
   public static Stream<NodeContainedB> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -632,6 +639,7 @@ public final class NodeContainedB implements TypedNode, NodeSupertype {
    * }
    */
   public static Stream<NodeContainedB> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -671,6 +679,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -829,6 +838,8 @@ public final class NodeDocument implements TypedNode {
    * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
    */
   public static Stream<NodeDocument> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -850,6 +861,7 @@ public final class NodeDocument implements TypedNode {
    * }
    */
   public static Stream<NodeDocument> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -884,6 +896,7 @@ import io.github.treesitter.jtreesitter.Unsigned;
 import java.lang.IllegalArgumentException;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -978,6 +991,8 @@ public sealed interface NodeSupertype extends TypedNode permits NodeContainedA, 
    * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
    */
   static Stream<NodeSupertype> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -999,6 +1014,7 @@ public sealed interface NodeSupertype extends TypedNode permits NodeContainedA, 
    * }
    */
   static Stream<NodeSupertype> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 }

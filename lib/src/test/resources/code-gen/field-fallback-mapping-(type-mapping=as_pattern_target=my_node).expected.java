@@ -260,6 +260,7 @@ import java.lang.Object;
 import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -376,6 +377,8 @@ public final class NodeAsPattern implements TypedNode {
    * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
    */
   public static Stream<NodeAsPattern> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -397,6 +400,7 @@ public final class NodeAsPattern implements TypedNode {
    * }
    */
   public static Stream<NodeAsPattern> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
@@ -434,6 +438,7 @@ import java.lang.Override;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
@@ -534,6 +539,8 @@ public final class NodeMyNode implements TypedNode {
    * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
    */
   public static Stream<NodeMyNode> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
   }
 
@@ -555,6 +562,7 @@ public final class NodeMyNode implements TypedNode {
    * }
    */
   public static Stream<NodeMyNode> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
