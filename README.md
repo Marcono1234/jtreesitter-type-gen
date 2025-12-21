@@ -171,14 +171,14 @@ try (
 ### Typed Query
 
 When specifying the CLI option `--generate-typed-query`, additional 'typed query' code is generated which allows building a Tree-sitter query and consuming captured nodes, both in a type-safe way.
-The Javadoc of the generated classes, espcially of the generated class `TypedQuery`, explains the usage in detail and provides examples.
+The Javadoc of the generated classes, especially of the generated class `TypedQuery`, explains the usage in detail and provides examples.
 
 The general usage looks like this:
 1. Build the query using `TypedQuery.Builder`
 2. Create a `TypedQuery` from the query builder objects
 3. Execute the `TypedQuery`
 
-The following example shows how to capture certain nodes from a JSON document:
+The following example shows how to capture a specific node from a JSON document:
 ```java
 var q = new TypedQuery.Builder<List<NodePair>>();
 var query = q.nodePair()
