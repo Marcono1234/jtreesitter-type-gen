@@ -20,8 +20,8 @@ import java.util.function.Consumer;
  * <p>Use {@link #create} to create instances.
  */
 public final class GenRegularNodeType implements GenNodeType, GenJavaType {
-
     private final String typeName;
+    private final boolean isExtra;
     private final String javaName;
     /** Name of the Java constant field in the generated class storing the node type name. */
     private final String typeNameConstant;
@@ -48,8 +48,9 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
 
     private final List<GenJavaInterface> interfacesToImplement;
 
-    private GenRegularNodeType(String typeName, String javaName, String typeNameConstant, String typeIdConstant, @Nullable ChildType childrenRaw, Map<String, ChildType> fieldsRaw, @Nullable String getNonNamedChildrenMethodName) {
+    private GenRegularNodeType(String typeName, boolean isExtra, String javaName, String typeNameConstant, String typeIdConstant, @Nullable ChildType childrenRaw, Map<String, ChildType> fieldsRaw, @Nullable String getNonNamedChildrenMethodName) {
         this.typeName = Objects.requireNonNull(typeName);
+        this.isExtra = isExtra;
         this.javaName = Objects.requireNonNull(javaName);
         this.typeNameConstant = Objects.requireNonNull(typeNameConstant);
         this.typeIdConstant = Objects.requireNonNull(typeIdConstant);
@@ -76,12 +77,22 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
         }
 
         String getNonNamedChildrenMethodName = nameGenerator.generateNonNamedChildrenGetterName(typeName, childrenRaw != null, !fieldsRaw.isEmpty()).orElse(null);
-        return new GenRegularNodeType(typeName, javaName, typeNameConstant, typeIdConstant, childrenRaw, fieldsRaw, getNonNamedChildrenMethodName);
+        return new GenRegularNodeType(typeName, nodeType.extra, javaName, typeNameConstant, typeIdConstant, childrenRaw, fieldsRaw, getNonNamedChildrenMethodName);
     }
 
     @Override
     public void addInterfaceToImplement(GenJavaInterface i) {
         interfacesToImplement.add(i);
+    }
+
+    // TODO: Maybe implement this in a cleaner way?
+    @Override
+    public List<GenSupertypeNodeType> getSupertypes() {
+        //noinspection NullableProblems; IntelliJ does not understand `nonNull` check?
+        return interfacesToImplement.stream()
+            .map(i -> i instanceof GenSupertypeNodeType supertype ? supertype : null)
+            .filter(Objects::nonNull)
+            .toList();
     }
 
     /**
@@ -112,6 +123,11 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
     }
 
     @Override
+    public boolean isExtra() {
+        return isExtra;
+    }
+
+    @Override
     public String getJavaName() {
         return javaName;
     }
@@ -121,21 +137,25 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
         return codeGenHelper.createOwnClassName(getJavaName());
     }
 
-    /**
-     * Gets the name of the Java field in the generated class which stores the value of {@link #getTypeName()}.
-     */
+    @Override
     public String getTypeNameConstant() {
         return typeNameConstant;
-    }
-
-    public String getTypeIdConstant() {
-        return typeIdConstant;
     }
 
     private void checkPopulatedChildren() {
         if (!populatedChildren) {
             throw new IllegalStateException("Children have not been populated yet");
         }
+    }
+
+    public @Nullable GenChildren getGenChildren() {
+        checkPopulatedChildren();
+        return children;
+    }
+
+    public List<GenField> getGenFields() {
+        checkPopulatedChildren();
+        return fields;
     }
 
     @Override

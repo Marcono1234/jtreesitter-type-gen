@@ -6,6 +6,7 @@ import marcono1234.jtreesitter.type_gen.internal.gen.GenNodeType;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenRegularNodeType;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenSupertypeNodeType;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.*;
+import marcono1234.jtreesitter.type_gen.internal.gen.typed_query.TypedQueryGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper.LanguageUtilsConfigData;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
@@ -152,6 +153,14 @@ public class CodeGenerator {
         if (nodeGens.rootNode != null) {
             codeWriter.write(new TypedTreeClassGenerator(codeGenHelper).generateCode(nodeGens.rootNode));
         }
+
+        var typedQueryNameGenerator = config.typedQueryNameGenerator().orElse(null);
+        if (typedQueryNameGenerator != null) {
+            var javaFiles = new TypedQueryGenerator(codeGenHelper, typedQueryNameGenerator).generateCode(nodeGens.nodeTypes);
+            for (var javaFile : javaFiles) {
+                codeWriter.write(javaFile);
+            }
+        }
     }
 
     private SequencedMap<String, GenSupertypeNodeType> createSupertypeGens(List<NodeType> supertypes, NameGenerator nameGenerator) throws CodeGenException {
@@ -178,7 +187,7 @@ public class CodeGenerator {
     }
 
     private GenElements determineGenElements(List<NodeType> nodeTypes, @Nullable String rootNodeTypeCustom, NameGenerator nameGenerator, Map<String, String> fallbackNodeTypeMapping) throws CodeGenException {
-        SequencedSet<String> allTypeNames = new LinkedHashSet<>();
+        SequencedSet<String> allTypesNames = new LinkedHashSet<>();
         List<NodeType> supertypes = new ArrayList<>();
 
         SequencedMap<String, GenRegularNodeType> regularNodeGens = new LinkedHashMap<>();
@@ -206,7 +215,7 @@ public class CodeGenerator {
                 continue;
             }
 
-            if (!allTypeNames.add(typeName)) {
+            if (!allTypesNames.add(typeName)) {
                 throw new CodeGenException("Duplicate node type name: " + typeName);
             }
 

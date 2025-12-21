@@ -58,6 +58,7 @@ As you can see, the generated API includes:
   They have a _sealed_ Java interface as superinterface, and are therefore well suited for usage in Java `switch` expressions and statements.
 - Type-safe getters for node children
 - Type-safe getters for node fields
+- Type-safe query builder (opt-in, see [Typed Query section](#typed-query) below)
 
 See also the [Usage section](#usage) below for details.
 
@@ -114,6 +115,9 @@ java -jar jtreesitter-type-gen.jar --version
 >   Specify the expected language / grammar version. This adds additional checks to ensure that the generated code is compatible with the loaded language, to avoid difficult to troubleshoot issues when an incompatible language version is used by accident.
 > - `--generated-time`\
 >   Set a custom 'generated time' to make the generated code reproducible. By default, the current time is included as value for `@Generated` annotations in the generated code.
+> - `--generate-typed-query`\
+>   Generates 'typed query' code which allows building a Tree-sitter query and consuming captured nodes, both in a type-safe way.
+>   See the [Typed Query section](#typed-query) below for details.
 
 ### Using the generated code
 
@@ -163,6 +167,48 @@ try (
     System.out.println(jsonMember.getFieldValue());
 }
 ```
+
+### Typed Query
+
+When specifying the CLI option `--generate-typed-query`, additional 'typed query' code is generated which allows building a Tree-sitter query and consuming captured nodes, both in a type-safe way.
+The Javadoc of the generated classes, espcially of the generated class `TypedQuery`, explains the usage in detail and provides examples.
+
+The general usage looks like this:
+1. Build the query using `TypedQuery.Builder`
+2. Create a `TypedQuery` from the query builder objects
+3. Execute the `TypedQuery`
+
+The following example shows how to capture certain nodes from a JSON document:
+```java
+var q = new TypedQuery.Builder<List<NodePair>>();
+var query = q.nodePair()
+    .withFieldValue(q.nodeNumber().textEq("12"))
+    .captured(List::add)
+    .buildQuery(language);
+
+String source = """
+    {
+      "a": 1,
+      "b": 12,
+      "c": 123
+    }
+    """;
+
+try (
+    var parser = new Parser(language);
+    var tree = parser.parse(source).orElseThrow();
+    var matches = query.findMatches(tree.getRootNode())
+) {
+    var nodes = new ArrayList<NodePair>();
+    matches.forEach(m -> m.collectCaptures(nodes));
+    assertEquals(List.of("\"b\": 12"), nodes.stream().map(NodePair::getText).toList());
+}
+
+query.close();
+```
+
+Note: If you specified the CLI option `--language-provider`, then the `language` object does not have to be passed to
+the generated `buildQuery()` method.
 
 ## Project structure
 

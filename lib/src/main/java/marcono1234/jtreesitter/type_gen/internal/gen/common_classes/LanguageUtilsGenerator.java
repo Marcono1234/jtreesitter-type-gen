@@ -50,7 +50,7 @@ public class LanguageUtilsGenerator {
         var jtreesitter = codeGenHelper.jtreesitterConfig();
 
         var fieldBuilder = FieldSpec.builder(jtreesitter.language().className(), fieldName)
-            .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
+            .addModifiers(Modifier.STATIC, Modifier.FINAL);
 
         var providerDeclaringType = CodeGenHelper.createClassName(languageProviderConfig.declaringType());
         switch (languageProviderConfig) {
@@ -122,7 +122,7 @@ public class LanguageUtilsGenerator {
             .addMethod(MethodSpec.constructorBuilder().addModifiers(Modifier.PRIVATE).build())
             .addJavadoc("Internal helper class.");
 
-        String languageFieldName = "language";
+        String languageFieldName = languageUtilsConfig.fieldLanguage();
         generateLanguageField(typeBuilder, languageFieldName, languageUtilsConfig.languageProviderConfig());
 
         // Note: Generate this after the language field has already been initialized (above); otherwise it would read uninitialized field

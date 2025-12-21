@@ -51,6 +51,8 @@ abstract class CodegenCliTask : DefaultTask() {
         val languageVersion: String?,
         @get:Input
         val fallbackNodeTypeMapping: Map<String, String>,
+        @get:Input
+        val generateTypedQuery: Boolean,
     )
 
     init {
@@ -102,6 +104,10 @@ abstract class CodegenCliTask : DefaultTask() {
         codeGenConfig.fallbackNodeTypeMapping.forEach { key, value ->
             command.add("--fallback-node-type-mapping")
             command.add("${key}=${value}")
+        }
+
+        if (codeGenConfig.generateTypedQuery) {
+            command.add("--generate-typed-query")
         }
 
         val process = ProcessBuilder(command)

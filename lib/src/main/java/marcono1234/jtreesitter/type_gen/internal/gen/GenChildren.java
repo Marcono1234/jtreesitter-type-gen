@@ -18,9 +18,9 @@ import java.util.function.Consumer;
  *
  * <p>Use {@link #create} to create instances.
  */
-class GenChildren {
+public class GenChildren {
     protected final String getterName;
-    protected final GenChildType type;
+    private final GenChildType type;
     protected final boolean multiple;
     protected final boolean required;
 
@@ -33,6 +33,24 @@ class GenChildren {
 
     public String getGetterName() {
         return getterName;
+    }
+
+    public GenChildType getGenChildType() {
+        return type;
+    }
+
+    /**
+     * Whether the tree-sitter grammar permits multiple occurrences of this child.
+     */
+    public boolean isMultiple() {
+        return multiple;
+    }
+
+    /**
+     * Whether the tree-sitter grammar requires that this child is present.
+     */
+    public boolean isRequired() {
+        return required;
     }
 
     /**
@@ -153,8 +171,8 @@ class GenChildren {
             );
         }
 
-        List<String> childrenTypeNames = childTypeRaw.types.stream().map(t -> t.type).toList();
-        String getterName = nameGenerator.generateChildrenGetterName(parentTypeName, childrenTypeNames, multiple, required);
+        List<String> childrenTypesNames = childTypeRaw.types.stream().map(t -> t.type).toList();
+        String getterName = nameGenerator.generateChildrenGetterName(parentTypeName, childrenTypesNames, multiple, required);
 
         GenChildType.ChildTypeNameGenerator childTypeNameGenerator = new GenChildType.ChildTypeNameGenerator() {
             @Override
@@ -164,8 +182,8 @@ class GenChildren {
 
             // Note: Currently effectively unused, see `!t.named` check and comment at beginning of method above
             @Override
-            public String generateTokenClassName(List<String> tokenTypeNames) {
-                return nameGenerator.generateChildrenTokenTypeName(parentTypeName, tokenTypeNames);
+            public String generateTokenClassName(List<String> tokenTypesNames) {
+                return nameGenerator.generateChildrenTokenTypeName(parentTypeName, tokenTypesNames);
             }
 
             // Note: Currently effectively unused, see `!t.named` check and comment at beginning of method above

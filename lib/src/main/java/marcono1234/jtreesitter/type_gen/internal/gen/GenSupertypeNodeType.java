@@ -22,6 +22,7 @@ import java.util.function.Consumer;
  */
 public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType {
     private final String typeName;
+    private final boolean isExtra;
     private final String javaName;
     /** Name of the Java constant field in the generated class storing the node type name. */
     private final String typeNameConstant;
@@ -31,17 +32,18 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
      * <p>Only generated if {@link CodeGenHelper#generatesNumericIdConstants()}.
      */
     private final String typeIdConstant;
-    private final List<String> subtypeNames;
+    private final List<String> subtypesNames;
     private boolean populatedSubtypes;
     private final List<GenNodeType> subtypes;
     private final List<GenJavaInterface> interfacesToImplement;
 
-    private GenSupertypeNodeType(String typeName, String javaName, String typeNameConstant, String typeIdConstant, List<String> subtypeNames) {
+    private GenSupertypeNodeType(String typeName, boolean isExtra, String javaName, String typeNameConstant, String typeIdConstant, List<String> subtypesNames) {
         this.typeName = Objects.requireNonNull(typeName);
+        this.isExtra = isExtra;
         this.javaName = Objects.requireNonNull(javaName);
         this.typeNameConstant = Objects.requireNonNull(typeNameConstant);
         this.typeIdConstant = Objects.requireNonNull(typeIdConstant);
-        this.subtypeNames = Objects.requireNonNull(subtypeNames);
+        this.subtypesNames = Objects.requireNonNull(subtypesNames);
         this.populatedSubtypes = false;
         this.subtypes = new ArrayList<>();
         this.interfacesToImplement = new ArrayList<>();
@@ -57,7 +59,7 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
             throw new CodeGenException("Supertype '%s' should not have fields".formatted(typeName));
         }
 
-        List<String> subtypeNames = new ArrayList<>();
+        List<String> subtypesNames = new ArrayList<>();
         var subtypes = nodeType.subtypes;
         if (subtypes == null) {
             // Caller should have already checked this
@@ -69,7 +71,7 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
 
         for (var subtype : subtypes) {
             if (subtype.named) {
-                subtypeNames.add(subtype.type);
+                subtypesNames.add(subtype.type);
             }
             // Else: Ignore non-named subtype since no typed node will be generated for it;
             //   for example tree-sitter-java has supertype `statement` with non-named subtype ';' (for empty statement)
@@ -78,12 +80,17 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
         String javaName = nameGenerator.generateJavaTypeName(typeName);
         String typeNameConstant = nameGenerator.generateTypeNameConstant(typeName);
         String typeIdConstant = nameGenerator.generateTypeIdConstant(typeName);
-        return new GenSupertypeNodeType(typeName, javaName, typeNameConstant, typeIdConstant, subtypeNames);
+        return new GenSupertypeNodeType(typeName, nodeType.extra, javaName, typeNameConstant, typeIdConstant, subtypesNames);
     }
 
     @Override
     public String getTypeName() {
         return typeName;
+    }
+
+    @Override
+    public boolean isExtra() {
+        return isExtra;
     }
 
     @Override
@@ -101,7 +108,7 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
         }
         populatedSubtypes = true;
 
-        for (String subtype : subtypeNames) {
+        for (String subtype : subtypesNames) {
             var subtypeGen = nodeTypeLookup.getNodeType(subtype);
             subtypeGen.addInterfaceToImplement(this);
             subtypes.add(subtypeGen);
@@ -123,6 +130,21 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
     @Override
     public void addInterfaceToImplement(GenJavaInterface i) {
         interfacesToImplement.add(i);
+    }
+
+    @Override
+    public String getTypeNameConstant() {
+        return typeNameConstant;
+    }
+
+    // TODO: Maybe implement this in a cleaner way?
+    @Override
+    public List<GenSupertypeNodeType> getSupertypes() {
+        //noinspection NullableProblems; IntelliJ does not understand `nonNull` check?
+        return interfacesToImplement.stream()
+            .map(i -> i instanceof GenSupertypeNodeType supertype ? supertype : null)
+            .filter(Objects::nonNull)
+            .toList();
     }
 
     private void generateJavadoc(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper) {

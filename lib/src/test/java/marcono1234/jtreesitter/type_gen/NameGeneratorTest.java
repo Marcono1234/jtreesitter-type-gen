@@ -6,7 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,7 +23,7 @@ class NameGeneratorTest {
         private final NameGenerator nameGenerator = NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC);
 
         @ParameterizedTest
-        // Some of these verify that the result is somewhat reasonable, and that no exception occurs
+        // Some of these just verify that the result is somewhat reasonable, and that no exception occurs
         @CsvSource({
             "name,NodeName",
             "_name,NodeName",
@@ -29,12 +31,70 @@ class NameGeneratorTest {
             "first_second,NodeFirstSecond",
             "__first__second__,NodeFirst_second_",
         })
-        void generateJavaTypeName(String typeName, String expectedJavaName) {
-            assertEquals(expectedJavaName, nameGenerator.generateJavaTypeName(typeName));
+        void generateJavaTypeName(String typeName, String expectedName) {
+            assertEquals(expectedName, nameGenerator.generateJavaTypeName(typeName));
         }
 
         @ParameterizedTest
-        // Some of these verify that the result is somewhat reasonable, and that no exception occurs
+        @CsvSource({
+            "my_node,TYPE_NAME",
+        })
+        void generateTypeNameConstant(String typeName, String expectedName) {
+            assertEquals(expectedName, nameGenerator.generateTypeNameConstant(typeName));
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "my_node,TYPE_ID",
+        })
+        void generateTypeIdConstant(String typeName, String expectedName) {
+            assertEquals(expectedName, nameGenerator.generateTypeIdConstant(typeName));
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "my_parent,'node_a,node_b',Child",
+        })
+        void generateChildrenTypesName(String parentTypeName, String childrenTypesNames, String expectedName) {
+            assertEquals(
+                expectedName,
+                nameGenerator.generateChildrenTypesName(parentTypeName, Arrays.asList(childrenTypesNames.split(",")))
+            );
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "my_parent,'+,-',ChildTokenType",
+        })
+        void generateChildrenTokenTypeName(String parentTypeName, String tokenChildrenTypesNames, String expectedName) {
+            assertEquals(
+                expectedName,
+                nameGenerator.generateChildrenTokenTypeName(parentTypeName, Arrays.asList(tokenChildrenTypesNames.split(",")))
+            );
+        }
+
+        @Test
+        void generateChildrenTokenName() {
+            var e = assertThrows(AssertionError.class, () -> nameGenerator.generateChildrenTokenName("parent", "+", 0));
+            assertEquals("currently unused", e.getMessage());
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "my_parent,'node_a,node_b',false,false,getChild",
+            "my_parent,'node_a,node_b',false,true,getChild",
+            "my_parent,'node_a,node_b',true,false,getChildren",
+            "my_parent,'node_a,node_b',true,true,getChildren",
+        })
+        void generateChildrenGetterName(String parentTypeName, String childrenTypesNames, boolean multiple, boolean required, String     expectedName) {
+            assertEquals(
+                expectedName,
+                nameGenerator.generateChildrenGetterName(parentTypeName, Arrays.asList(childrenTypesNames.split(",")), multiple, required)
+            );
+        }
+
+        @ParameterizedTest
+        // Some of these just verify that the result is somewhat reasonable, and that no exception occurs
         @CsvSource({
             "name,FIELD_NAME",
             "_name,FIELD__NAME",
@@ -45,8 +105,92 @@ class NameGeneratorTest {
             "first1second2,FIELD_FIRST_1SECOND_2",
             "nAmE,FIELD_N_AM_E",
         })
-        void generateFieldNameConstant(String fieldName, String expectedJavaName) {
-            assertEquals(expectedJavaName, nameGenerator.generateFieldNameConstant("parent", fieldName));
+        void generateFieldNameConstant(String fieldName, String expectedName) {
+            assertEquals(expectedName, nameGenerator.generateFieldNameConstant("parent", fieldName));
+        }
+
+        @ParameterizedTest
+        // Some of these just verify that the result is somewhat reasonable, and that no exception occurs
+        @CsvSource({
+            "name,FIELD_NAME_ID",
+            "_name,FIELD__NAME_ID",
+            "name_,FIELD_NAME__ID",
+            "first_second,FIELD_FIRST_SECOND_ID",
+            "__first__second__,FIELD___FIRST__SECOND___ID",
+            "firstSecond,FIELD_FIRST_SECOND_ID",
+            "first1second2,FIELD_FIRST_1SECOND_2_ID",
+            "nAmE,FIELD_N_AM_E_ID",
+        })
+        void generateFieldIdConstant(String fieldName, String expectedName) {
+            assertEquals(expectedName, nameGenerator.generateFieldIdConstant("parent", fieldName));
+        }
+
+        @ParameterizedTest
+        // Some of these just verify that the result is somewhat reasonable, and that no exception occurs
+        @CsvSource({
+            "name,FieldName",
+            "_name,FieldName",
+            "name_,FieldName",
+            "first_second,FieldFirstSecond",
+            "__first__second__,Field_first_second_",
+            "firstSecond,FieldFirstSecond",
+            "first1second2,FieldFirst1second2",
+            "nAmE,FieldNAmE",
+        })
+        void generateFieldTypesName(String fieldName, String expectedName) {
+            assertEquals(expectedName, nameGenerator.generateFieldTypesName("parent", fieldName));
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "name,'+,-',FieldTokenName",
+            "first_second,'+,-',FieldTokenFirstSecond",
+        })
+        void generateFieldTokenTypeName(String fieldName, String tokenFieldTypesNames, String expectedName) {
+            assertEquals(
+                expectedName,
+                nameGenerator.generateFieldTokenTypeName("parent", fieldName, Arrays.asList(tokenFieldTypesNames.split(",")))
+            );
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "my_field,+,PLUS_SIGN",
+            "my_field,+++,TOKEN_0",  // falls back to using token index
+        })
+        void generateFieldTokenName(String fieldName, String tokenType, String expectedName) {
+            assertEquals(
+                expectedName,
+                nameGenerator.generateFieldTokenName("parent", fieldName, tokenType, 0)
+            );
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "my_field,false,false,getFieldMyField",
+            "my_field,false,true,getFieldMyField",
+            "my_field,true,false,getFieldMyField",
+            "my_field,true,true,getFieldMyField",
+        })
+        void generateFieldGetterName(String fieldName, boolean multiple, boolean required, String expectedName) {
+            assertEquals(
+                expectedName,
+                nameGenerator.generateFieldGetterName("parent", fieldName, multiple, required)
+            );
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+            "false,false,getUnnamedChildren",
+            "false,true,",
+            "true,false,getUnnamedChildren",
+            "true,true,",
+        })
+        void generateNonNamedChildrenGetterName(boolean hasNamedChildren, boolean hasFields, String expectedName) {
+            assertEquals(
+                Optional.ofNullable(expectedName),
+                nameGenerator.generateNonNamedChildrenGetterName("parent", hasNamedChildren, hasFields)
+            );
         }
     }
 
