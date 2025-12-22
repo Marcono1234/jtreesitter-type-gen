@@ -329,6 +329,9 @@ class QTypedNodeGenerator {
             .addStatement("this($N.$N, $N.$N, $N)", paramQTypedNodeOld, fieldSupertype, paramQTypedNodeOld, fieldNodeType, fieldData)
             .build();
 
+        // Note: Don't generate common methods such as `withChildAnchor()` here, because these methods are only relevant
+        // for query nodes of regular node types but not for supertype node types
+
         var methodVerifyValidState = MethodSpec.methodBuilder(typedQueryConfig.qNodeImplConfig().methodVerifyValidState())
             .addAnnotation(Override.class)
             .addStatement("$N.$N()", qTypedNodeConfig.fieldData(), qTypedNodeConfig.dataConfig().methodVerifyValidState())

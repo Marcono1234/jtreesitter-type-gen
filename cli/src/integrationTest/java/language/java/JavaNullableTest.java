@@ -655,6 +655,11 @@ class JavaNullableTest extends AbstractTypedTreeTest {
             .asSubtypeOfNodeExpression()
             .captured(List::add)
             .buildQuery(language);
+        // Supertype of a supertype node
+        var querySuperOfSupertype = new TypedQuery.Builder<List<NodePrimaryExpression>>().nodePrimaryExpression()
+            .asSubtypeOfNodeExpression()
+            .captured(List::add)
+            .buildQuery(language);
 
         String source = """
             class MyClass {
@@ -664,10 +669,11 @@ class JavaNullableTest extends AbstractTypedTreeTest {
             }
             """;
 
-        try (query; querySupertype; querySuperSupertype; var tree = parseNoError(source)) {
+        try (query; querySupertype; querySuperSupertype; querySuperOfSupertype; var tree = parseNoError(source)) {
             assertEquals("(identifier) @c0", TestHelper.getQueryString(query));
             assertEquals("(primary_expression/identifier) @c0", TestHelper.getQueryString(querySupertype));
             assertEquals("(expression/identifier) @c0", TestHelper.getQueryString(querySuperSupertype));
+            assertEquals("(expression/primary_expression) @c0", TestHelper.getQueryString(querySuperOfSupertype));
 
             var startNode = tree.getRootNode().getNode();
 
@@ -689,6 +695,14 @@ class JavaNullableTest extends AbstractTypedTreeTest {
                 // Does not match `arr` because the tree-sitter-java grammar requires that the array reference
                 // is a 'primary_expression' (and not just an 'expression')
                 assertEquals(List.of("i"), nodes.stream().map(NodeIdentifier::getText).toList());
+            }
+
+            try (var matchesSuperOfSupertype = querySuperOfSupertype.findMatches(startNode)) {
+                var nodes = new ArrayList<NodePrimaryExpression>();
+                matchesSuperOfSupertype.forEach(m -> m.collectCaptures(nodes));
+                // TODO: tree-sitter bug? Query should match all 'primary_expression' used as an 'expression',
+                //   e.g. all the assigned values such as "12", "34", ...
+                assertEquals(List.of(), nodes.stream().map(NodePrimaryExpression::getText).toList());
             }
         }
     }
