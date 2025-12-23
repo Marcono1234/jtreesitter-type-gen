@@ -74,7 +74,7 @@ See also the [Usage section](#usage) below for details.
 - Code generation: JDK 21 or newer
 - Usage of the generated code:\
   same requirements as jtreesitter, namely:
-  - JDK 22 or newer
+  - JDK 23 or newer
   - Tree-sitter native library (e.g. `tree-sitter.dll`), see also the [jtreesitter documentation](https://tree-sitter.github.io/java-tree-sitter/io/github/treesitter/jtreesitter/package-summary.html#libraries)
   - native library for your Tree-sitter parser
 - `node-types.json` for your parser\

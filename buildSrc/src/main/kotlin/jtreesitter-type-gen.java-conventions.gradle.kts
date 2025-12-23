@@ -19,14 +19,14 @@ version = property("project.version") as String
 java {
     toolchain {
         // Should match JDK version specified in GitHub workflow, to avoid downloading separate JDK
-        languageVersion = JavaLanguageVersion.of(22) // jtreesitter requires at least JDK 22
+        languageVersion = JavaLanguageVersion.of(23) // jtreesitter requires at least JDK 23
     }
 }
 
 // Additionally set desired release version to allow building with newer JDK but still targeting older Java version
 tasks.compileJava {
     // For now use Java 21 (latest LTS) to make it easier to use code gen CLI; even though generated code
-    // requires Java >= 22 due to jtreesitter
+    // requires Java >= 23 due to jtreesitter
     options.release = 21
 }
 

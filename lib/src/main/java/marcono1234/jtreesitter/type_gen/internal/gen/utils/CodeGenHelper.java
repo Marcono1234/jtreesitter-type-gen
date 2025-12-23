@@ -16,7 +16,6 @@ import javax.annotation.processing.Generated;
 import javax.lang.model.element.Modifier;
 import java.time.Instant;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 @SuppressWarnings({"CodeBlock2Expr", "Convert2MethodRef"}) // Suppress IntelliJ warnings for rewriting lambda expressions
@@ -398,8 +397,8 @@ public class CodeGenHelper {
                     .add("var $N = $N == null ?$W", resultStreamVar, allocatorParam)
                     // Variant without allocator
                     .add("$N.$N($N)$W", queryCursorVar, jtreesitter.queryCursor().methodFindMatches(), startNodeUnwrappedVar)
-                    // Variant with allocator (and with default `Options`, unfortunately there is no overload without it)
-                    .add(": $N.$N($N, $N, new $T(($T<$T>) null))", queryCursorVar, jtreesitter.queryCursor().methodFindMatches(), startNodeUnwrappedVar, allocatorParam, jtreesitter.queryCursor().classNameOptions(), Predicate.class, jtreesitter.queryCursor().classNameState())
+                    // Variant with allocator (and null `Options`)
+                    .add(": $N.$N($N, $N, null)", queryCursorVar, jtreesitter.queryCursor().methodFindMatches(), startNodeUnwrappedVar, allocatorParam)
                     .build()
                 )
                 // Convert the captured nodes
@@ -726,21 +725,18 @@ public class CodeGenHelper {
          * jtreesitter {@code QueryCursor}
          *
          * @param classNameOptions nested class {@code Options}
-         * @param classNameState nested class {@code State}
          */
         public record QueryCursor(
             ClassName className,
             String methodFindMatches,
-            ClassName classNameOptions,
-            ClassName classNameState
+            ClassName classNameOptions
         ) {
             private static final ClassName className_ = ClassName.get("io.github.treesitter.jtreesitter", "QueryCursor");
 
             public static final QueryCursor DEFAULT = new QueryCursor(
                 className_,
                 "findMatches",
-                className_.nestedClass("Options"),
-                className_.nestedClass("State")
+                className_.nestedClass("Options")
             );
         }
 

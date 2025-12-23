@@ -23,7 +23,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: 22
+          java-version: 23
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v5
@@ -61,7 +61,7 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
-          java-version: 22
+          java-version: 23
 
       # TODO: Maybe create tree-sitter library binary using https://github.com/tree-sitter/setup-action/blob/master/lib/action.yml,
       #   or switch to cmake command used by that action, which also works for Windows (due to CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS);
