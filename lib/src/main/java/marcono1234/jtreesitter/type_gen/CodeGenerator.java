@@ -71,11 +71,29 @@ public class CodeGenerator {
             throw new CodeGenException("Failed creating output dir", e);
         }
 
-        JavaCodeWriter codeWriter = javaCode -> {
-            try {
-                javaCode.writeTo(outputDir);
-            } catch (Exception e) {
-                throw new CodeGenException("Failed to write class '%s' to dir %s".formatted(javaCode.typeSpec().name(), outputDir), e);
+        JavaCodeWriter codeWriter = new JavaCodeWriter() {
+            @Override
+            public void write(JavaFile javaCode) throws CodeGenException {
+                try {
+                    javaCode.writeTo(outputDir);
+                } catch (Exception e) {
+                    throw new CodeGenException("Failed to write class '%s' to dir %s".formatted(javaCode.typeSpec().name(), outputDir), e);
+                }
+            }
+
+            @Override
+            public void writePackageInfo(String packageName, String content) throws CodeGenException {
+                Path dir = outputDir;
+                for (String pathPiece : packageName.split("\\.")) {
+                    dir = dir.resolve(pathPiece);
+                }
+
+                try {
+                    Files.createDirectories(dir);
+                    Files.writeString(dir.resolve("package-info.java"), content);
+                } catch (IOException e) {
+                    throw new CodeGenException("Failed to write package-info file to dir %s".formatted(dir), e);
+                }
             }
         };
 
@@ -89,6 +107,9 @@ public class CodeGenerator {
     // Visible for testing
     interface JavaCodeWriter {
         void write(JavaFile javaCode) throws CodeGenException;
+
+        // TODO: JavaPoet does not support this natively yet, see https://github.com/square/javapoet/issues/666 (no corresponding issue in https://github.com/palantir/javapoet exists yet)
+        void writePackageInfo(String packageName, String content) throws CodeGenException;
     }
 
     // Visible for testing
@@ -134,6 +155,11 @@ public class CodeGenerator {
             ))
             .orElse(null);
         CodeGenHelper codeGenHelper = new CodeGenHelper(config, versionInfo, languageUtilsConfigData);
+
+        var nullMarkedAnnotation = config.nullMarkedPackageAnnotationTypeName().map(CodeGenHelper::createClassName).orElse(null);
+        if (nullMarkedAnnotation != null) {
+            codeWriter.writePackageInfo(config.packageName(), codeGenHelper.createPackageInfoContent(nullMarkedAnnotation));
+        }
 
         var languageUtilsConfig = codeGenHelper.languageUtilsConfig();
         if (languageUtilsConfig != null) {

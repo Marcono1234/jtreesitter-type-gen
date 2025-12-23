@@ -12,6 +12,7 @@ import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.NodeUtilsGen
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.TypedNodeInterfaceGenerator;
 import org.jspecify.annotations.Nullable;
 
+import javax.annotation.processing.Generated;
 import javax.lang.model.element.Modifier;
 import java.time.Instant;
 import java.util.*;
@@ -87,11 +88,8 @@ public class CodeGenHelper {
         return config.childTypeAsTopLevel();
     }
 
-    /**
-     * Creates a JavaFile builder for the given type. Should be used for all generated top-level types.
-     */
-    public JavaFile.Builder createOwnJavaFileBuilder(TypeSpec.Builder typeBuilder) {
-        config.generatedAnnotationConfig().ifPresent(generatedAnnotationConfig -> {
+    private Optional<AnnotationSpec> createGeneratedAnnotation() {
+        return config.generatedAnnotationConfig().map(generatedAnnotationConfig -> {
             var annotationType = generatedAnnotationConfig.annotationType();
 
             StringBuilder comments = new StringBuilder();
@@ -116,10 +114,48 @@ public class CodeGenHelper {
                     generatedAnnotationBuilder.addMember(name, "$S", comments);
                 });
             }
-            typeBuilder.addAnnotation(generatedAnnotationBuilder.build());
+            return generatedAnnotationBuilder.build();
         });
+    }
 
+    /**
+     * Creates a JavaFile builder for the given type. Should be used for all generated top-level types.
+     */
+    public JavaFile.Builder createOwnJavaFileBuilder(TypeSpec.Builder typeBuilder) {
+        createGeneratedAnnotation().ifPresent(typeBuilder::addAnnotation);
         return JavaFile.builder(config.packageName(), typeBuilder.build());
+    }
+
+    /**
+     * Creates the Java source content for a {@code package-info.java} file.
+     */
+    public String createPackageInfoContent(ClassName nullMarkedAnnotationType) {
+        // TODO: JavaPoet does not support this natively yet, see https://github.com/square/javapoet/issues/666 (no corresponding issue in https://github.com/palantir/javapoet exists yet)
+        //   therefore have to create this manually
+
+        var generatedAnnotation = createGeneratedAnnotation().orElse(null);
+        if (generatedAnnotation != null && !generatedAnnotation.type().equals(ClassName.get(Generated.class))) {
+            // To be safe don't support custom annotation types for now because they might need custom handling
+            generatedAnnotation = null;
+        }
+
+        StringBuilder contentBuilder = new StringBuilder();
+        if (generatedAnnotation != null) {
+            // Use `toString()` here which emits the annotation as valid Java code
+            // This seems to work as expected because currently only String elements are supported for the annotation,
+            // so no additional imports are needed. Though the code produced by `toString()` is not formatted, and uses
+            // the fully qualified annotation type name (at least it requires no import then).
+            //noinspection UnnecessaryToStringCall
+            contentBuilder.append(generatedAnnotation.toString()).append('\n');
+        }
+
+        return contentBuilder
+            .append('@').append(nullMarkedAnnotationType.simpleName())
+            .append("\npackage ").append(config.packageName()).append(';')
+            .append('\n')
+            .append("\nimport ").append(nullMarkedAnnotationType.canonicalName()).append(';')
+            .append('\n')
+            .toString();
     }
 
     /**

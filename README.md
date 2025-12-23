@@ -113,6 +113,8 @@ java -jar jtreesitter-type-gen.jar --version
 >   Specify how the generated code can access a jtreesitter `Language` instance of your language. This enables additional validation to ensure that the generated code is compatible with the loaded language and can increase performance.
 > - `--expected-language-version`\
 >   Specify the expected language / grammar version. This adds additional checks to ensure that the generated code is compatible with the loaded language, to avoid difficult to troubleshoot issues when an incompatible language version is used by accident.
+> - `--nullable-annotation org.jspecify.annotations.Nullable`\
+>   Use [JSpecify](https://github.com/jspecify/jspecify) `@Nullable` annotations in the generated code.
 > - `--generated-time`\
 >   Set a custom 'generated time' to make the generated code reproducible. By default, the current time is included as value for `@Generated` annotations in the generated code.
 > - `--generate-typed-query`\

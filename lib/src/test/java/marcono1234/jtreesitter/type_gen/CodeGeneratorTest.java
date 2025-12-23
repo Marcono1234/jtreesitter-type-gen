@@ -8,6 +8,7 @@ import marcono1234.jtreesitter.type_gen.CodeGenConfig.GeneratedAnnotationConfig.
 import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageProviderConfig;
 import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageVersion;
 import marcono1234.jtreesitter.type_gen.NameGenerator.TokenNameGenerator;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -33,6 +34,11 @@ class CodeGeneratorTest {
     private static final boolean UPDATE_EXPECTED = System.getProperty("test-update-expected") != null;
     private static final String JSON_EXTENSION = ".json";
     private static final String EXPECTED_JAVA_EXTENSION = ".expected.java";
+
+    private static final String DEFAULT_PACKAGE_NAME = "org.example";
+    private static final String DEFAULT_NON_EMPTY_NAME = "NonEmpty";
+    private static final CodeGenConfig.ChildTypeAsTopLevel DEFAULT_CHILD_AS_TOP_LEVEL = CodeGenConfig.ChildTypeAsTopLevel.AS_NEEDED;
+    private static final NameGenerator DEFAULT_NAME_GENERATOR = NameGenerator.createDefault(NameGenerator.TokenNameGenerator.AUTOMATIC);
 
     // Use fixed version to avoid test output changes for every version change / Git commit
     private static final CodeGenerator.Version VERSION_INFO = new CodeGenerator.Version(
@@ -99,8 +105,9 @@ class CodeGeneratorTest {
         String baseFileName = fileName.substring(0, fileName.length() - JSON_EXTENSION.length());
         Path expectedFile = nodeTypesFile.resolveSibling(baseFileName + EXPECTED_JAVA_EXTENSION);
 
-        String packageName = baseFileName.contains("(default-package)") ? "" : "org.example";
+        String packageName = baseFileName.contains("(default-package)") ? "" : DEFAULT_PACKAGE_NAME;
         boolean nullableAsOptional = baseFileName.contains("(nullable=Optional)");
+        boolean nullMarked = baseFileName.contains("(nullmarked)");
 
         var childAsTopLevel = baseFileName.contains("(child-top-level)") ? CodeGenConfig.ChildTypeAsTopLevel.ALWAYS
             : CodeGenConfig.ChildTypeAsTopLevel.AS_NEEDED;
@@ -118,7 +125,8 @@ class CodeGeneratorTest {
         var config = new CodeGenConfig(
             packageName,
             nullableAsOptional ? Optional.empty() : Optional.of(TypeName.JSPECIFY_NULLABLE_ANNOTATION),
-            "NonEmpty",
+            nullMarked ? Optional.of(TypeName.JSPECIFY_NULLMARKED_ANNOTATION) : Optional.empty(),
+            DEFAULT_NON_EMPTY_NAME,
             childAsTopLevel,
             Optional.ofNullable(typedNodeSuperinterface),
             nameGenerator,
@@ -164,19 +172,32 @@ class CodeGeneratorTest {
          *  is difficult due to the concatenation performed here; see also https://github.com/ascopes/java-compiler-testing/issues/720#issuecomment-2351004590
          *  (could consider raising this as feature request though, to include minimal context in the compilation error messages again)
          */
-        List<JavaFile> actualGeneratedFiles = new ArrayList<>();
+        List<JavaFileSource> actualGeneratedFiles = new ArrayList<>();
         StringBuilder actualContent = new StringBuilder();
-        CodeGenerator.JavaCodeWriter codeWriter = javaCode -> {
-            actualGeneratedFiles.add(javaCode);
-            try {
-                javaCode.writeTo(actualContent);
-            } catch (IOException e) {
-                throw new CodeGenException("Failed writing code", e);
+        var codeWriter = new CodeGenerator.JavaCodeWriter() {
+            private void appendFileContentSeparator() {
+                actualContent.append("\n\n/* ");
+                actualContent.append("=".repeat(20));
+                actualContent.append(" */ \n\n");
             }
 
-            actualContent.append("\n\n/* ");
-            actualContent.append("=".repeat(20));
-            actualContent.append(" */ \n\n");
+            @Override
+            public void write(@NonNull JavaFile javaCode) throws CodeGenException {
+                actualGeneratedFiles.add(new JavaFileSource(javaCode));
+                try {
+                    javaCode.writeTo(actualContent);
+                } catch (IOException e) {
+                    throw new CodeGenException("Failed writing code", e);
+                }
+                appendFileContentSeparator();
+            }
+
+            @Override
+            public void writePackageInfo(@NonNull String packageName, @NonNull String content) {
+                actualGeneratedFiles.add(new JavaFileSource(packageName, "package-info.java", content));
+                actualContent.append(content);
+                appendFileContentSeparator();
+            }
         };
         new CodeGenerator(config).generate(nodeTypesFile, languageConfig, codeWriter, VERSION_INFO);
 
@@ -223,18 +244,35 @@ class CodeGeneratorTest {
         return pathPieces;
     }
 
-    private static void compileCode(List<JavaFile> javaFiles, CodeGenConfig codeGenConfig, boolean hasRootNode, boolean usesLanguageProvider) throws Exception {
+    private record JavaFileSource(
+        String packageName,
+        String fileName,
+        String source
+    ) {
+        private static String getSource(JavaFile javaFile) {
+            var sourceCode = new StringBuilder();
+            try {
+                javaFile.writeTo(sourceCode);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            return sourceCode.toString();
+        }
+
+        JavaFileSource(JavaFile javaFile) {
+            this(javaFile.packageName(), javaFile.typeSpec().name() + ".java", getSource(javaFile));
+        }
+    }
+
+    private static void compileCode(List<JavaFileSource> javaFiles, CodeGenConfig codeGenConfig, boolean hasRootNode, boolean usesLanguageProvider) {
         var compiler = JctCompilers.newPlatformCompiler();
         try (var workspace = Workspaces.newWorkspace(PathStrategy.RAM_DIRECTORIES)) {
             var sourcePath = workspace.createSourcePathPackage();
 
             for (var javaFile : javaFiles) {
-                var sourceCode = new StringBuilder();
-                javaFile.writeTo(sourceCode);
-
-                var filePath = createFilePath(javaFile.packageName(), javaFile.typeSpec().name() + ".java");
+                var filePath = createFilePath(javaFile.packageName(), javaFile.fileName());
                 sourcePath.createFile(filePath)
-                    .withContents(sourceCode.toString());
+                    .withContents(javaFile.source());
             }
 
             boolean hasTypedNodeSuperinterface = codeGenConfig.typedNodeSuperinterface().isPresent();
@@ -325,13 +363,41 @@ class CodeGeneratorTest {
         }
     }
 
+    /** Code writer which throws assertion errors when any of its methods are called. */
+    private static class ThrowingCodeWriter implements CodeGenerator.JavaCodeWriter {
+        private final AtomicBoolean wasCalled = new AtomicBoolean(false);
+
+        private void fail() {
+            // Set that code writer was called, in case AssertionError thrown below is discarded somewhere
+            wasCalled.set(true);
+            throw new AssertionError("should not be called");
+        }
+
+        @Override
+        public void write(@NonNull JavaFile javaCode) {
+            fail();
+        }
+
+        @Override
+        public void writePackageInfo(@NonNull String packageName, @NonNull String content) {
+            fail();
+        }
+
+        public void verifyNotCalled() {
+            if (wasCalled.get()) {
+                throw new AssertionError("has been called, and original assertion error has been discarded");
+            }
+        }
+    }
+
     @Test
     void testError_NonExistentNodeTypesFile(@TempDir Path tempDir) {
         var config = new CodeGenConfig(
-            "org.example",
+            DEFAULT_PACKAGE_NAME,
             Optional.empty(),
-            "NonEmpty",
-            CodeGenConfig.ChildTypeAsTopLevel.NEVER,
+            Optional.empty(),
+            DEFAULT_NON_EMPTY_NAME,
+            DEFAULT_CHILD_AS_TOP_LEVEL,
             Optional.empty(),
             NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
             Optional.empty(),
@@ -339,31 +405,25 @@ class CodeGeneratorTest {
         );
         var codeGenerator = new CodeGenerator(config);
 
-        var calledCodeWriter = new AtomicBoolean(false);
-        CodeGenerator.JavaCodeWriter codeWriter = _ -> {
-            // Set that code writer was called, in case AssertionError thrown below is discarded somewhere
-            calledCodeWriter.set(true);
-
-            throw new AssertionError("should not be called");
-        };
-
+        var codeWriter = new ThrowingCodeWriter();
         Path nodeTypesFile = tempDir.resolve("does-not-exist.json");
 
         var languageConfig = new LanguageConfig(Optional.empty(), Map.of(), Optional.empty(), Optional.empty());
         var e = assertThrows(CodeGenException.class, () -> codeGenerator.generate(nodeTypesFile, languageConfig, codeWriter, VERSION_INFO));
         assertEquals("Failed reading node types file: " + nodeTypesFile, e.getMessage());
-        assertFalse(calledCodeWriter.get());
+        codeWriter.verifyNotCalled();
     }
 
     @Test
     void testError_FileAsOutputDir(@TempDir Path tempDir) throws Exception {
         var config = new CodeGenConfig(
-            "org.example",
+            DEFAULT_PACKAGE_NAME,
             Optional.empty(),
-            "NonEmpty",
-            CodeGenConfig.ChildTypeAsTopLevel.NEVER,
             Optional.empty(),
-            NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
+            DEFAULT_NON_EMPTY_NAME,
+            DEFAULT_CHILD_AS_TOP_LEVEL,
+            Optional.empty(),
+            DEFAULT_NAME_GENERATOR,
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
@@ -390,12 +450,13 @@ class CodeGeneratorTest {
     @Test
     void testError_UnknownRootType() {
         var config = new CodeGenConfig(
-            "org.example",
+            DEFAULT_PACKAGE_NAME,
             Optional.empty(),
-            "NonEmpty",
-            CodeGenConfig.ChildTypeAsTopLevel.NEVER,
             Optional.empty(),
-            NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
+            DEFAULT_NON_EMPTY_NAME,
+            DEFAULT_CHILD_AS_TOP_LEVEL,
+            Optional.empty(),
+            DEFAULT_NAME_GENERATOR,
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
@@ -410,15 +471,13 @@ class CodeGeneratorTest {
             ]
             """;
 
-        CodeGenerator.JavaCodeWriter codeWriter = _ -> {
-            // ignored
-        };
-
         String rootNode = "does-not-exist";
 
         var languageConfig = new LanguageConfig(Optional.of(rootNode), Map.of(), Optional.empty(), Optional.empty());
+        var codeWriter = new ThrowingCodeWriter();
         var e = assertThrows(CodeGenException.class, () -> codeGenerator.generate(new StringReader(nodeTypesJson), languageConfig, codeWriter, VERSION_INFO));
         assertEquals("Root node type '%s' not found".formatted(rootNode), e.getMessage());
+        codeWriter.verifyNotCalled();
     }
 
     /**
@@ -428,12 +487,13 @@ class CodeGeneratorTest {
     @Test
     void testError_JsonRootAndUserRoot() {
         var config = new CodeGenConfig(
-            "org.example",
+            DEFAULT_PACKAGE_NAME,
             Optional.empty(),
-            "NonEmpty",
-            CodeGenConfig.ChildTypeAsTopLevel.NEVER,
             Optional.empty(),
-            NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
+            DEFAULT_NON_EMPTY_NAME,
+            DEFAULT_CHILD_AS_TOP_LEVEL,
+            Optional.empty(),
+            DEFAULT_NAME_GENERATOR,
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
@@ -449,18 +509,16 @@ class CodeGeneratorTest {
             ]
             """;
 
-        CodeGenerator.JavaCodeWriter codeWriter = _ -> {
-            // ignored
-        };
-
         String rootNode = "my_node";
 
         var languageConfig = new LanguageConfig(Optional.of(rootNode), Map.of(), Optional.empty(), Optional.empty());
+        var codeWriter = new ThrowingCodeWriter();
         var e = assertThrows(CodeGenException.class, () -> codeGenerator.generate(new StringReader(nodeTypesJson), languageConfig, codeWriter, VERSION_INFO));
         assertEquals(
             "Should not explicitly specify root node type when 'node-types.json' already specifies root node ('my_node')",
             e.getMessage()
         );
+        codeWriter.verifyNotCalled();
     }
 
     /**
@@ -470,12 +528,13 @@ class CodeGeneratorTest {
     @Test
     void testError_UnknownReferencedNodeType() {
         var config = new CodeGenConfig(
-            "org.example",
+            DEFAULT_PACKAGE_NAME,
             Optional.empty(),
-            "NonEmpty",
-            CodeGenConfig.ChildTypeAsTopLevel.NEVER,
             Optional.empty(),
-            NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
+            DEFAULT_NON_EMPTY_NAME,
+            DEFAULT_CHILD_AS_TOP_LEVEL,
+            Optional.empty(),
+            DEFAULT_NAME_GENERATOR,
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
@@ -503,16 +562,14 @@ class CodeGeneratorTest {
             ]
             """;
 
-        CodeGenerator.JavaCodeWriter codeWriter = _ -> {
-            // ignored
-        };
-
         var languageConfig = new LanguageConfig(Optional.empty(), Map.of(), Optional.empty(), Optional.empty());
+        var codeWriter = new ThrowingCodeWriter();
         var e = assertThrows(NoSuchElementException.class, () -> codeGenerator.generate(new StringReader(nodeTypesJson), languageConfig, codeWriter, VERSION_INFO));
         assertEquals(
             "Unknown type name: as_pattern_target\nPotential tree-sitter bug https://github.com/tree-sitter/tree-sitter/issues/1654",
             e.getMessage()
         );
+        codeWriter.verifyNotCalled();
     }
 
     @Test

@@ -19,6 +19,13 @@ import java.util.Optional;
  *      be {@link TypeName#JSPECIFY_NULLABLE_ANNOTATION}.<br>
  *      If empty, no annotation is used and instead {@link Optional} is used in the generated code for
  *      nullable values.
+ * @param nullMarkedPackageAnnotationTypeName
+ *      Qualified name of the {@code @NullMarked} annotation to use in the generated code, can for example
+ *      be {@link TypeName#JSPECIFY_NULLMARKED_ANNOTATION}.<br>
+ *      If specified, a {@code package-info.java} file will be generated which is annotated with the annotation.
+ *      This indicates to IDEs and tools that all type references in the package should be treated as non-null
+ *      unless explicitly marked nullable.<br>
+ *      This option can only be used if {@code nullableAnnotationTypeName} is specified as well.
  * @param nonEmptyTypeName
  *      Simple type name of an annotation type to be generated and used for methods which return non-empty
  *      collections. The annotation is mainly intended for documentation purposes. For example {@code NonEmpty}.
@@ -46,6 +53,7 @@ public record CodeGenConfig(
     String packageName,
     // TODO: For Nullable annotation maybe allow configuring whether to put on method, or on type
     Optional<TypeName> nullableAnnotationTypeName,
+    Optional<TypeName> nullMarkedPackageAnnotationTypeName,
     // TODO: Maybe make 'non empty' annotation optional as well, in case users don't want it?
     String nonEmptyTypeName,
     ChildTypeAsTopLevel childTypeAsTopLevel,
@@ -56,7 +64,13 @@ public record CodeGenConfig(
 ) {
     public CodeGenConfig {
         JavaNameValidator.checkPackageName(packageName);
+
         Objects.requireNonNull(nullableAnnotationTypeName);
+        Objects.requireNonNull(nullMarkedPackageAnnotationTypeName);
+        if (nullMarkedPackageAnnotationTypeName.isPresent() && nullableAnnotationTypeName.isEmpty()) {
+            throw new IllegalArgumentException("Cannot use null-marked annotation when nullable annotation is not specified");
+        }
+
         JavaNameValidator.checkTypeName(nonEmptyTypeName, false);
         Objects.requireNonNull(childTypeAsTopLevel);
         nameGenerator = validatingNameGenerator(nameGenerator);

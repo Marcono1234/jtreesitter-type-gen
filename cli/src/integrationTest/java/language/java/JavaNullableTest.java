@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
+import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 
@@ -593,7 +594,9 @@ class JavaNullableTest extends AbstractTypedTreeTest {
         var e = assertThrows(IllegalArgumentException.class, () -> queryNode.textAnyOf(new String[0]));
         assertEquals("Must specify at least one string", e.getMessage());
 
+        //noinspection DataFlowIssue; for `null` as @NonNull
         assertThrows(NullPointerException.class, () -> queryNode.textAnyOf((String[]) null));
+        //noinspection DataFlowIssue; for `null` as @NonNull
         assertThrows(NullPointerException.class, () -> queryNode.textAnyOf("a", null));
     }
 
@@ -804,7 +807,7 @@ class JavaNullableTest extends AbstractTypedTreeTest {
 
         var q = new TypedQuery.Builder<CustomCollector>();
         var query = q.nodeClassDeclaration()
-            .withFieldName(q.nodeIdentifier().matching(s -> s.allMatch(n -> n.getText().startsWith("My"))))
+            .withFieldName(q.nodeIdentifier().matching(s -> s.allMatch(n -> requireNonNull(n.getText()).startsWith("My"))))
             .withFieldBody(q.nodeClassBody().withChildren(
                 q.nodeFieldDeclaration()
                     .withFieldDeclarator(q.alternation(

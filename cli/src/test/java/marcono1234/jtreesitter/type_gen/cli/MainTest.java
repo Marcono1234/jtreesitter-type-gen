@@ -1,6 +1,8 @@
 package marcono1234.jtreesitter.type_gen.cli;
 
 import marcono1234.jtreesitter.type_gen.CodeGenerator;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import picocli.CommandLine;
@@ -432,6 +434,135 @@ class MainTest {
 
         assertFiles(outputDir, List.of("com/example/NodeFirst.java", "com/example/NodeUtils.java", "com/example/NonEmpty.java", "com/example/TypedNode.java"));
         assertContains(Files.readString(outputDir.resolve("com/example/NodeFirst.java")), "@MyNullable");
+    }
+
+    @Test
+    void generateCommand_NullMarkedAnnotation(@TempDir Path tempDir) throws IOException {
+        Path nodeTypesFile = tempDir.resolve("node-types.json");
+        Files.writeString(nodeTypesFile, """
+            [
+              {
+                "type": "first",
+                "named": true
+              }
+            ]
+            """);
+        Path outputDir = tempDir.resolve("output");
+
+        assertMainResult(
+            List.of(
+                "--node-types", nodeTypesFile.toString(),
+                "--package", "com.example",
+                "--output-dir", outputDir.toString(),
+                "--nullable-annotation", "com.example.MyNullable",
+                "--nullmarked-package-annotation", "com.example.MyNullMarked"
+            ),
+            CommandLine.ExitCode.OK,
+            stdOut -> assertEquals("[SUCCESS] Successfully generated code in directory: " + outputDir, stdOut),
+            stdErr -> assertEquals("", stdErr)
+        );
+
+        assertFiles(outputDir, List.of("com/example/NodeFirst.java", "com/example/NodeUtils.java", "com/example/NonEmpty.java", "com/example/TypedNode.java", "com/example/package-info.java"));
+        assertContains(Files.readString(outputDir.resolve("com/example/NodeFirst.java")), "@MyNullable");
+        assertContains(Files.readString(outputDir.resolve("com/example/package-info.java")), "@MyNullMarked");
+    }
+
+    @Test
+    void generateCommand_NullMarkedAnnotation_JSpecify_Implicit(@TempDir Path tempDir) throws IOException {
+        Path nodeTypesFile = tempDir.resolve("node-types.json");
+        Files.writeString(nodeTypesFile, """
+            [
+              {
+                "type": "first",
+                "named": true
+              }
+            ]
+            """);
+        Path outputDir = tempDir.resolve("output");
+
+        assertMainResult(
+            List.of(
+                "--node-types", nodeTypesFile.toString(),
+                "--package", "com.example",
+                "--output-dir", outputDir.toString(),
+                // JSpecify @Nullable
+                "--nullable-annotation", Nullable.class.getName()
+                // JSpecify's @NullMarked should be implied
+            ),
+            CommandLine.ExitCode.OK,
+            stdOut -> assertEquals("[SUCCESS] Successfully generated code in directory: " + outputDir, stdOut),
+            stdErr -> assertEquals("", stdErr)
+        );
+
+        assertFiles(outputDir, List.of("com/example/NodeFirst.java", "com/example/NodeUtils.java", "com/example/NonEmpty.java", "com/example/TypedNode.java", "com/example/package-info.java"));
+        assertContains(Files.readString(outputDir.resolve("com/example/NodeFirst.java")), "@" + Nullable.class.getSimpleName());
+        assertContains(Files.readString(outputDir.resolve("com/example/package-info.java")), "@" + NullMarked.class.getSimpleName());
+    }
+
+    @Test
+    void generateCommand_NullMarkedAnnotation_JSpecify_None(@TempDir Path tempDir) throws IOException {
+        Path nodeTypesFile = tempDir.resolve("node-types.json");
+        Files.writeString(nodeTypesFile, """
+            [
+              {
+                "type": "first",
+                "named": true
+              }
+            ]
+            """);
+        Path outputDir = tempDir.resolve("output");
+
+        assertMainResult(
+            List.of(
+                "--node-types", nodeTypesFile.toString(),
+                "--package", "com.example",
+                "--output-dir", outputDir.toString(),
+                // JSpecify @Nullable; normally implies @NullMarked
+                "--nullable-annotation", Nullable.class.getName(),
+                // Do not emit JSpecify @NullMarked annotation
+                "--nullmarked-package-annotation", "-"
+            ),
+            CommandLine.ExitCode.OK,
+            stdOut -> assertEquals("[SUCCESS] Successfully generated code in directory: " + outputDir, stdOut),
+            stdErr -> assertEquals("", stdErr)
+        );
+
+        assertFiles(outputDir, List.of("com/example/NodeFirst.java", "com/example/NodeUtils.java", "com/example/NonEmpty.java", "com/example/TypedNode.java"));
+        assertContains(Files.readString(outputDir.resolve("com/example/NodeFirst.java")), "@" + Nullable.class.getSimpleName());
+    }
+
+    /** Tests using {@code --nullmarked-package-annotation} without specifying {@code --nullable-annotation} */
+    @Test
+    void generateCommand_NullMarkedAnnotation_NoNullable(@TempDir Path tempDir) throws IOException {
+        Path nodeTypesFile = tempDir.resolve("node-types.json");
+        Files.writeString(nodeTypesFile, """
+            [
+              {
+                "type": "first",
+                "named": true
+              }
+            ]
+            """);
+        Path outputDir = tempDir.resolve("output");
+
+        assertMainResult(
+            List.of(
+                "--node-types", nodeTypesFile.toString(),
+                "--package", "com.example",
+                "--output-dir", outputDir.toString(),
+                // Does not specify `--nullable-annotation`
+                "--nullmarked-package-annotation", "com.example.MyNullMarked"
+            ),
+            CommandLine.ExitCode.USAGE,
+            stdOut -> assertEquals("", stdOut),
+            stdErr -> assertContains(
+                stdErr,
+                // Note: This exact message depends on picocli implementation details
+                "Missing required argument(s): --nullable-annotation=<nullableAnnotationTypeName>"
+            )
+        );
+
+        assertFalse(Files.exists(outputDir));
     }
 
     @Test

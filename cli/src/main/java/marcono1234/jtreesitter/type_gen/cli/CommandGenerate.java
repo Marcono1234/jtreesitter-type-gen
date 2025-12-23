@@ -145,16 +145,45 @@ class CommandGenerate implements Callable<Void> {
         private LanguageVersion languageVersion;
     }
 
-    @CommandLine.Option(
-        names = {"--nullable-annotation"},
-        description = {
-            "Qualified name of external @Nullable annotation to use",
-            "If value '-' is used or if not specified, 'java.util.Optional' will be used for all optional values in"
-            + " the generated code.",
-        },
-        converter = DisableableTypeNameConverter.class
+    @CommandLine.ArgGroup(
+        exclusive = false
     )
-    private DisableableArg<TypeName> nullableAnnotationTypeName = DisableableArg.disabled();
+    @Nullable
+    private NullableOptions nullableOptions;
+
+    // Separate arg group so that any of the non-required options here require that `nullableAnnotationTypeName` is specified
+    private static class NullableOptions {
+        @CommandLine.Option(
+            names = {"--nullable-annotation"},
+            description = {
+                "Qualified name of external @Nullable annotation to use",
+                "If not specified, 'java.util.Optional' will be used for all optional values in the generated code.",
+            },
+            converter = TypeNameConverter.class,
+            required = true
+        )
+        private TypeName nullableAnnotationTypeName;
+
+        // Note: Could consider removing this option and always implicitly using @NullMarked when using JSpecify, however
+        //   there might be use cases where the user uses the same package for custom classes and where @NullMarked is undesired (?).
+        //   Therefore, this option supports opt-out for the implicit generation.
+        //   Additionally, having an option for this allows using the null-marked annotation of other nullability libraries as well.
+        @CommandLine.Option(
+            names = {"--nullmarked-package-annotation"},
+            description = {
+                "Qualified name of external @NullMarked annotation to use",
+                "If specified, a 'package-info.java' file will be generated which is annotated with the annotation."
+                + " This indicates to IDEs and tools that all type references in the package should be treated as non-null"
+                + " unless explicitly marked nullable.",
+                "If not specified and the JSpecify @Nullable annotation is used, the corresponding JSpecify @NullMarked"
+                + " annotation will be automatically used. This can be disabled by explicitly specifying the value '-'."
+            },
+            converter = DisableableTypeNameConverter.class
+        )
+        // Nullable to differentiate between "not specified" and "specified but disabled"
+        @Nullable
+        private DisableableArg<TypeName> nullMarkedPackageAnnotationTypeName;
+    }
 
     @CommandLine.Option(
         names = {"--non-empty-annotation-name"},
@@ -177,7 +206,7 @@ class CommandGenerate implements Callable<Void> {
         converter = TypeNameConverter.class
     )
     @Nullable
-    private TypeName typedNodeSuperinterfaceTypeName = null;
+    private TypeName typedNodeSuperinterfaceTypeName;
 
     @CommandLine.Option(
         names = {"--child-type-as-top-level"},
@@ -238,6 +267,7 @@ class CommandGenerate implements Callable<Void> {
             },
             converter = DisableableTypeNameConverter.class
         )
+        // Nullable to differentiate between "not specified" and "specified but disabled"
         @Nullable
         private DisableableArg<TypeName> generatedAnnotationTypeName;
 
@@ -272,6 +302,23 @@ class CommandGenerate implements Callable<Void> {
             @Nullable
             private String generatedComment;
         }
+    }
+
+    private Optional<TypeName> getNullMarkedAnnotationType() {
+        if (nullableOptions == null) {
+            return Optional.empty();
+        }
+
+        var nullMarkedTypeArg = nullableOptions.nullMarkedPackageAnnotationTypeName;
+        // If not specified but @Nullable is from JSpecify, use @NullMarked from JSpecify as well
+        if (nullMarkedTypeArg == null) {
+            var nullableType = nullableOptions.nullableAnnotationTypeName;
+            if (nullableType.equals(TypeName.JSPECIFY_NULLABLE_ANNOTATION)) {
+                return Optional.of(TypeName.JSPECIFY_NULLMARKED_ANNOTATION);
+            }
+            return Optional.empty();
+        }
+        return nullMarkedTypeArg.asOptional();
     }
 
     private Optional<CodeGenConfig.GeneratedAnnotationConfig> getGeneratedAnnotationConfig() {
@@ -373,7 +420,8 @@ class CommandGenerate implements Callable<Void> {
 
         var codeGenConfig = new CodeGenConfig(
             packageName,
-            nullableAnnotationTypeName.asOptional(),
+            nullableOptions == null ? Optional.empty() : Optional.of(nullableOptions.nullableAnnotationTypeName),
+            getNullMarkedAnnotationType(),
             nonEmptyAnnotationSimpleName != null ? nonEmptyAnnotationSimpleName : "NonEmpty",
             childTypeAsTopLevel,
             Optional.ofNullable(typedNodeSuperinterfaceTypeName),

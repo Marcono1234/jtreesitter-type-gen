@@ -1,0 +1,21 @@
+[
+  {
+    "type": "contained",
+    "named": true
+  },
+  {
+    "type": "single_optional",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "contained",
+          "named": true
+        }
+      ]
+    }
+  }
+]

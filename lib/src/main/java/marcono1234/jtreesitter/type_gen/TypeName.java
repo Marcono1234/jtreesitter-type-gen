@@ -1,6 +1,7 @@
 package marcono1234.jtreesitter.type_gen;
 
 import marcono1234.jtreesitter.type_gen.internal.JavaNameValidator;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -15,6 +16,11 @@ public record TypeName(String packageName, String name) {
      */
     // Exists as constant here because jtreesitter uses this annotation, so users can benefit from it transitively
     public static final TypeName JSPECIFY_NULLABLE_ANNOTATION = TypeName.fromClass(Nullable.class);
+
+    /**
+     * Type name of the {@code org.jspecify.annotations.NullMarked} annotation.
+     */
+    public static final TypeName JSPECIFY_NULLMARKED_ANNOTATION = TypeName.fromClass(NullMarked.class);
 
     public TypeName {
         JavaNameValidator.checkPackageName(packageName);
