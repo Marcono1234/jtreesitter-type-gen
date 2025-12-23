@@ -27,6 +27,7 @@ class QNodeCommonGenerator {
     private final ParameterizedTypeName typeQNodeImpl;
     private final ParameterizedTypeName typeQQuantifiable;
     private final ParameterizedTypeName typeQCapturable;
+    private final ParameterizedTypeName typeQCapturableQuantifiable;
 
     private final ParameterSpec paramLanguage;
     final ParameterSpec paramQueryStringBuilder;
@@ -44,6 +45,7 @@ class QNodeCommonGenerator {
         this.typeQNodeImpl = ParameterizedTypeName.get(typedQueryConfig.qNodeImplConfig().name(), typeVarCollector, typeVarNode);
         this.typeQQuantifiable = ParameterizedTypeName.get(typedQueryConfig.qQuantifiableConfig().name(), typeVarCollector, typeVarNode);
         this.typeQCapturable = ParameterizedTypeName.get(typedQueryConfig.qCapturableConfig().name(), typeVarCollector, typeVarNodeBound);
+        this.typeQCapturableQuantifiable = ParameterizedTypeName.get(typedQueryConfig.classQCapturableQuantifiable(), typeVarCollector, typeVarNodeBound);
 
         this.paramLanguage = ParameterSpec.builder(codeGenHelper.jtreesitterConfig().language().className(), "language").build();
         this.paramQueryStringBuilder = ParameterSpec.builder(StringBuilder.class, "queryStringBuilder").build();
@@ -136,6 +138,7 @@ class QNodeCommonGenerator {
 
         String paramNode = "node";
         String varNode = "n";
+        String commentExpectQNodeImpl = "Expect that every " + typeQNode.rawType().simpleName() + " is actually an instance of " + typeQNodeImpl.rawType().simpleName();
         var methodFromNode = MethodSpec.methodBuilder(qNodeImplConfig.methodFromNode())
             .addModifiers(Modifier.STATIC)
             .addTypeVariable(typeVarCollector)
@@ -143,7 +146,7 @@ class QNodeCommonGenerator {
             .returns(typeQNodeImpl)
             .addParameter(typeQNode, paramNode)
             .addStatement(createNonNullCheck(paramNode))
-            .addComment("Expect that every " + typeQNode.rawType().simpleName() + " is actually an instance of " + typeQNodeImpl.rawType().simpleName())
+            .addComment(commentExpectQNodeImpl)
             .addStatement("var $N = ($T) $N", varNode, typeQNodeImpl, paramNode)
             // Verify valid node state here; this assumes that callers of this method are in the process of adding the node as nested subnode
             .addStatement("$N.$N()", varNode, methodVerifyValidState)
@@ -166,7 +169,7 @@ class QNodeCommonGenerator {
             )
             .varargs()
             .returns(typeListQNodeImpl)
-            .addComment("Expect that every " + typeQNode.rawType().simpleName() + " is actually an instance of " + typeQNodeImpl.rawType().simpleName())
+            .addComment(commentExpectQNodeImpl)
             // Uses `List#of` to disallow null elements
             .addStatement("var $N = ($T) ($T) $T.of($N)", varNodes, typeListQNodeImpl, typeListWildcard, List.class, paramNodes)
             // Verify valid node state here; this assumes that callers of this method are in the process of adding the given nodes as nested subnodes
@@ -382,10 +385,7 @@ class QNodeCommonGenerator {
             .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
             .addTypeVariable(typeVarCollector)
             .addTypeVariable(typeVarNode)
-            .superclass(typed
-                ? ParameterizedTypeName.get(typedQueryConfig.classQCapturableQuantifiable(), typeVarCollector, typeVarNodeBound)
-                : typeQQuantifiable
-            )
+            .superclass(typed ? typeQCapturableQuantifiable : typeQQuantifiable)
             .addField(fieldNodes)
             .addMethod(constructor)
             .addMethod(methodBuildQuery)
@@ -475,19 +475,33 @@ class QNodeCommonGenerator {
             .build();
     }
 
+    /*
+     * Note: Theoretically wildcard for named-only nodes (`(_)`) could support filtering and capturing as `TypedNode`
+     * (not as specific subclass though). However:
+     * - this would not be type-safe with the current builder API because `<N>` is used both for "where does not node
+     *   fit as child" and "which node does this represent"
+     *   For wildcard, `N` is unbound to allow using it anywhere in the query, but that also means filtering and capturing
+     *   would not be type-safe.
+     * - it would not be very useful because `TypedNode` itself (not a specific subclass) does not provide any advantage
+     *   over using the jtreesitter Node
+     *
+     * So it would make more sense to support filtering and capturing the untyped Node for wildcards, as proposed in
+     * https://github.com/Marcono1234/jtreesitter-type-gen/issues/13
+     */
     private TypeSpec generateClassQWildcardNode() {
         var qWildcardNodeConfig = typedQueryConfig.qWildcardNodeConfig();
+        var className = qWildcardNodeConfig.name();
 
         var typeSelfWildcard = ParameterizedTypeName.get(
-            qWildcardNodeConfig.name(),
+            className,
             unboundedWildcard(),
             unboundedWildcard()
         );
         var constantNamed = FieldSpec.builder(typeSelfWildcard, qWildcardNodeConfig.constantNamed(), Modifier.STATIC, Modifier.FINAL)
-            .initializer("new $T<>(true)", qWildcardNodeConfig.name())
+            .initializer("new $T<>(true)", className)
             .build();
         var constantNamedOrUnnamed = FieldSpec.builder(typeSelfWildcard, qWildcardNodeConfig.constantNamedOrUnnamed(), Modifier.STATIC, Modifier.FINAL)
-            .initializer("new $T<>(false)", qWildcardNodeConfig.name())
+            .initializer("new $T<>(false)", className)
             .build();
         var fieldIsNamed = FieldSpec.builder(boolean.class, "isNamed", Modifier.PRIVATE, Modifier.FINAL).build();
 
@@ -500,7 +514,7 @@ class QNodeCommonGenerator {
             .addStatement("$N.append($N ? ')' : ']')", paramQueryStringBuilder, fieldIsNamed)
             .build();
 
-        return TypeSpec.classBuilder(qWildcardNodeConfig.name())
+        return TypeSpec.classBuilder(className)
             .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
             .addTypeVariable(typeVarCollector)
             .addTypeVariable(typeVarNode)
@@ -964,10 +978,7 @@ class QNodeCommonGenerator {
             .addAnnotation(SUPPRESS_WARNINGS_VARARGS)
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addTypeVariable(typeVarNode)
-            .returns(typed
-                ? ParameterizedTypeName.get(typedQueryConfig.classQCapturableQuantifiable(), typeVarCollector, typeVarNode)
-                : typeQQuantifiable
-            )
+            .returns(typed ? typeQCapturableQuantifiable : typeQQuantifiable)
             .addParameter(
                 ArrayTypeName.of(ParameterizedTypeName.get(
                     // Must also enforce `QCapturableQuantifiable` here; just requiring `N extends TypedNode` (`typeVarNodeBound`)
