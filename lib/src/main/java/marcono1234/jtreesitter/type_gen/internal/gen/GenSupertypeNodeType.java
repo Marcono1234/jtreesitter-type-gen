@@ -250,7 +250,7 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
 
         typeBuilder.addMethods(generateMethodsFindNodes(codeGenHelper));
 
-        return List.of(codeGenHelper.createOwnJavaFileBuilder(typeBuilder).build());
+        return List.of(codeGenHelper.createOwnJavaFile(typeBuilder));
     }
 
     @Override

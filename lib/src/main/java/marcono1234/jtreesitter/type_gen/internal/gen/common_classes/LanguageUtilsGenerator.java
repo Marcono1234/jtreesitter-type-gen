@@ -134,6 +134,6 @@ public class LanguageUtilsGenerator {
         typeBuilder.addMethod(generateGetTypeIdMethod(languageFieldName));
         typeBuilder.addMethod(generateGetFieldIdMethod(languageFieldName));
 
-        return codeGenHelper.createOwnJavaFileBuilder(typeBuilder).build();
+        return codeGenHelper.createOwnJavaFile(typeBuilder);
     }
 }

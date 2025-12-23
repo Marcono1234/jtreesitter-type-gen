@@ -635,7 +635,7 @@ public class TypedQueryGenerator {
         addTypedQueryMembers(typeBuilder);
 
         // Emit TypedQuery class first
-        javaFiles.addFirst(codeGenHelper.createOwnJavaFileBuilder(typeBuilder).build());
+        javaFiles.addFirst(codeGenHelper.createOwnJavaFile(typeBuilder));
 
         return javaFiles;
     }

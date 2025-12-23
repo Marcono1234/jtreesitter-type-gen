@@ -119,11 +119,11 @@ public class CodeGenHelper {
     }
 
     /**
-     * Creates a JavaFile builder for the given type. Should be used for all generated top-level types.
+     * Creates a JavaFile for the given type. Should be used for all generated top-level types.
      */
-    public JavaFile.Builder createOwnJavaFileBuilder(TypeSpec.Builder typeBuilder) {
+    public JavaFile createOwnJavaFile(TypeSpec.Builder typeBuilder) {
         createGeneratedAnnotation().ifPresent(typeBuilder::addAnnotation);
-        return JavaFile.builder(config.packageName(), typeBuilder.build());
+        return JavaFile.builder(config.packageName(), typeBuilder.build()).build();
     }
 
     /**

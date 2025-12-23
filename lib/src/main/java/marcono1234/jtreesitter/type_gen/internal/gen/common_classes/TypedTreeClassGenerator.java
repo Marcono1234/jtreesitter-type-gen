@@ -160,6 +160,6 @@ public class TypedTreeClassGenerator {
 
         generateBody(typeBuilder, codeGenHelper, rootNodeType);
 
-        return codeGenHelper.createOwnJavaFileBuilder(typeBuilder).build();
+        return codeGenHelper.createOwnJavaFile(typeBuilder);
     }
 }

@@ -108,7 +108,7 @@ public class TypedNodeInterfaceGenerator {
         typeBuilder.addMethod(generateMethodFromNode(nodeTypes));
         typeBuilder.addMethod(generateMethodFromNodeThrowing());
 
-        return codeGenHelper.createOwnJavaFileBuilder(typeBuilder).build();
+        return codeGenHelper.createOwnJavaFile(typeBuilder);
     }
 
     private void generateInstanceMethods(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper) {

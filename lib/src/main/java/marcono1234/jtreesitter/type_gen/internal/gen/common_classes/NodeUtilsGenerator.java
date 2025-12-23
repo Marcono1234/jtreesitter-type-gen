@@ -254,6 +254,6 @@ public class NodeUtilsGenerator {
 
         generateNodeListConverterMethods(typeBuilder);
 
-        return codeGenHelper.createOwnJavaFileBuilder(typeBuilder).build();
+        return codeGenHelper.createOwnJavaFile(typeBuilder);
     }
 }

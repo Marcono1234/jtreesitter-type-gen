@@ -6,7 +6,6 @@ import marcono1234.jtreesitter.type_gen.internal.gen.*;
 import marcono1234.jtreesitter.type_gen.internal.gen.typed_query.TypedQueryConfig.QTypedNodeConfig;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
 import org.jspecify.annotations.Nullable;
-import tools.jackson.databind.type.ClassStack;
 
 import javax.lang.model.element.Modifier;
 
@@ -548,7 +547,7 @@ class QTypedNodeGenerator {
 
         return new QTypedNodeSubclassData(
             nodeData.queryNodeClass(),
-            codeGenHelper.createOwnJavaFileBuilder(typeBuilder).build()
+            codeGenHelper.createOwnJavaFile(typeBuilder)
         );
     }
 
@@ -740,7 +739,7 @@ class QTypedNodeGenerator {
 
         return new QTypedNodeSubclassData(
             nodeData.queryNodeClass(),
-            codeGenHelper.createOwnJavaFileBuilder(typeBuilder).build()
+            codeGenHelper.createOwnJavaFile(typeBuilder)
         );
     }
 }

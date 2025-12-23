@@ -310,7 +310,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
         generateOverriddenObjectMethods(typeBuilder, codeGenHelper, nodeField);
         javaTypes.add(typeBuilder);
 
-        return javaTypes.stream().map(t -> codeGenHelper.createOwnJavaFileBuilder(t).build()).toList();
+        return javaTypes.stream().map(codeGenHelper::createOwnJavaFile).toList();
     }
 
     @Override

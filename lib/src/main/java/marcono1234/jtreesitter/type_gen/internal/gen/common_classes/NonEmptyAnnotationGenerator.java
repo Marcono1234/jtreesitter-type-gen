@@ -38,6 +38,6 @@ public class NonEmptyAnnotationGenerator {
 
         generateJavadoc(typeBuilder);
 
-        return codeGenHelper.createOwnJavaFileBuilder(typeBuilder).build();
+        return codeGenHelper.createOwnJavaFile(typeBuilder);
     }
 }
