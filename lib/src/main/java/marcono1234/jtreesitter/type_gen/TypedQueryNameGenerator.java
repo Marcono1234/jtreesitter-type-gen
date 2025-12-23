@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Objects;
 
 import static marcono1234.jtreesitter.type_gen.internal.JavaNameGeneratorHelper.*;
-import static marcono1234.jtreesitter.type_gen.internal.JavaNameGeneratorHelper.convertSnakeToCamelCase;
 
 /**
  * {@summary Generates names for generated source code elements (classes, fields, methods ...) of the

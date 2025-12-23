@@ -1,7 +1,6 @@
 package util;
 
 import io.github.treesitter.jtreesitter.Language;
-import io.github.treesitter.jtreesitter.Parser;
 
 import java.lang.foreign.*;
 import java.nio.file.Path;
