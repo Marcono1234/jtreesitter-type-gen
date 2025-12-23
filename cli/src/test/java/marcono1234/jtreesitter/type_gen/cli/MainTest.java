@@ -514,6 +514,35 @@ class MainTest {
     }
 
     @Test
+    void generateCommand_TypedNodeSuperinterface(@TempDir Path tempDir) throws IOException {
+        Path nodeTypesFile = tempDir.resolve("node-types.json");
+        Files.writeString(nodeTypesFile, """
+            [
+              {
+                "type": "first",
+                "named": true
+              }
+            ]
+            """);
+        Path outputDir = tempDir.resolve("output");
+
+        assertMainResult(
+            List.of(
+                "--node-types", nodeTypesFile.toString(),
+                "--package", "com.example",
+                "--output-dir", outputDir.toString(),
+                "--typed-node-superinterface", "com.example.TypedNodeSuper"
+            ),
+            CommandLine.ExitCode.OK,
+            stdOut -> assertEquals("[SUCCESS] Successfully generated code in directory: " + outputDir, stdOut),
+            stdErr -> assertEquals("", stdErr)
+        );
+
+        assertFiles(outputDir, List.of("com/example/NodeFirst.java", "com/example/NodeUtils.java", "com/example/NonEmpty.java", "com/example/TypedNode.java"));
+        assertContains(Files.readString(outputDir.resolve("com/example/TypedNode.java")), "interface TypedNode extends TypedNodeSuper");
+    }
+
+    @Test
     void generateCommand_TokenNameMapping(@TempDir Path tempDir) throws IOException {
         Path nodeTypesFile = tempDir.resolve("node-types.json");
         Files.writeString(nodeTypesFile, """

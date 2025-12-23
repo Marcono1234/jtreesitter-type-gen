@@ -141,7 +141,11 @@ public class CodeGenerator {
         }
 
         codeWriter.write(new NodeUtilsGenerator(codeGenHelper).generateCode());
-        codeWriter.write(new TypedNodeInterfaceGenerator(codeGenHelper).generateCode(nodeGens.nodeTypes(), nodeGens.typedNodeSubtypes()));
+        codeWriter.write(new TypedNodeInterfaceGenerator(codeGenHelper).generateCode(
+            config.typedNodeSuperinterface().map(CodeGenHelper::createClassName).orElse(null),
+            nodeGens.nodeTypes(),
+            nodeGens.typedNodeSubtypes()
+        ));
         codeWriter.write(new NonEmptyAnnotationGenerator(codeGenHelper).generateCode());
 
         for (var nodeGen : nodeGens.nodeTypes()) {

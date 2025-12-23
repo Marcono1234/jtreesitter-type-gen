@@ -5,6 +5,6 @@ import marcono1234.jtreesitter.type_gen.TypeName;
 public class DisableableTypeNameConverter extends DisableableArgConverter<TypeName> {
     @Override
     protected TypeName convertValue(String value) {
-        return TypeName.fromQualifiedName(value);
+        return TypeNameConverter.convertToTypeName(value);
     }
 }

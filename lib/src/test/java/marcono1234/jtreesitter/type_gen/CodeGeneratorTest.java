@@ -105,6 +105,9 @@ class CodeGeneratorTest {
         var childAsTopLevel = baseFileName.contains("(child-top-level)") ? CodeGenConfig.ChildTypeAsTopLevel.ALWAYS
             : CodeGenConfig.ChildTypeAsTopLevel.AS_NEEDED;
 
+        var typedNodeSuperinterface = baseFileName.contains("(typed-node-superinterface)") ? TypeName.fromQualifiedName(DUMMY_TYPED_NODE_SUPERINTERFACE)
+            : null;
+
         var tokenNameGenerator = baseFileName.contains("(token-name-generator)") ? TokenNameGenerator.fromMapping(Map.of("", Map.of("", Map.of("<", "LEFT", ">", "RIGHT"))), true)
             : TokenNameGenerator.AUTOMATIC;
         var nameGenerator = NameGenerator.createDefault(tokenNameGenerator);
@@ -117,6 +120,7 @@ class CodeGeneratorTest {
             nullableAsOptional ? Optional.empty() : Optional.of(TypeName.JSPECIFY_NULLABLE_ANNOTATION),
             "NonEmpty",
             childAsTopLevel,
+            Optional.ofNullable(typedNodeSuperinterface),
             nameGenerator,
             Optional.ofNullable(typedQueryNameGenerator),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
@@ -180,7 +184,7 @@ class CodeGeneratorTest {
             Files.writeString(expectedFile, actualContent.toString());
         }
 
-        compileCode(actualGeneratedFiles, config, rootNode != null);
+        compileCode(actualGeneratedFiles, config, rootNode != null, languageProvider != null);
 
         if (UPDATE_EXPECTED) {
             throw new TestAbortedException("Expected file was updated");
@@ -196,14 +200,30 @@ class CodeGeneratorTest {
         assertEquals(expectedContent, actualContent.toString());
     }
 
-    private static String[] createExpectedFilePath(List<String> pathPrefix, String fileName) {
-        List<String> filePath = new ArrayList<>(pathPrefix);
+    private static final String DUMMY_TYPED_NODE_SUPERINTERFACE = "org.example.lang.TypedNodeSuper";
+    private static final String DUMMY_LANGUAGE_PROVIDER_NAME = "org.example.lang.LangProvider";
+
+    private static String[] createFilePath(String packageName, String fileName) {
+        List<String> filePath = new ArrayList<>(Arrays.asList(packageName.split("\\.")));
         filePath.add(fileName);
         return filePath.toArray(String[]::new);
     }
 
-    private static final String DUMMY_LANGUAGE_PROVIDER_NAME = "org.example.lang.LangProvider";
-    private static void compileCode(List<JavaFile> javaFiles, CodeGenConfig codeGenConfig, boolean hasRootNode) throws Exception {
+    private static String[] classNameToSourcePath(String name) {
+        var pathPieces = name.split("\\.");
+        // Append ".java" to class name
+        pathPieces[pathPieces.length - 1] += ".java";
+        return pathPieces;
+    }
+
+    private static String[] classNameToCompiledPath(String name) {
+        var pathPieces = name.split("\\.");
+        // Append ".class" to class name
+        pathPieces[pathPieces.length - 1] += ".class";
+        return pathPieces;
+    }
+
+    private static void compileCode(List<JavaFile> javaFiles, CodeGenConfig codeGenConfig, boolean hasRootNode, boolean usesLanguageProvider) throws Exception {
         var compiler = JctCompilers.newPlatformCompiler();
         try (var workspace = Workspaces.newWorkspace(PathStrategy.RAM_DIRECTORIES)) {
             var sourcePath = workspace.createSourcePathPackage();
@@ -212,38 +232,57 @@ class CodeGeneratorTest {
                 var sourceCode = new StringBuilder();
                 javaFile.writeTo(sourceCode);
 
-                var fragments = new ArrayList<>(Arrays.asList(javaFile.packageName().split("\\.")));
-                fragments.add(javaFile.typeSpec().name() + ".java");
-                sourcePath.createFile(fragments)
+                var filePath = createFilePath(javaFile.packageName(), javaFile.typeSpec().name() + ".java");
+                sourcePath.createFile(filePath)
                     .withContents(sourceCode.toString());
             }
 
-            // Create a dummy "language provider" class
-            var langProviderFragments = DUMMY_LANGUAGE_PROVIDER_NAME.split("\\.");
-            // Append ".java" to class name
-            langProviderFragments[langProviderFragments.length - 1] += ".java";
-            sourcePath.createFile(langProviderFragments)
-                .withContents("""
-                    package org.example.lang;
-                    
-                    import io.github.treesitter.jtreesitter.Language;
-                    
-                    public class LangProvider {
-                        public static final Language field = null;
-                    
-                        public static Language method() {
-                            return null;
+            boolean hasTypedNodeSuperinterface = codeGenConfig.typedNodeSuperinterface().isPresent();
+            if (hasTypedNodeSuperinterface) {
+                // Create a dummy "typed node superinterface"
+                sourcePath.createFile(classNameToSourcePath(DUMMY_TYPED_NODE_SUPERINTERFACE))
+                    .withContents("""
+                        package org.example.lang;
+                        
+                        import io.github.treesitter.jtreesitter.Node;
+                        
+                        public interface TypedNodeSuper {
+                            // Can define `getNode` in the superinterface already so that `TypedNode` effectively overrides it
+                            Node getNode();
+                        
+                            // Can define custom default methods
+                            default int getChildCount() {
+                                return getNode().getChildCount();
+                            }
                         }
-                    
-                        public static Language methodException() throws Exception {
-                            return null;
+                        """);
+            }
+
+            if (usesLanguageProvider) {
+                // Create a dummy "language provider" class
+                sourcePath.createFile(classNameToSourcePath(DUMMY_LANGUAGE_PROVIDER_NAME))
+                    .withContents("""
+                        package org.example.lang;
+                        
+                        import io.github.treesitter.jtreesitter.Language;
+                        
+                        public class LangProvider {
+                            public static final Language field = null;
+                        
+                            public static Language method() {
+                                return null;
+                            }
+                        
+                            public static Language methodException() throws Exception {
+                                return null;
+                            }
+                        
+                            public static Language methodThrowable() throws Throwable {
+                                return null;
+                            }
                         }
-                    
-                        public static Language methodThrowable() throws Throwable {
-                            return null;
-                        }
-                    }
-                    """);
+                        """);
+            }
 
             // Note: `-Xlint:all` might lead to JDK version specific warnings, but Gradle JVM toolchain should make sure
             // specific JDK version is used
@@ -253,20 +292,34 @@ class CodeGeneratorTest {
             assertThatCompilation(compilation)
                 .isSuccessfulWithoutWarnings();
 
-            List<String> expectedDirectory = Arrays.asList(codeGenConfig.packageName().split("\\."));
+            String packageName = codeGenConfig.packageName();
             assertThatCompilation(compilation)
                 .classOutputPackages()
-                .fileExists(createExpectedFilePath(expectedDirectory, codeGenConfig.nonEmptyTypeName() + ".class"))
+                .fileExists(createFilePath(packageName, codeGenConfig.nonEmptyTypeName() + ".class"))
                 .isNotEmptyFile();
             assertThatCompilation(compilation)
                 .classOutputPackages()
-                .fileExists(createExpectedFilePath(expectedDirectory, "TypedNode.class"))
+                .fileExists(createFilePath(packageName, "TypedNode.class"))
                 .isNotEmptyFile();
 
             if (hasRootNode) {
                 assertThatCompilation(compilation)
                     .classOutputPackages()
-                    .fileExists(createExpectedFilePath(expectedDirectory, "TypedTree.class"))
+                    .fileExists(createFilePath(packageName, "TypedTree.class"))
+                    .isNotEmptyFile();
+            }
+
+            if (hasTypedNodeSuperinterface) {
+                assertThatCompilation(compilation)
+                    .classOutputPackages()
+                    .fileExists(classNameToCompiledPath(DUMMY_TYPED_NODE_SUPERINTERFACE))
+                    .isNotEmptyFile();
+            }
+
+            if (usesLanguageProvider) {
+                assertThatCompilation(compilation)
+                    .classOutputPackages()
+                    .fileExists(classNameToCompiledPath(DUMMY_LANGUAGE_PROVIDER_NAME))
                     .isNotEmptyFile();
             }
         }
@@ -279,6 +332,7 @@ class CodeGeneratorTest {
             Optional.empty(),
             "NonEmpty",
             CodeGenConfig.ChildTypeAsTopLevel.NEVER,
+            Optional.empty(),
             NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
@@ -308,6 +362,7 @@ class CodeGeneratorTest {
             Optional.empty(),
             "NonEmpty",
             CodeGenConfig.ChildTypeAsTopLevel.NEVER,
+            Optional.empty(),
             NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
@@ -339,6 +394,7 @@ class CodeGeneratorTest {
             Optional.empty(),
             "NonEmpty",
             CodeGenConfig.ChildTypeAsTopLevel.NEVER,
+            Optional.empty(),
             NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
@@ -376,6 +432,7 @@ class CodeGeneratorTest {
             Optional.empty(),
             "NonEmpty",
             CodeGenConfig.ChildTypeAsTopLevel.NEVER,
+            Optional.empty(),
             NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
@@ -407,16 +464,17 @@ class CodeGeneratorTest {
     }
 
     /**
-     * Tests behavior when an unknown type is referenced. tree-sitter seems to have a bug where aliases can cause
+     * Tests behavior when an unknown node type is referenced. tree-sitter seems to have a bug where aliases can cause
      * this, see https://github.com/tree-sitter/tree-sitter/issues/1654.
      */
     @Test
-    void testError_UnknownReferencedType() {
+    void testError_UnknownReferencedNodeType() {
         var config = new CodeGenConfig(
             "org.example",
             Optional.empty(),
             "NonEmpty",
             CodeGenConfig.ChildTypeAsTopLevel.NEVER,
+            Optional.empty(),
             NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
