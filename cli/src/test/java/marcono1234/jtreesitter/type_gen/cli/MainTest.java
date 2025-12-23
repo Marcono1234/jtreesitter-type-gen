@@ -400,7 +400,7 @@ class MainTest {
             stdErr -> assertContains(
                 stdErr,
                 // Note: This exact message depends on picocli implementation details
-                "Error: Missing required argument(s): --language-provider=<languageProvider>"
+                "Error: Missing required argument(s): --language-provider=<provider>"
             )
         );
 
@@ -558,7 +558,7 @@ class MainTest {
             stdErr -> assertContains(
                 stdErr,
                 // Note: This exact message depends on picocli implementation details
-                "Missing required argument(s): --nullable-annotation=<nullableAnnotationTypeName>"
+                "Missing required argument(s): --nullable-annotation=<qualified-type-name>"
             )
         );
 
@@ -976,7 +976,7 @@ class MainTest {
             stdErr -> assertContains(
                 stdErr,
                 // Note: This exact message depends on picocli implementation details
-                "Error: --generated-annotation=<generatedAnnotationTypeName> and ([--generated-time=<generatedTime>] [--generated-comment=<generatedComment>]) are mutually exclusive (specify only one)"
+                "Error: --generated-annotation=<qualified-type-name> and ([--generated-time=<timestamp>] [--generated-comment=<text>]) are mutually exclusive (specify only one)"
             )
         );
         assertFalse(Files.exists(outputDir));
@@ -996,7 +996,7 @@ class MainTest {
             stdErr -> assertContains(
                 stdErr,
                 // Note: This exact message depends on picocli implementation details
-                "Error: --generated-annotation=<generatedAnnotationTypeName> and ([--generated-time=<generatedTime>] [--generated-comment=<generatedComment>]) are mutually exclusive (specify only one)"
+                "Error: --generated-annotation=<qualified-type-name> and ([--generated-time=<timestamp>] [--generated-comment=<text>]) are mutually exclusive (specify only one)"
             )
         );
         assertFalse(Files.exists(outputDir));
