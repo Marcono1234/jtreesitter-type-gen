@@ -1023,7 +1023,7 @@ class QNodeCommonGenerator {
             .addJavadoc("\non the query builder objects, the result must not be discarded, otherwise the call has no effect.")
             .addJavadoc("\n\n<p>The expected usage looks like this:")
             .addJavadoc("\n{@snippet lang=java :")
-            .addJavadoc("\nvar q = new $T.$N<MyCollector>();", typedQueryConfig.name(), builderConfig.name().simpleName())
+            .addJavadoc("\nvar q = new $N.$N<MyCollector>();", typedQueryConfig.name().simpleName(), builderConfig.name().simpleName())
             .addJavadoc("\nvar typedQuery = q.$N(", builderConfig.methodAlternation())
             .addJavadoc("\n    q.$N(),", builderConfig.methodErrorNode())
             .addJavadoc("\n    q.nodeMyCustomNode().$N((myCollector, node) -> ...)", typedQueryConfig.qCapturableConfig().methodCaptured())

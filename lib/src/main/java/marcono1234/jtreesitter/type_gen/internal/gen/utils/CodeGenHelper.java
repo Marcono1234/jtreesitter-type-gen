@@ -457,7 +457,7 @@ public class CodeGenHelper {
             methodBuilder
                 .addJavadoc("\n\n<h4>Example</h4>")
                 .addJavadoc("\n{@snippet lang=java :")
-                .addJavadoc("\ntry (var nodes = $T.$N(start" + (hasAllocatorParam ? ", allocator" : "") + ")) {", nodeClass, methodName)
+                .addJavadoc("\ntry (var nodes = $N.$N(start" + (hasAllocatorParam ? ", allocator" : "") + ")) {", nodeClass.simpleName(), methodName)
                 .addJavadoc("\n  List<String> texts = nodes.map(n -> n.$N()).toList();", codeGenHelper.jtreesitterConfig().node().methodGetText())
                 .addJavadoc("\n  ...")
                 .addJavadoc("\n}")
