@@ -232,7 +232,6 @@ class QNodeCommonGenerator {
             .addModifiers(Modifier.PUBLIC)
             .returns(typeQNode)
             .addJavadoc("Specifies that the node can occur zero or more times.")
-            .addJavadoc(TreeSitterDoc.QUANTIFICATION_OPERATOR.createJavadocSee())
             .addStatement("return new $T<>(this, '*')", typeQQuantified)
             .build();
 
@@ -240,7 +239,6 @@ class QNodeCommonGenerator {
             .addModifiers(Modifier.PUBLIC)
             .returns(typeQNode)
             .addJavadoc("Specifies that the node must occur one or more times.")
-            .addJavadoc(TreeSitterDoc.QUANTIFICATION_OPERATOR.createJavadocSee())
             .addStatement("return new $T<>(this, '+')", typeQQuantified)
             .build();
 
@@ -248,7 +246,6 @@ class QNodeCommonGenerator {
             .addModifiers(Modifier.PUBLIC)
             .returns(typeQNode)
             .addJavadoc("Specifies that the node is optional (can occur zero or one time).")
-            .addJavadoc(TreeSitterDoc.QUANTIFICATION_OPERATOR.createJavadocSee())
             .addStatement("return new $T<>(this, '?')", typeQQuantified)
             .build();
 
@@ -643,7 +640,7 @@ class QNodeCommonGenerator {
             .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
             .returns(typeQCapturable)
             .addParameter(String.class, paramStr)
-            .addJavadoc("Specifies that the {@linkplain $T#$N text of the node} must not be equal the given text.", jtreesitterNode.className(), jtreesitterNode.methodGetText())
+            .addJavadoc("Specifies that the {@linkplain $T#$N text of the node} must not be equal to the given text.", jtreesitterNode.className(), jtreesitterNode.methodGetText())
             // Uses `List#of` to disallow null elements
             .addStatement("var $N = new $T(\"not-eq\", $T.of($N))", varPredicate, qFilteredConfig.classBuiltinPredicate(), List.class, paramStr)
             .addStatement(createQFilteredReturn(varPredicate))
@@ -685,7 +682,7 @@ class QNodeCommonGenerator {
                     WildcardTypeName.supertypeOf(ParameterizedTypeName.get(ClassName.get(Stream.class), typeVarNode))),
                 paramPredicate
             )
-            .addJavadoc("Specifies that the nodes must fulfill the given predicate.")
+            .addJavadoc("Specifies that the nodes must fulfill the given custom predicate.")
             .addStatement(createNonNullCheck(paramPredicate))
             // Note: In the generated code IntelliJ claims the cast to `typePredicateWildcard` (`Predicate<?>`) is redundant, but without it compilation fails
             .addStatement("$L var $N = ($T) ($T) $N", SUPPRESS_WARNINGS_UNCHECKED, varPredicateU, typePredicateStream, typePredicateWildcard, paramPredicate)
@@ -699,6 +696,7 @@ class QNodeCommonGenerator {
             .addTypeVariable(typeVarNode)
             .addSuperinterface(typeQNode)
             .addJavadoc("Allows specifying predicates which the node must fulfill.")
+            .addJavadoc(TreeSitterDoc.PREDICATES.createJavadocSee())
             .addMethod(methodTextEq)
             .addMethod(methodTextNotEq)
             .addMethod(methodTextAnyOf)
@@ -818,6 +816,7 @@ class QNodeCommonGenerator {
     private TypeSpec generateInterfaceQCapturable() {
         var qCapturableConfig = typedQueryConfig.qCapturableConfig();
         var qNodeImplConfig = typedQueryConfig.qNodeImplConfig();
+        var qFilterableConfig = typedQueryConfig.qFilterableConfig();
         var typeVarNode = this.typeVarNodeBound;
 
         String paramCaptureHandler = "captureHandler";
@@ -829,7 +828,6 @@ class QNodeCommonGenerator {
                 paramCaptureHandler
             )
             .addJavadoc("Specifies that matching nodes should be captured during query execution and provided to the given capture handler.")
-            .addJavadoc(TreeSitterDoc.CAPTURE.createJavadocSee())
             .addStatement(createNonNullCheck(paramCaptureHandler))
             .addStatement("return new $T<>($T.$N(this), $N)", typedQueryConfig.classQCaptured(), qNodeImplConfig.name(), qNodeImplConfig.methodFromNode(), paramCaptureHandler)
             .build();
@@ -838,8 +836,13 @@ class QNodeCommonGenerator {
             .addModifiers(Modifier.PUBLIC, Modifier.SEALED)
             .addTypeVariable(typeVarCollector)
             .addTypeVariable(typeVarNode)
-            .addSuperinterface(ParameterizedTypeName.get(typedQueryConfig.qFilterableConfig().name(), typeVarCollector, typeVarNode))
-            .addJavadoc("Allows capturing a node and accessing it during query execution. See the {@link $T} documentation for more information.", typedQueryConfig.name())
+            // TODO: Should this really extend QFilterable, or would it be cleaner if subtypes implemented both QFilterable and QCapturable? (and the Javadoc was adjusted)
+            .addSuperinterface(ParameterizedTypeName.get(qFilterableConfig.name(), typeVarCollector, typeVarNode))
+            .addJavadoc("Allows capturing nodes and accessing them during query execution. See the {@link $T} documentation for more information.", typedQueryConfig.name())
+            .addJavadoc("\n\n<p>Capturable nodes are also {@linkplain $T filterable}. To do both, first use one of the filtering", qFilterableConfig.name())
+            .addJavadoc("\nmethods such as {@link #$N} and afterwards the capturing method {@link #$N}.", qFilterableConfig.methodTextEq(), methodCaptured)
+            .addJavadoc("\nCalling the methods in the opposite order is not possible.")
+            .addJavadoc(TreeSitterDoc.CAPTURE.createJavadocSee())
             .addMethod(methodCaptured)
             .build();
     }
@@ -962,7 +965,7 @@ class QNodeCommonGenerator {
      * @param qTypeName
      *      class name of the query builder class which corresponds to the node type
      * @param nodeType
-     *      node type name, as it appears in  {@code node-types.json}
+     *      node type name, as it appears in {@code node-types.json}
      * @see #generateBuilderClass(List)
      */
     public record QTypedNodeBuilderMethodData(String methodName, ClassName qTypeName, String nodeType) {
@@ -1018,7 +1021,7 @@ class QNodeCommonGenerator {
 
         typeBuilder
             .addJavadoc("Provides convenience methods for obtaining typed query builder objects.")
-            .addJavadoc("\n\n<p>The methods are non-static to help with type inference for the {@code <$T>} type variable.", typeVarCollector)
+            .addJavadoc("\n\n<p>The methods are non-static to help with type inference for the type variable {@code <$T>}.", typeVarCollector)
             .addJavadoc("\nThis builder as well as all returned builder objects are immutable. That means when calling any methods")
             .addJavadoc("\non the query builder objects, the result must not be discarded, otherwise the call has no effect.")
             .addJavadoc("\n\n<p>The expected usage looks like this:")
@@ -1027,7 +1030,7 @@ class QNodeCommonGenerator {
             .addJavadoc("\nvar typedQuery = q.$N(", builderConfig.methodAlternation())
             .addJavadoc("\n    q.$N(),", builderConfig.methodErrorNode())
             .addJavadoc("\n    q.nodeMyCustomNode().$N((myCollector, node) -> ...)", typedQueryConfig.qCapturableConfig().methodCaptured())
-            .addJavadoc("\n  ).$N(" + (codeGenHelper.languageUtilsConfig() == null ? "language" : "") + ")", typedQueryConfig.qNodeConfig().methodBuildQuery())
+            .addJavadoc("\n  ).$N(" + (codeGenHelper.languageUtilsConfig() == null ? "language" : "") + ");", typedQueryConfig.qNodeConfig().methodBuildQuery())
             .addJavadoc("\n}");
 
         typeBuilder
@@ -1043,7 +1046,7 @@ class QNodeCommonGenerator {
 
         typeBuilder
             .addJavadoc("\n\n<h2>Node type builder methods</h2>")
-            .addJavadoc("Additionally for each node type defined in the Tree-sitter grammar a dedicated query builder method exists:");
+            .addJavadoc("\nAdditionally for each named node type defined in the Tree-sitter grammar a dedicated query builder method exists:");
         // TODO: Should generate HTML table instead of list?
         typeBuilder.addJavadoc("\n<ul>");
         // TODO: Sort these type names lexicographically (maybe already in `CodeGenerator`?)? It seems tree-sitter only emits them partially sorted;
@@ -1119,7 +1122,7 @@ class QNodeCommonGenerator {
                 .addModifiers(Modifier.PUBLIC)
                 .addTypeVariable(typeVarNode)
                 .returns(typeQQuantifiable)
-                .addJavadoc("Provides a query a builder for a wildcard node which matches any node (named or unnamed).")
+                .addJavadoc("Provides a query builder for a wildcard node which matches any node (named or unnamed).")
                 .addJavadoc(javadocUnboundN)
                 .addJavadoc(TreeSitterDoc.WILDCARD_NODE.createJavadocSee())
                 .addStatement("return ($T) $T.$N", typeQWildcardNodeParameterized, typeQWildcardNode, qWildcardNodeConfig.constantNamedOrUnnamed())
@@ -1136,7 +1139,7 @@ class QNodeCommonGenerator {
                 .addModifiers(Modifier.PUBLIC)
                 .addTypeVariable(typeVarNode)
                 .returns(typeQQuantifiable)
-                .addJavadoc("Provides a query builder which matches any ERROR node.")
+                .addJavadoc("Provides a query builder which matches an ERROR node.")
                 .addJavadoc(javadocUnboundN)
                 .addJavadoc(TreeSitterDoc.ERROR_NODE.createJavadocSee())
                 .addStatement("return ($T) $T.$N", typeQErrorNodeParameterized, typeQErrorNode, qErrorNodeConfig.constantInstance())
@@ -1153,7 +1156,7 @@ class QNodeCommonGenerator {
                 .addModifiers(Modifier.PUBLIC)
                 .addTypeVariable(typeVarNode)
                 .returns(typeQQuantifiable)
-                .addJavadoc("Provides a query builder which matches any MISSING node.")
+                .addJavadoc("Provides a query builder which matches a MISSING node.")
                 .addJavadoc(javadocUnboundN)
                 .addJavadoc(TreeSitterDoc.MISSING_NODE.createJavadocSee())
                 .addStatement("return ($T) $T.$N", typeQMissingNodeParameterized, typeQMissingNode, qMissingNodeConfig.constantAny())
@@ -1189,7 +1192,7 @@ class QNodeCommonGenerator {
             var method = MethodSpec.methodBuilder(builderMethodData.methodName())
                 .addModifiers(Modifier.PUBLIC)
                 .returns(ParameterizedTypeName.get(builderMethodData.qTypeName(), typeVarCollector))
-                .addJavadoc("Provides a query builder which matches nodes of type $L.", CodeGenHelper.createJavadocCodeTag(builderMethodData.nodeType))
+                .addJavadoc("Provides a query builder which matches a node of type $L.", CodeGenHelper.createJavadocCodeTag(builderMethodData.nodeType))
                 .addStatement("return new $T<>()", builderMethodData.qTypeName())
                 .build();
             typeBuilder.addMethod(method);

@@ -352,17 +352,17 @@ class QTypedNodeGenerator {
             .addTypeVariable(typeVarCollector)
             .addTypeVariable(typeVarNodeBound)
             .superclass(ParameterizedTypeName.get(typedQueryConfig.classQCapturableQuantifiable(), typeVarCollector, typeVarNodeBound))
-            .addJavadoc("Base type for all query builder classes representing node types as defined in the Tree-sitter {@code node-types.json} file.")
-            .addJavadoc("\n\n<p>The following query functionality is provided. If multiple of these are used, they must be applied in this order.")
+            .addJavadoc("Base type for all query builder classes representing named node types as defined in the Tree-sitter grammar.")
+            .addJavadoc("\n\n<p>The following query functionality is provided. If multiple of these methods are used, they must be applied in this order.")
             .addJavadoc("\nWhen used in a different order the query builder API might not support calling all of these methods.")
             .addJavadoc("\n<ol>")
             .addJavadoc("\n<li>children and field requirements")
             .addJavadoc(providedBySubclassesJavadoc)
-            .addJavadoc("\n<li>supertype requirements, to match contexts where the node is used as subtype of one of its supertypes")
+            .addJavadoc("\n<li>supertype requirements, to match only contexts where the node is used as subtype of one of its supertypes")
             .addJavadoc(providedBySubclassesJavadoc)
-            .addJavadoc("\n<li>{@linkplain $T quantifying operator}", typedQueryConfig.qQuantifiableConfig().name())
-            .addJavadoc("\n<li>{@linkplain $T filtering requirements}", typedQueryConfig.qFilterableConfig().name())
-            .addJavadoc("\n<li>{@linkplain $T capturing matches}", typedQueryConfig.qCapturableConfig().name())
+            .addJavadoc("\n<li>{@linkplain $T quantifying matches}", typedQueryConfig.qQuantifiableConfig().name())
+            .addJavadoc("\n<li>{@linkplain $T filtering nodes}", typedQueryConfig.qFilterableConfig().name())
+            .addJavadoc("\n<li>{@linkplain $T capturing matching nodes}", typedQueryConfig.qCapturableConfig().name())
             .addJavadoc("\n<li>as 'extra' node (method {@code $N})", qTypedNodeConfig.methodAsExtra())
             .addJavadoc(providedBySubclassesJavadoc)
             .addJavadoc("\n</ol>")
@@ -441,7 +441,7 @@ class QTypedNodeGenerator {
      * @param builderMethodName
      *      name of the corresponding factory method in the {@code Builder} class
      * @param nodeType
-     *      node type as it appears in {@code node-types.json}
+     *      node type name, as it appears in {@code node-types.json}
      * @param isExtra
      *      whether this node type is an 'extra' node
      */
@@ -613,8 +613,8 @@ class QTypedNodeGenerator {
         if (childClassName == null) {
             methodWithChildrenBuilder
                 .addJavadoc("\n\n<p>The children type has {@code Void} as node type argument because the Tree-sitter grammar has no")
-                .addJavadoc("\nexplicit children types defined for this node. However, by using {@code Void} this method still permits")
-                .addJavadoc("\nall wildcard-like query node types which have an unbound node type, such as")
+                .addJavadoc("\nexplicit children types defined for this node type. However, by using {@code Void} this method still")
+                .addJavadoc("\npermits all wildcard-like query node types which have an unbound node type, such as")
                 .addJavadoc("\n{@link $T#$N()}.", typedQueryConfig.builderConfig().name(), typedQueryConfig.builderConfig().methodErrorNode());
         }
 

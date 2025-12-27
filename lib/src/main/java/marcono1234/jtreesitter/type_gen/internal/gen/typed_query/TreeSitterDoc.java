@@ -16,6 +16,7 @@ enum TreeSitterDoc {
     GROUP("2-operators.html#grouping-sibling-nodes", "grouping sibling nodes"),
     ALTERNATION("2-operators.html#alternations", "alternations"),
     ANCHOR("2-operators.html#anchors", "anchors"),
+    PREDICATES("3-predicates-and-directives.html#predicates", "predicates"),
     ;
 
     private final String url;

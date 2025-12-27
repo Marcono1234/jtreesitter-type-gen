@@ -1889,12 +1889,11 @@ import javax.annotation.processing.Generated;
  * and makes them available after the query execution. In the typed query API this is represented as type variable {@code <C>}.
  * The collector is specified when query captures are retrieved using {@link TypedQuery.TypedQueryMatch#collectCaptures}.
  * <li>a {@linkplain TypedQuery.CaptureHandler 'capture handler'}<br>
- * This interface is implemented by the user. Capture handlers are registered using {@link TypedQuery.QCapturable#captured}.
- * They are called with the user-defined 'collector' and the captured node, and are then supposed to pass the
- * node to the collector.
+ * This interface is implemented by the user. Capture handlers are called with the user-defined 'collector'
+ * and the captured node, and are then supposed to pass the node to the collector. Capture handlers are registered using {@link TypedQuery.QCapturable#captured}.
  * </ul>
  * In the simplest case the 'collector' might just be a {@code List<TypedNode>} and the 'capture handlers'
- * are {@code List::add}. That means when {@code collectCaptures} is called a {@code List} is provided, the capture handlers
+ * are {@code List::add}. That means {@code collectCaptures} is called with a {@code List} as argument, the capture handlers
  * add the nodes to the list, and afterwards the captured nodes can be retrieved from the list.
  *
  * <p>However, depending on the use case a custom type might provide more flexibility. Consider this example
@@ -1914,7 +1913,7 @@ import javax.annotation.processing.Generated;
  * var typedQuery = q.alternation(
  *     q.nodeStringLiteral().captured((myCollector, node) -> myCollector.addStringLiteral(node)),
  *     q.nodeIntLiteral().captured((myCollector, node) -> myCollector.addIntLiteral(node))
- *   ).buildQuery(language)
+ *   ).buildQuery(language);
  *
  * try (var matches = typedQuery.findMatches(startNode)) {
  *   var myCollector = new MyCollector();
@@ -1938,7 +1937,7 @@ import javax.annotation.processing.Generated;
  *       // Capture int literals which are used as initializer
  *       .withFieldInitializer(q.nodeIntLiteral().captured(List::add))
  *   ))
- *   .buildQuery(language)
+ *   .buildQuery(language);
  *
  * try (var matches = typedQuery.findMatches(startNode)) {
  *   var intLiterals = new ArrayList<NodeIntLiteral>();
@@ -2011,9 +2010,7 @@ public final class TypedQuery<C> implements AutoCloseable {
    * {@snippet lang=java :
    * try (var matches = typedQuery.findMatches(start)) {
    *   MyCollector collector = ...;
-   *   matches.forEach(match -> {
-   *     match.collectCaptures(collector);
-   *   });
+   *   matches.forEach(match -> match.collectCaptures(collector));
    *   ...
    * }
    * }
@@ -2039,9 +2036,7 @@ public final class TypedQuery<C> implements AutoCloseable {
    * {@snippet lang=java :
    * try (var matches = typedQuery.findMatches(start, allocator)) {
    *   MyCollector collector = ...;
-   *   matches.forEach(match -> {
-   *     match.collectCaptures(collector);
-   *   });
+   *   matches.forEach(match -> match.collectCaptures(collector));
    *   ...
    * }
    * }
@@ -2068,7 +2063,7 @@ public final class TypedQuery<C> implements AutoCloseable {
    * <h4>Example</h4>
    * {@snippet lang=java :
    * try (var arena = Arena.ofConfined()) {
-   *   var collector = ...;
+   *   MyCollector collector = ...;
    *   typedQuery.findMatchesAndCollect(startNode, arena, collector);
    *   ...
    * }
@@ -2272,7 +2267,6 @@ public final class TypedQuery<C> implements AutoCloseable {
 
     /**
      * Specifies that the node can occur zero or more times.
-     * @see <a href="https://tree-sitter.github.io/tree-sitter/using-parsers/queries/2-operators.html#quantification-operators">Tree-sitter documentation 'quantification operators'</a>
      */
     public QNode<C, N> zeroOrMore() {
       return new QQuantified<>(this, '*');
@@ -2280,7 +2274,6 @@ public final class TypedQuery<C> implements AutoCloseable {
 
     /**
      * Specifies that the node must occur one or more times.
-     * @see <a href="https://tree-sitter.github.io/tree-sitter/using-parsers/queries/2-operators.html#quantification-operators">Tree-sitter documentation 'quantification operators'</a>
      */
     public QNode<C, N> oneOrMore() {
       return new QQuantified<>(this, '+');
@@ -2288,7 +2281,6 @@ public final class TypedQuery<C> implements AutoCloseable {
 
     /**
      * Specifies that the node is optional (can occur zero or one time).
-     * @see <a href="https://tree-sitter.github.io/tree-sitter/using-parsers/queries/2-operators.html#quantification-operators">Tree-sitter documentation 'quantification operators'</a>
      */
     public QNode<C, N> optional() {
       return new QQuantified<>(this, '?');
@@ -2474,6 +2466,7 @@ public final class TypedQuery<C> implements AutoCloseable {
 
   /**
    * Allows specifying predicates which the node must fulfill.
+   * @see <a href="https://tree-sitter.github.io/tree-sitter/using-parsers/queries/3-predicates-and-directives.html#predicates">Tree-sitter documentation 'predicates'</a>
    */
   public sealed interface QFilterable<C, N extends TypedNode> extends QNode<C, N> {
     /**
@@ -2485,7 +2478,7 @@ public final class TypedQuery<C> implements AutoCloseable {
     }
 
     /**
-     * Specifies that the {@linkplain Node#getText text of the node} must not be equal the given text.
+     * Specifies that the {@linkplain Node#getText text of the node} must not be equal to the given text.
      */
     default QCapturable<C, N> textNotEq(String s) {
       var p = new QFiltered.BuiltinPredicate("not-eq", List.of(s));
@@ -2503,7 +2496,7 @@ public final class TypedQuery<C> implements AutoCloseable {
     }
 
     /**
-     * Specifies that the nodes must fulfill the given predicate.
+     * Specifies that the nodes must fulfill the given custom predicate.
      */
     default QCapturable<C, N> matching(Predicate<? super Stream<N>> predicate) {
       Objects.requireNonNull(predicate);
@@ -2570,12 +2563,16 @@ public final class TypedQuery<C> implements AutoCloseable {
   }
 
   /**
-   * Allows capturing a node and accessing it during query execution. See the {@link TypedQuery} documentation for more information.
+   * Allows capturing nodes and accessing them during query execution. See the {@link TypedQuery} documentation for more information.
+   *
+   * <p>Capturable nodes are also {@linkplain QFilterable filterable}. To do both, first use one of the filtering
+   * methods such as {@link #textEq} and afterwards the capturing method {@link #captured}.
+   * Calling the methods in the opposite order is not possible.
+   * @see <a href="https://tree-sitter.github.io/tree-sitter/using-parsers/queries/2-operators.html#capturing-nodes">Tree-sitter documentation 'capturing nodes'</a>
    */
   public sealed interface QCapturable<C, N extends TypedNode> extends QFilterable<C, N> {
     /**
      * Specifies that matching nodes should be captured during query execution and provided to the given capture handler.
-     * @see <a href="https://tree-sitter.github.io/tree-sitter/using-parsers/queries/2-operators.html#capturing-nodes">Tree-sitter documentation 'capturing nodes'</a>
      */
     default QNode<C, N> captured(CaptureHandler<C, N> captureHandler) {
       Objects.requireNonNull(captureHandler);
@@ -2638,18 +2635,18 @@ public final class TypedQuery<C> implements AutoCloseable {
   }
 
   /**
-   * Base type for all query builder classes representing node types as defined in the Tree-sitter {@code node-types.json} file.
+   * Base type for all query builder classes representing named node types as defined in the Tree-sitter grammar.
    *
-   * <p>The following query functionality is provided. If multiple of these are used, they must be applied in this order.
+   * <p>The following query functionality is provided. If multiple of these methods are used, they must be applied in this order.
    * When used in a different order the query builder API might not support calling all of these methods.
    * <ol>
    * <li>children and field requirements
    * <br>(provided by subclasses of {@code QTypedNode}; depends on the node type represented by the query builder class)
-   * <li>supertype requirements, to match contexts where the node is used as subtype of one of its supertypes
+   * <li>supertype requirements, to match only contexts where the node is used as subtype of one of its supertypes
    * <br>(provided by subclasses of {@code QTypedNode}; depends on the node type represented by the query builder class)
-   * <li>{@linkplain QQuantifiable quantifying operator}
-   * <li>{@linkplain QFilterable filtering requirements}
-   * <li>{@linkplain QCapturable capturing matches}
+   * <li>{@linkplain QQuantifiable quantifying matches}
+   * <li>{@linkplain QFilterable filtering nodes}
+   * <li>{@linkplain QCapturable capturing matching nodes}
    * <li>as 'extra' node (method {@code asExtra})
    * <br>(provided by subclasses of {@code QTypedNode}; depends on the node type represented by the query builder class)
    * </ol>
@@ -2817,7 +2814,7 @@ public final class TypedQuery<C> implements AutoCloseable {
   /**
    * Provides convenience methods for obtaining typed query builder objects.
    *
-   * <p>The methods are non-static to help with type inference for the {@code <C>} type variable.
+   * <p>The methods are non-static to help with type inference for the type variable {@code <C>}.
    * This builder as well as all returned builder objects are immutable. That means when calling any methods
    * on the query builder objects, the result must not be discarded, otherwise the call has no effect.
    *
@@ -2827,7 +2824,7 @@ public final class TypedQuery<C> implements AutoCloseable {
    * var typedQuery = q.alternation(
    *     q.errorNode(),
    *     q.nodeMyCustomNode().captured((myCollector, node) -> ...)
-   *   ).buildQuery(language)
+   *   ).buildQuery(language);
    * }
    *
    * <h2>General builder methods</h2>
@@ -2840,7 +2837,8 @@ public final class TypedQuery<C> implements AutoCloseable {
    * <li>{@link #alternation}
    * </ul>
    *
-   * <h2>Node type builder methods</h2>Additionally for each node type defined in the Tree-sitter grammar a dedicated query builder method exists:
+   * <h2>Node type builder methods</h2>
+   * Additionally for each named node type defined in the Tree-sitter grammar a dedicated query builder method exists:
    * <ul>
    * <li>{@link #nodeContained contained}
    * <li>{@link #nodeContainedB contained_b}
@@ -2897,7 +2895,7 @@ public final class TypedQuery<C> implements AutoCloseable {
     }
 
     /**
-     * Provides a query a builder for a wildcard node which matches any node (named or unnamed).
+     * Provides a query builder for a wildcard node which matches any node (named or unnamed).
      *
      * <p>The node type variable {@code <N>} is unbound to allow using this query node at any position in the query.
      * @see <a href="https://tree-sitter.github.io/tree-sitter/using-parsers/queries/1-syntax.html#the-wildcard-node">Tree-sitter documentation 'the wildcard node'</a>
@@ -2908,7 +2906,7 @@ public final class TypedQuery<C> implements AutoCloseable {
     }
 
     /**
-     * Provides a query builder which matches any ERROR node.
+     * Provides a query builder which matches an ERROR node.
      *
      * <p>The node type variable {@code <N>} is unbound to allow using this query node at any position in the query.
      * @see <a href="https://tree-sitter.github.io/tree-sitter/using-parsers/queries/1-syntax.html#the-error-node">Tree-sitter documentation 'the ERROR node'</a>
@@ -2919,7 +2917,7 @@ public final class TypedQuery<C> implements AutoCloseable {
     }
 
     /**
-     * Provides a query builder which matches any MISSING node.
+     * Provides a query builder which matches a MISSING node.
      *
      * <p>The node type variable {@code <N>} is unbound to allow using this query node at any position in the query.
      * @see <a href="https://tree-sitter.github.io/tree-sitter/using-parsers/queries/1-syntax.html#the-missing-node">Tree-sitter documentation 'the MISSING node'</a>
@@ -2963,63 +2961,63 @@ public final class TypedQuery<C> implements AutoCloseable {
     }
 
     /**
-     * Provides a query builder which matches nodes of type {@code contained}.
+     * Provides a query builder which matches a node of type {@code contained}.
      */
     public QNodeContained<C> nodeContained() {
       return new QNodeContained<>();
     }
 
     /**
-     * Provides a query builder which matches nodes of type {@code contained_b}.
+     * Provides a query builder which matches a node of type {@code contained_b}.
      */
     public QNodeContainedB<C> nodeContainedB() {
       return new QNodeContainedB<>();
     }
 
     /**
-     * Provides a query builder which matches nodes of type {@code comment}.
+     * Provides a query builder which matches a node of type {@code comment}.
      */
     public QNodeComment<C> nodeComment() {
       return new QNodeComment<>();
     }
 
     /**
-     * Provides a query builder which matches nodes of type {@code child_single}.
+     * Provides a query builder which matches a node of type {@code child_single}.
      */
     public QNodeChildSingle<C> nodeChildSingle() {
       return new QNodeChildSingle<>();
     }
 
     /**
-     * Provides a query builder which matches nodes of type {@code child_multiple}.
+     * Provides a query builder which matches a node of type {@code child_multiple}.
      */
     public QNodeChildMultiple<C> nodeChildMultiple() {
       return new QNodeChildMultiple<>();
     }
 
     /**
-     * Provides a query builder which matches nodes of type {@code fields}.
+     * Provides a query builder which matches a node of type {@code fields}.
      */
     public QNodeFields<C> nodeFields() {
       return new QNodeFields<>();
     }
 
     /**
-     * Provides a query builder which matches nodes of type {@code supertype}.
+     * Provides a query builder which matches a node of type {@code supertype}.
      */
     public QNodeSupertype<C> nodeSupertype() {
       return new QNodeSupertype<>();
     }
 
     /**
-     * Provides a query builder which matches nodes of type {@code super_supertype}.
+     * Provides a query builder which matches a node of type {@code super_supertype}.
      */
     public QNodeSuperSupertype<C> nodeSuperSupertype() {
       return new QNodeSuperSupertype<>();
     }
 
     /**
-     * Provides a query builder which matches nodes of type {@code supertype_extra}.
+     * Provides a query builder which matches a node of type {@code supertype_extra}.
      */
     public QNodeSupertypeExtra<C> nodeSupertypeExtra() {
       return new QNodeSupertypeExtra<>();
@@ -3064,8 +3062,8 @@ public class QNodeContained<C> extends TypedQuery.QTypedNode<C, NodeContained> {
    * Creates a copy of this query node with the given additional children requirements.
    *
    * <p>The children type has {@code Void} as node type argument because the Tree-sitter grammar has no
-   * explicit children types defined for this node. However, by using {@code Void} this method still permits
-   * all wildcard-like query node types which have an unbound node type, such as
+   * explicit children types defined for this node type. However, by using {@code Void} this method still
+   * permits all wildcard-like query node types which have an unbound node type, such as
    * {@link TypedQuery.Builder#errorNode()}.
    */
   @SafeVarargs
@@ -3165,8 +3163,8 @@ public class QNodeContainedB<C> extends TypedQuery.QTypedNode<C, NodeContainedB>
    * Creates a copy of this query node with the given additional children requirements.
    *
    * <p>The children type has {@code Void} as node type argument because the Tree-sitter grammar has no
-   * explicit children types defined for this node. However, by using {@code Void} this method still permits
-   * all wildcard-like query node types which have an unbound node type, such as
+   * explicit children types defined for this node type. However, by using {@code Void} this method still
+   * permits all wildcard-like query node types which have an unbound node type, such as
    * {@link TypedQuery.Builder#errorNode()}.
    */
   @SafeVarargs
@@ -3262,8 +3260,8 @@ public class QNodeComment<C> extends TypedQuery.QTypedNode<C, NodeComment> {
    * Creates a copy of this query node with the given additional children requirements.
    *
    * <p>The children type has {@code Void} as node type argument because the Tree-sitter grammar has no
-   * explicit children types defined for this node. However, by using {@code Void} this method still permits
-   * all wildcard-like query node types which have an unbound node type, such as
+   * explicit children types defined for this node type. However, by using {@code Void} this method still
+   * permits all wildcard-like query node types which have an unbound node type, such as
    * {@link TypedQuery.Builder#errorNode()}.
    */
   @SafeVarargs
@@ -3427,8 +3425,8 @@ public class QNodeFields<C> extends TypedQuery.QTypedNode<C, NodeFields> {
    * Creates a copy of this query node with the given additional children requirements.
    *
    * <p>The children type has {@code Void} as node type argument because the Tree-sitter grammar has no
-   * explicit children types defined for this node. However, by using {@code Void} this method still permits
-   * all wildcard-like query node types which have an unbound node type, such as
+   * explicit children types defined for this node type. However, by using {@code Void} this method still
+   * permits all wildcard-like query node types which have an unbound node type, such as
    * {@link TypedQuery.Builder#errorNode()}.
    */
   @SafeVarargs
