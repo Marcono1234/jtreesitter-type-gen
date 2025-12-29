@@ -93,7 +93,7 @@ jobs:
       - name: Set up tree-sitter
         uses: tree-sitter/setup-action/cli@c4c258862a6a7e43a7aef152256bbf659972c408
         with:
-          tree-sitter-ref: v0.25.10
+          tree-sitter-ref: v0.26.3
       - name: Build tree-sitter-json
         run: |
           LANG="json"
