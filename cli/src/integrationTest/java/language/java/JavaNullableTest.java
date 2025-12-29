@@ -225,11 +225,10 @@ class JavaNullableTest extends AbstractTypedTreeTest {
                 q.unnamedNode("\""),
                 "\"\\\"\""
             ),
-            // TODO: Not yet supported by tree-sitter; requires https://github.com/tree-sitter/tree-sitter/pull/4894 to be released
-            // argumentSet("unnamed node with supertype",
-            //     q.unnamedNode("statement", ";"),
-            //     "(statement/\";\")"
-            // ),
+            argumentSet("unnamed node with supertype",
+                q.unnamedNode("statement", ";"),
+                "(statement/\";\")"
+            ),
             argumentSet("any named node",
                 q.anyNamedNode(),
                 "(_)"
@@ -400,8 +399,6 @@ class JavaNullableTest extends AbstractTypedTreeTest {
 
     // TODO: Add typed query test for 'extra' (for Java that is `NodeLineComment` or `NodeBlockComment`); however node-types.json does not include `"extra": true` yet
 
-    // TODO: Enable once supported by tree-sitter
-    @Disabled("Not yet supported by tree-sitter; requires https://github.com/tree-sitter/tree-sitter/pull/4894 to be released")
     @Test
     void typedQuery_UnnamedNode_Supertype() {
         var q = new TypedQuery.Builder<>();

@@ -68,7 +68,7 @@ jobs:
       #   at least so that it is easier for users to use this as reference for setting the integration tests up locally
       - name: Build tree-sitter library
         run: |
-          git clone --branch v0.25.10 --depth=1 --no-checkout https://github.com/tree-sitter/tree-sitter.git tree-sitter
+          git clone --branch v0.26.3 --depth=1 --no-checkout https://github.com/tree-sitter/tree-sitter.git tree-sitter
           cd tree-sitter
           # Only checkout what is needed for compiling
           git checkout HEAD -- lib/src lib/include
