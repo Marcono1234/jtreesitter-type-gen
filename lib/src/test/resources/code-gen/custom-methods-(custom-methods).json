@@ -1,0 +1,102 @@
+[
+  {
+    "type": "contained_a",
+    "named": true
+  },
+  {
+    "type": "contained_b",
+    "named": true
+  },
+  {
+    "type": "children_single",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "contained_a",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "children_multi",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "contained_a",
+          "named": true
+        },
+        {
+          "type": "contained_b",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "fields",
+    "named": true,
+    "fields": {
+      "single_named": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "contained_a",
+            "named": true
+          }
+        ]
+      },
+      "multi_named": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "contained_a",
+            "named": true
+          },
+          {
+            "type": "contained_b",
+            "named": true
+          }
+        ]
+      },
+      "unnamed": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "+",
+            "named": false
+          },
+          {
+            "type": "-",
+            "named": false
+          }
+        ]
+      },
+      "mixed": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "+",
+            "named": false
+          },
+          {
+            "type": "contained_a",
+            "named": true
+          }
+        ]
+      }
+    }
+  }
+]

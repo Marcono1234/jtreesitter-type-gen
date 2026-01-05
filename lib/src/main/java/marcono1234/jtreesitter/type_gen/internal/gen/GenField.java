@@ -6,6 +6,7 @@ import com.palantir.javapoet.MethodSpec;
 import com.palantir.javapoet.TypeSpec;
 import marcono1234.jtreesitter.type_gen.NameGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodData;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.ChildType;
 
@@ -111,9 +112,10 @@ public class GenField extends GenChildren {
         String idConstant = nameGenerator.generateFieldIdConstant(parentTypeName, fieldName);
         String getterName = nameGenerator.generateFieldGetterName(parentTypeName, fieldName, multiple, required);
 
-        GenChildType.ChildTypeNameGenerator fieldTypeNameGenerator = new GenChildType.ChildTypeNameGenerator() {
+        var fieldTypeNameGenerator = new GenChildType.ChildTypeNameGenerator() {
             @Override
             public String generateInterfaceName(List<String> allChildTypes) {
+                // For now ignore `allChildTypes` for name generation since field name probably suffices
                 return nameGenerator.generateFieldTypesName(parentTypeName, fieldName);
             }
 
@@ -127,7 +129,14 @@ public class GenField extends GenChildren {
                 return nameGenerator.generateFieldTokenName(parentTypeName, fieldName, tokenType, index);
             }
         };
-        var fieldType = GenChildType.create(enclosingNodeType, fieldTypeRaw.types, fieldTypeNameGenerator, nodeTypeLookup, additionalTypedNodeSubtypeCollector);
+        var customMethodsProvider = new GenChildType.CustomMethodsProvider() {
+            @Override
+            public List<CustomMethodData> createCustomMethods(CodeGenHelper codeGenHelper, List<String> allChildTypes) {
+                // For now ignore `allChildTypes` for obtaining custom methods since field name probably suffices
+                return codeGenHelper.customMethodsForNodeFieldType(parentTypeName, fieldName);
+            }
+        };
+        var fieldType = GenChildType.create(enclosingNodeType, fieldTypeRaw.types, fieldTypeNameGenerator, nodeTypeLookup, additionalTypedNodeSubtypeCollector, customMethodsProvider);
 
         return new GenField(fieldName, nameConstant, idConstant, getterName, fieldType, multiple, required);
     }

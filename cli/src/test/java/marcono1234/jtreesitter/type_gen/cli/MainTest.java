@@ -52,6 +52,10 @@ class MainTest {
         assertTrue(actual.contains(expected), "'" + actual + "' does not contain '" + expected + "'");
     }
 
+    private static void assertNotContains(String actual, String unexpected) {
+        assertFalse(actual.contains(unexpected), "'" + actual + "' contains '" + unexpected + "'");
+    }
+
     @Test
     void versionCommand() {
         var expectedVersionInfo = CodeGenerator.version();
@@ -826,6 +830,120 @@ class MainTest {
         );
 
         assertFiles(outputDir, List.of("com/example/NodeFirst.java", "com/example/NodeUtils.java", "com/example/NonEmpty.java", "com/example/QNodeFirst.java", "com/example/TypedNode.java", "com/example/TypedQuery.java"));
+    }
+
+    @Test
+    void generateCommand_CustomMethods(@TempDir Path tempDir) throws IOException {
+        Path nodeTypesFile = tempDir.resolve("node-types.json");
+        Files.writeString(nodeTypesFile, """
+            [
+              {
+                "type": "first",
+                "named": true,
+                "root": true
+              },
+              {
+                "type": "second",
+                "named": true
+              }
+            ]
+            """);
+
+        Path customMethodConfigFile = tempDir.resolve("custom-methods-config.json");
+        Files.writeString(customMethodConfigFile, """
+            {
+              "typed-tree": [
+                {
+                  "name": "myMethod",
+                  "receiver": "com.example.CustomMethods#methodImpl"
+                }
+              ],
+              "typed-node": [
+                {
+                  "name": "methodA",
+                  "type-variables": [
+                    {
+                      "name": "A",
+                      "bounds": ["java.lang.CharSequence"]
+                    }
+                  ],
+                  "parameters": {
+                    "a": "java.util.List<? extends A>"
+                  },
+                  "return-type": "boolean",
+                  "javadoc": "My custom method",
+                  "receiver": "com.example.CustomMethods#a"
+                },
+                {
+                  "name": "methodB",
+                  "receiver": "com.example.CustomMethods#b"
+                }
+              ],
+              "node-types": {
+                "second": [
+                  {
+                    "name": "nodeMethod",
+                    "receiver": "com.example.CustomMethods#node"
+                  }
+                ]
+              }
+            }
+            """);
+
+        Path outputDir = tempDir.resolve("output");
+
+        assertMainResult(
+            List.of(
+                "--node-types", nodeTypesFile.toString(),
+                "--package", "com.example",
+                "--output-dir", outputDir.toString(),
+                "--custom-methods-config", customMethodConfigFile.toString()
+            ),
+            CommandLine.ExitCode.OK,
+            stdOut -> assertEquals(
+                "[SUCCESS] Successfully generated code in directory: " + outputDir,
+                stdOut
+            ),
+            stdErr -> assertEquals("", stdErr)
+        );
+
+        assertFiles(outputDir, List.of("com/example/NodeFirst.java", "com/example/NodeSecond.java", "com/example/NodeUtils.java", "com/example/NonEmpty.java", "com/example/TypedNode.java", "com/example/TypedTree.java"));
+        assertContains(
+            Files.readString(outputDir.resolve("com/example/TypedTree.java")),
+            """
+              public void myMethod() {
+                CustomMethods.methodImpl(this);
+              }
+            """
+        );
+        assertContains(
+            Files.readString(outputDir.resolve("com/example/TypedNode.java")),
+            """
+              /**
+               * My custom method
+               */
+              default <A extends CharSequence> boolean methodA(List<? extends A> a) {
+                return CustomMethods.a(this, a);
+              }
+            
+              default void methodB() {
+                CustomMethods.b(this);
+              }
+            """
+        );
+        assertContains(
+            Files.readString(outputDir.resolve("com/example/NodeSecond.java")),
+            """
+              public void nodeMethod() {
+                CustomMethods.node(this);
+              }
+            """
+        );
+        assertNotContains(
+            Files.readString(outputDir.resolve("com/example/NodeFirst.java")),
+            // Should not contain custom methods (respectively receiver type reference)
+            "CustomMethods"
+        );
     }
 
     @Test

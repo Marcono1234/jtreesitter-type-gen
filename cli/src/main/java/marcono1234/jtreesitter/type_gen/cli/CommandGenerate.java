@@ -4,18 +4,21 @@ import marcono1234.jtreesitter.type_gen.*;
 import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageProviderConfig;
 import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageVersion;
 import marcono1234.jtreesitter.type_gen.cli.converter.*;
+import marcono1234.jtreesitter.type_gen.cli.json_configs.CustomMethodsConfig;
+import marcono1234.jtreesitter.type_gen.cli.json_configs.CustomMethodsConfig.MethodConfig;
+import marcono1234.jtreesitter.type_gen.cli.json_configs.ObjectMappers;
 import org.jspecify.annotations.Nullable;
 import picocli.CommandLine;
 import tools.jackson.core.JacksonException;
-import tools.jackson.core.StreamReadFeature;
 import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.json.JsonMapper;
 
 import java.nio.file.Path;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.stream.Collectors;
 
 // Suppress warnings for fields assigned using reflection by picocli
 @SuppressWarnings({"FieldMayBeFinal", "NotNullFieldNotInitialized"})
@@ -266,6 +269,42 @@ class CommandGenerate implements Callable<Void> {
     )
     private boolean generateTypedQuery = false;
 
+    @CommandLine.Option(
+        names = {"--custom-methods-config"},
+        paramLabel = "<config-file>",
+        // Maybe this description is a bit too verbose for CLI help?
+        description = {
+            "Configuration for custom methods to be added to the generated classes",
+            "JSON file which provides the configuration for custom user-defined methods which should be added to the"
+            + " generated classes. These custom methods are generated as instance methods which can take additional"
+            + " parameters and pass 'this' in addition to the additional parameters to a 'receiver method'."
+            + " That receiver method is implemented by the user and contains the actual implementation.",
+            "The main advantage of these custom methods is that they can directly be called on the typed tree or node"
+            + " instances, making them easier to discover and use than calling separate utility methods.",
+            "JSON format for a custom method:",
+            "- name (string): name of the custom method",
+            "- type-variables (array): type variables for the custom method (optional)",
+            "  - name (string): name of the type variable",
+            "  - bounds (array[string]): bounds of the type variable as qualified Java types (optional)",
+            "- parameters (object): parameters of the custom method (optional)",
+            "  - <key>: parameter name",
+            "  - <value> (string): parameter type as qualified Java type",
+            "- return-type (string): return type of the custom method as qualified Java type (optional; if not specified 'void')",
+            "- javadoc (string): Javadoc text of the custom method (optional)",
+            "- receiver (string): method to which the custom method delegates to, in the form '<qualified-type>#<method-name>'",
+            "JSON config file format:",
+            "- typed-tree (array[custom-method]): custom methods for the 'TypedTree' class (only generated if 'root node' is specified)",
+            "- typed-node (array[custom-method]): custom methods for the 'TypedNode' interface which is the base type for all typed node classes",
+            "- node-types (object):",
+            "  - <key>: node type, as defined in the grammar",
+            "  - <value> (array[custom-method]): custom methods for the node type class",
+            "Example:",
+            "'{\"node-types\": {\"my-node\": [{\"name\": \"myMethod\", \"parameters\": {\"s\": \"java.lang.String\"}, \"receiver\": \"com.example.CustomMethods#myMethodImpl\"}]}}'",
+        }
+    )
+    @Nullable
+    private Path customMethodsConfigFile;
+
     @SuppressWarnings("DefaultAnnotationParam") // make `exclusive = true` explicit
     @CommandLine.ArgGroup(
         heading = "@Generated options\n",
@@ -399,18 +438,12 @@ class CommandGenerate implements Callable<Void> {
         );
     }
 
-    private static final JsonMapper verboseJsonMapper = JsonMapper.builder()
-        // Enhance exceptions for easier troubleshooting; the JSON files are not expected to contain sensitive information
-        // which must not be leaked
-        .enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION)
-        .build();
-
     private NameGenerator createNameGenerator() {
         var tokenNameGenerator = NameGenerator.TokenNameGenerator.AUTOMATIC;
         if (tokenNameMappingFile != null) {
             Map<String, Map<String, Map<String, String>>> tokenNameMapping;
             try {
-                tokenNameMapping = verboseJsonMapper.readValue(tokenNameMappingFile, new TypeReference<>() {});
+                tokenNameMapping = ObjectMappers.verboseJsonMapper.readValue(tokenNameMappingFile, new TypeReference<>() {});
             } catch (JacksonException e) {
                 throw new IllegalArgumentException("Failed reading tokenNameMappingFile: " + tokenNameMappingFile, e);
             }
@@ -423,6 +456,42 @@ class CommandGenerate implements Callable<Void> {
         }
 
         return NameGenerator.createDefault(tokenNameGenerator);
+    }
+
+    private Optional<CustomMethodsProvider> createCustomMethodsProvider() {
+        if (customMethodsConfigFile == null) {
+            return Optional.empty();
+        }
+
+        CustomMethodsConfig config;
+        try {
+            config = CustomMethodsConfig.readFromFile(customMethodsConfigFile);
+        } catch (JacksonException e) {
+            throw new IllegalArgumentException("Failed reading customMethodsConfigFile: " + customMethodsConfigFile, e);
+        }
+
+        var typedTreeMethods = MethodConfig.asMethodsData(config.typedTree);
+        var typedNodeMethods = MethodConfig.asMethodsData(config.typedNode);
+        Map<String, List<CustomMethodsProvider.MethodData>> nodeTypeMethods = config.nodeTypes == null ? Map.of()
+            : config.nodeTypes.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> MethodConfig.asMethodsData(e.getValue())));
+
+        return Optional.of(new CustomMethodsProvider() {
+            @Override
+            public List<MethodData> forTypedTree() {
+                return typedTreeMethods;
+            }
+
+            @Override
+            public List<MethodData> forTypedNode() {
+                return typedNodeMethods;
+            }
+
+            @Override
+            public List<MethodData> forNodeType(String nodeType) {
+                var methodData = nodeTypeMethods.get(nodeType);
+                return methodData != null ? methodData : List.of();
+            }
+        });
     }
 
     @Override
@@ -447,6 +516,7 @@ class CommandGenerate implements Callable<Void> {
             Optional.ofNullable(typedNodeSuperinterfaceTypeName),
             nameGenerator,
             typedQueryNameGenerator,
+            createCustomMethodsProvider(),
             getGeneratedAnnotationConfig()
         );
 

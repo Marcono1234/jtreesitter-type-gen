@@ -6,8 +6,10 @@ import com.palantir.javapoet.MethodSpec;
 import com.palantir.javapoet.TypeSpec;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenNodeType;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodData;
 
 import javax.lang.model.element.Modifier;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -47,7 +49,7 @@ public class TypedTreeClassGenerator {
         this(codeGenHelper, Config.createDefault(codeGenHelper));
     }
 
-    private void generateJavadoc(TypeSpec.Builder typeBuilder, GenNodeType rootNodeType) {
+    private void generateJavadoc(TypeSpec.Builder typeBuilder, GenNodeType rootNodeType, List<CustomMethodData> customMethods) {
         var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
         var typedNode = codeGenHelper.typedNodeConfig();
 
@@ -56,6 +58,8 @@ public class TypedTreeClassGenerator {
 
         typeBuilder.addJavadoc("\n\n<p>Individual jtreesitter nodes can be converted to a typed node with {@link $T#$N},", typedNode.className(), typedNode.methodFromNode());
         typeBuilder.addJavadoc(" or the {@code $N} method of the specific typed node classes.", typedNode.methodFromNode());
+
+        CustomMethodData.createCustomMethodsJavadocSection(customMethods).ifPresent(typeBuilder::addJavadoc);
     }
 
     /** Generates {@code Object} methods such as {@code equals}, {@code hashCode} and {@code toString}. */
@@ -74,7 +78,7 @@ public class TypedTreeClassGenerator {
         typeBuilder.addMethod(toStringMethod);
     }
 
-    private void generateBody(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper, GenNodeType rootNodeType) {
+    private void generateBody(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper, GenNodeType rootNodeType, List<CustomMethodData> customMethods) {
         String treeField = "tree";
         var jtreesitter = codeGenHelper.jtreesitterConfig();
         var jtreesitterTree = jtreesitter.tree();
@@ -150,15 +154,18 @@ public class TypedTreeClassGenerator {
         typeBuilder.addMethod(closeMethod);
 
         generateOverriddenObjectMethods(typeBuilder, treeField);
+
+        customMethods.forEach(m -> typeBuilder.addMethod(m.generateMethod(false)));
     }
 
     public JavaFile generateCode(GenNodeType rootNodeType) {
         var typeBuilder = TypeSpec.classBuilder(config.className())
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
 
-        generateJavadoc(typeBuilder, rootNodeType);
+        var customMethods = codeGenHelper.customMethodsForTypedTree();
+        generateJavadoc(typeBuilder, rootNodeType, customMethods);
 
-        generateBody(typeBuilder, codeGenHelper, rootNodeType);
+        generateBody(typeBuilder, codeGenHelper, rootNodeType, customMethods);
 
         return codeGenHelper.createOwnJavaFile(typeBuilder);
     }

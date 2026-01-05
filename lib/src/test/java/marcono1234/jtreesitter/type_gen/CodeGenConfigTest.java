@@ -23,6 +23,7 @@ class CodeGenConfigTest {
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
             Optional.empty(),
+            Optional.empty(),
             Optional.empty()
         ));
         assertEquals("Not a valid package name: -invalid", e.getMessage());
@@ -38,6 +39,7 @@ class CodeGenConfigTest {
             DEFAULT_CHILD_AS_TOP_LEVEL,
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
+            Optional.empty(),
             Optional.empty(),
             Optional.empty()
         ));
@@ -55,6 +57,7 @@ class CodeGenConfigTest {
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
             Optional.empty(),
+            Optional.empty(),
             Optional.empty()
         ));
         assertEquals("Not a valid type name: -invalid", e.getMessage());
@@ -68,6 +71,7 @@ class CodeGenConfigTest {
             DEFAULT_CHILD_AS_TOP_LEVEL,
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
+            Optional.empty(),
             Optional.empty(),
             Optional.empty()
         ));
