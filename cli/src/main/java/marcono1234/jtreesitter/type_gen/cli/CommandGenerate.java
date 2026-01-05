@@ -292,6 +292,7 @@ class CommandGenerate implements Callable<Void> {
             "- return-type (string): return type of the custom method as qualified Java type (optional; if not specified 'void')",
             "- javadoc (string): Javadoc text of the custom method (optional)",
             "- receiver (string): method to which the custom method delegates to, in the form '<qualified-type>#<method-name>'",
+            "- additional-args (array[boolean|int|double|string]): additional literal arguments to pass to the receiver (optional)",
             "JSON config file format:",
             "- typed-tree (array[custom-method]): custom methods for the 'TypedTree' class (only generated if 'root node' is specified)",
             "- typed-node (array[custom-method]): custom methods for the 'TypedNode' interface which is the base type for all typed node classes",

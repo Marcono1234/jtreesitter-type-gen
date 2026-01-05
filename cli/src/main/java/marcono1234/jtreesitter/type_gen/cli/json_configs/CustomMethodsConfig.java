@@ -2,10 +2,7 @@ package marcono1234.jtreesitter.type_gen.cli.json_configs;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import marcono1234.jtreesitter.type_gen.CustomMethodsProvider;
-import marcono1234.jtreesitter.type_gen.JavaType;
-import marcono1234.jtreesitter.type_gen.JavaTypeVariable;
-import marcono1234.jtreesitter.type_gen.TypeName;
+import marcono1234.jtreesitter.type_gen.*;
 import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.JsonParser;
@@ -50,6 +47,10 @@ public class CustomMethodsConfig {
         @JsonProperty(value = "receiver", required = true)
         public Receiver receiver;
 
+        @JsonProperty("additional-args")
+        @Nullable
+        public List<JavaLiteral> additionalArgs;
+
         @JsonIgnore
         public CustomMethodsProvider.MethodData asMethodData() {
             return new CustomMethodsProvider.MethodData(
@@ -61,8 +62,7 @@ public class CustomMethodsConfig {
                 Optional.ofNullable(javadoc),
                 receiver.type(),
                 receiver.methodName(),
-                // Don't support custom arguments for now
-                List.of()
+                additionalArgs != null ? additionalArgs : List.of()
             );
         }
 
@@ -107,6 +107,7 @@ public class CustomMethodsConfig {
         .addModule(new SimpleModule()
             .addDeserializer(JavaType.class, new JavaTypeDeserializer())
             .addDeserializer(TypeName.class, new TypeNameDeserializer())
+            .addDeserializer(JavaLiteral.class, new JavaLiteralDeserializer())
         )
         .build();
 
@@ -185,6 +186,25 @@ public class CustomMethodsConfig {
             var typeName = TypeName.fromQualifiedName(s.substring(0, sepIndex));
             var methodName = s.substring(sepIndex + 1);
             return new Receiver(typeName, methodName);
+        }
+    }
+
+    private static class JavaLiteralDeserializer extends StdDeserializer<JavaLiteral> {
+        protected JavaLiteralDeserializer() {
+            super(JavaLiteral.class);
+        }
+
+        @Override
+        public JavaLiteral deserialize(JsonParser p, DeserializationContext ctxt) throws JacksonException {
+            var token = p.currentToken();
+            return switch (token) {
+                case JsonToken.VALUE_TRUE, JsonToken.VALUE_FALSE -> new JavaLiteral.Boolean(p.getBooleanValue());
+                // For now only support reading as `int` but not as `long`
+                case JsonToken.VALUE_NUMBER_INT -> new JavaLiteral.Integer(p.getIntValue());
+                case JsonToken.VALUE_NUMBER_FLOAT -> new JavaLiteral.Double(p.getDoubleValue());
+                case JsonToken.VALUE_STRING -> new JavaLiteral.String(p.getString());
+                default -> throw MismatchedInputException.from(p, handledType(), "Unsupported token: " + token);
+            };
         }
     }
 }

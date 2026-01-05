@@ -872,7 +872,8 @@ class MainTest {
                   },
                   "return-type": "boolean",
                   "javadoc": "My custom method",
-                  "receiver": "com.example.CustomMethods#a"
+                  "receiver": "com.example.CustomMethods#a",
+                  "additional-args": ["some string", 12, 34.56, true, false]
                 },
                 {
                   "name": "methodB",
@@ -923,7 +924,7 @@ class MainTest {
                * My custom method
                */
               default <A extends CharSequence> boolean methodA(List<? extends A> a) {
-                return CustomMethods.a(this, a);
+                return CustomMethods.a(this, a, "some string", 12, 34.56, true, false);
               }
             
               default void methodB() {
