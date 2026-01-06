@@ -478,12 +478,19 @@ public class CodeGenHelper {
          * Generates the {@link #methodFindNodes()} methods, which start at a given node and return a stream of
          * found {@code nodeClass} sub nodes.
          *
+         * <p>If generation of the method is {@linkplain CodeGenConfig#generateFindNodesMethods() disabled in the config}
+         * an empty list is returned.
+         *
          * @param nodeClass
          *      whose node instances should be returned
          * @param nodeTypeConstants
          *      the Java fields storing the node type names for all implementations of {@code nodeClass}
          */
         public List<MethodSpec> generateMethodsFindNodes(ClassName nodeClass, List<JavaFieldRef> nodeTypeConstants) {
+            if (!codeGenHelper.config.generateFindNodesMethods()) {
+                return List.of();
+            }
+
             String methodName = methodFindNodes();
             String implMethodName = methodName + "Impl";
             return List.of(

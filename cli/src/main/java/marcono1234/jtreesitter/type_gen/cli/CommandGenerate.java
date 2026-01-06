@@ -238,7 +238,7 @@ class CommandGenerate implements Callable<Void> {
         names = {"--token-name-mapping"},
         paramLabel = "<mapping-file>",
         description = {
-            "Maps token types to names",
+            "Mapping of token types to names",
             "JSON file which provides a mapping of 'token' types (= non-named child node types) to the Java constant"
             + " names these types should have in the generated code. The mapping file consists of nested JSON objects"
             + " which have this structure: '{\"parentType\": {\"fieldName\": {\"tokenType\": \"CUSTOM_NAME\"}}}'",
@@ -254,6 +254,18 @@ class CommandGenerate implements Callable<Void> {
     )
     @Nullable
     private Path tokenNameMappingFile;
+
+    @CommandLine.Option(
+        names = {"--no-find-nodes-methods"},
+        paramLabel = "<boolean>",
+        description = {
+            "Disables generation of the 'findNodes' methods in the typed node classes",
+            "Can be used to reduce the size of the generated code, in case those methods are not used.",
+        }
+    )
+    // Normally negated boolean should be avoided to prevent confusion for users due to potential double negative
+    // However, here for CLI this acts as opt-out flag (without requiring an explicit boolean argument), so it is fine
+    private boolean noFindNodesMethods = false; // false -> generate `findNodes` methods by default
 
     @CommandLine.Option(
         names = {"--generate-typed-query"},
@@ -446,6 +458,7 @@ class CommandGenerate implements Callable<Void> {
             childTypeAsTopLevel,
             Optional.ofNullable(typedNodeSuperinterfaceTypeName),
             nameGenerator,
+            !noFindNodesMethods,
             typedQueryNameGenerator,
             getGeneratedAnnotationConfig()
         );
