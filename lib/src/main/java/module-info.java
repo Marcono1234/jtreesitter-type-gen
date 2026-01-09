@@ -16,4 +16,8 @@ module marcono1234.jtreesitter.type_gen {
     requires java.compiler;
 
     exports marcono1234.jtreesitter.type_gen;
+
+
+    // Export internal package to CLI to allow it to use utility methods
+    exports marcono1234.jtreesitter.type_gen.internal to marcono1234.jtreesitter.type_gen.cli;
 }

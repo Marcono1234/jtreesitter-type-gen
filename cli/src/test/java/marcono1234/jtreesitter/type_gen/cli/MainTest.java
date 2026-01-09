@@ -683,6 +683,36 @@ class MainTest {
     }
 
     @Test
+    void generateCommand_TypedNodeNamePattern(@TempDir Path tempDir) throws IOException {
+        Path nodeTypesFile = tempDir.resolve("node-types.json");
+        Files.writeString(nodeTypesFile, """
+            [
+              {
+                "type": "my_node",
+                "named": true
+              }
+            ]
+            """);
+        Path outputDir = tempDir.resolve("output");
+
+        assertMainResult(
+            List.of(
+                "--node-types", nodeTypesFile.toString(),
+                "--package", "com.example",
+                "--output-dir", outputDir.toString(),
+                "--name-pattern-typed-node", "A_{node}_B"
+            ),
+            CommandLine.ExitCode.OK,
+            stdOut -> assertEquals("[SUCCESS] Successfully generated code in directory: " + outputDir, stdOut),
+            stdErr -> assertEquals("", stdErr)
+        );
+
+        assertFiles(outputDir, List.of("com/example/A_MyNode_B.java", "com/example/NodeUtils.java", "com/example/NonEmpty.java", "com/example/TypedNode.java"));
+        assertContains(Files.readString(outputDir.resolve("com/example/A_MyNode_B.java")), "class A_MyNode_B implements");
+        assertContains(Files.readString(outputDir.resolve("com/example/TypedNode.java")), "new A_MyNode_B(node)");
+    }
+
+    @Test
     void generateCommand_TokenNameMapping(@TempDir Path tempDir) throws IOException {
         Path nodeTypesFile = tempDir.resolve("node-types.json");
         Files.writeString(nodeTypesFile, """

@@ -235,6 +235,21 @@ class CommandGenerate implements Callable<Void> {
     private CodeGenConfig.ChildTypeAsTopLevel childTypeAsTopLevel;
 
     @CommandLine.Option(
+        names = {"--name-pattern-typed-node"},
+        paramLabel = "<name-pattern>",
+        description = {
+            "Name pattern for the generated typed node classes",
+            "The pattern supports the '{node}' placeholder which is replaced with the node type name as defined in"
+            + " the grammar, converted to upper camel case.",
+            // Note: The default pattern is currently not actually specified as NamePattern, but instead defined
+            // by the default NameGenerator implementation
+            "The default pattern is 'Node{node}', which results for example in 'NodeIfStatement'.",
+        },
+        converter = NamePatternConverter.TypedNode.class
+    )
+    private @Nullable NamePattern<TypedNodeNamePatternParser.Data> typedNodeNamePattern;
+
+    @CommandLine.Option(
         names = {"--token-name-mapping"},
         paramLabel = "<mapping-file>",
         description = {
@@ -434,7 +449,16 @@ class CommandGenerate implements Callable<Void> {
             );
         }
 
-        return NameGenerator.createDefault(tokenNameGenerator);
+        if (typedNodeNamePattern == null) {
+            return new NameGenerator.DefaultNameGenerator(tokenNameGenerator);
+        } else {
+            return new NameGenerator.DefaultNameGenerator(tokenNameGenerator) {
+                @Override
+                public String generateJavaTypeName(String typeName) {
+                    return typedNodeNamePattern.createName(new TypedNodeNamePatternParser.Data(typeName));
+                }
+            };
+        }
     }
 
     @Override

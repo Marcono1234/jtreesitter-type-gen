@@ -38,7 +38,7 @@ class CodeGeneratorTest {
     private static final String DEFAULT_PACKAGE_NAME = "org.example";
     private static final String DEFAULT_NON_EMPTY_NAME = "NonEmpty";
     private static final CodeGenConfig.ChildTypeAsTopLevel DEFAULT_CHILD_AS_TOP_LEVEL = CodeGenConfig.ChildTypeAsTopLevel.AS_NEEDED;
-    private static final NameGenerator DEFAULT_NAME_GENERATOR = NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC);
+    private static final NameGenerator DEFAULT_NAME_GENERATOR = new NameGenerator.DefaultNameGenerator(TokenNameGenerator.AUTOMATIC);
     private static final boolean DEFAULT_GENERATE_FIND_NODES_METHODS = true;
 
     // Use fixed version to avoid test output changes for every version change / Git commit
@@ -118,7 +118,7 @@ class CodeGeneratorTest {
 
         var tokenNameGenerator = baseFileName.contains("(token-name-generator)") ? TokenNameGenerator.fromMapping(Map.of("", Map.of("", Map.of("<", "LEFT", ">", "RIGHT"))), true)
             : TokenNameGenerator.AUTOMATIC;
-        var nameGenerator = NameGenerator.createDefault(tokenNameGenerator);
+        var nameGenerator = new NameGenerator.DefaultNameGenerator(tokenNameGenerator);
 
         boolean findNodesMethods = !baseFileName.contains("(no-findNodes)");
 

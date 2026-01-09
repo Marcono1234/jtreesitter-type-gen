@@ -14,13 +14,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class NameGeneratorTest {
     /**
-     * Tests for {@link NameGenerator#createDefault(TokenNameGenerator)}.
+     * Tests for {@link NameGenerator.DefaultNameGenerator}.
      *
      * <p>Tests specific to the token name generation are covered by {@link TokenNameGeneratorTest}.
      */
     @Nested
     class DefaultTest {
-        private final NameGenerator nameGenerator = NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC);
+        private final NameGenerator nameGenerator = new NameGenerator.DefaultNameGenerator(TokenNameGenerator.AUTOMATIC);
 
         @ParameterizedTest
         // Some of these just verify that the result is somewhat reasonable, and that no exception occurs
