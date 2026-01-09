@@ -96,7 +96,8 @@ public interface CustomMethodsProvider {
     /**
      * Custom methods for the generated {@code TypedNode} interface.
      *
-     * <p>{@code TypedNode} is the base type for all typed node classes, which wrap the underlying jtreesitter {@code Node}.
+     * <p>{@code TypedNode} is the base type for all typed node classes. Those classes wrap the underlying
+     * jtreesitter {@code Node} objects.
      */
     default List<MethodData> forTypedNode() {
         return List.of();
