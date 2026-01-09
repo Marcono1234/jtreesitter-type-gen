@@ -2,6 +2,8 @@ package marcono1234.jtreesitter.type_gen.internal;
 
 import java.util.Locale;
 
+// TODO: Maybe expose these utility methods publicly? They might be useful to users who implement their own custom
+//    name generator, and it would allow the CLI to use them without `module-info` having to export internal packages to CLI
 /**
  * Helper class for generating Java type and member names.
  */
@@ -89,5 +91,18 @@ public class JavaNameGeneratorHelper {
         // For simplicity just use first char, don't consider supplementary code points or special Unicode
         // case conversion rules here
         return Character.toLowerCase(s.charAt(0)) + s.substring(1);
+    }
+
+    /**
+     * Converts a node type name, as defined in the grammar, to a Java uppercased camel case name.
+     */
+    public static String typeNameToUpperCamel(String typeName) {
+        // Remove leading '_', for hidden types, which might appear in the `node-types.json` nonetheless,
+        // in case they are a supertype (see for example tree-sitter-java's `_literal`)
+        if (typeName.startsWith("_")) {
+            typeName = typeName.substring(1);
+        }
+
+        return upperFirstChar(convertSnakeToCamelCase(typeName));
     }
 }

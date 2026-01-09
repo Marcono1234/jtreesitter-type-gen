@@ -1,5 +1,6 @@
 package marcono1234.jtreesitter.type_gen;
 
+import marcono1234.jtreesitter.type_gen.NameGenerator.TokenNameGenerator;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -10,7 +11,8 @@ class CodeGenConfigTest {
     private static final String DEFAULT_PACKAGE_NAME = "org.example";
     private static final String DEFAULT_NON_EMPTY_NAME = "NonEmpty";
     private static final CodeGenConfig.ChildTypeAsTopLevel DEFAULT_CHILD_AS_TOP_LEVEL = CodeGenConfig.ChildTypeAsTopLevel.AS_NEEDED;
-    private static final NameGenerator DEFAULT_NAME_GENERATOR = NameGenerator.createDefault(NameGenerator.TokenNameGenerator.AUTOMATIC);
+    private static final NameGenerator DEFAULT_NAME_GENERATOR = new NameGenerator.DefaultNameGenerator(TokenNameGenerator.AUTOMATIC);
+    private static final boolean DEFAULT_GENERATE_FIND_NODES_METHODS = true;
 
     @Test
     void packageName() {
@@ -22,6 +24,7 @@ class CodeGenConfigTest {
             DEFAULT_CHILD_AS_TOP_LEVEL,
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
+            DEFAULT_GENERATE_FIND_NODES_METHODS,
             Optional.empty(),
             Optional.empty(),
             Optional.empty()
@@ -39,6 +42,7 @@ class CodeGenConfigTest {
             DEFAULT_CHILD_AS_TOP_LEVEL,
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
+            DEFAULT_GENERATE_FIND_NODES_METHODS,
             Optional.empty(),
             Optional.empty(),
             Optional.empty()
@@ -56,6 +60,7 @@ class CodeGenConfigTest {
             DEFAULT_CHILD_AS_TOP_LEVEL,
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
+            DEFAULT_GENERATE_FIND_NODES_METHODS,
             Optional.empty(),
             Optional.empty(),
             Optional.empty()
@@ -71,6 +76,7 @@ class CodeGenConfigTest {
             DEFAULT_CHILD_AS_TOP_LEVEL,
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
+            DEFAULT_GENERATE_FIND_NODES_METHODS,
             Optional.empty(),
             Optional.empty(),
             Optional.empty()

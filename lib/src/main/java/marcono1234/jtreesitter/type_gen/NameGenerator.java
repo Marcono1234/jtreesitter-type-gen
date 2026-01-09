@@ -10,7 +10,7 @@ import static marcono1234.jtreesitter.type_gen.internal.JavaNameGeneratorHelper.
  * {@summary Generates names for generated source code elements (classes, fields, methods ...) based on the
  * information in {@code node-types.json}.}
  * Implementations do not have to use all arguments provided to the generation methods if they can create
- * unique and meaningful names without them. A default implementation is available through {@link #createDefault(TokenNameGenerator)}.
+ * unique and meaningful names without them. A default implementation is available through {@link DefaultNameGenerator}.
  *
  * <p><b>Important:</b> Implementations must make sure to create valid Java identifier names, and must not
  * produce conflicting names, for example by using a specific prefix or suffix to avoid conflicts.
@@ -559,7 +559,7 @@ public interface NameGenerator {
      * Generates for a non-named node type a "token" name, see {@link NameGenerator#generateFieldTokenName(String, String, String, int)}
      * for more details.
      *
-     * <p>This interface is only used by {@link #createDefault(TokenNameGenerator)}; it is not needed when implementing
+     * <p>This interface is only used by {@link DefaultNameGenerator}; it is not needed when implementing
      * a custom {@link NameGenerator}.
      */
     interface TokenNameGenerator {
@@ -669,98 +669,97 @@ public interface NameGenerator {
     }
 
     /**
-     * Creates a default name generator which is suitable for most use cases.
+     * Default name generator which is suitable for most use cases.
+     *
+     * <p>This implementation is stateless and thread-safe (if the given {@link TokenNameGenerator} is stateless as well).
      */
-    // Note: This specifically supports customizing token names because unlike the other names which might be good
-    //   enough for many use cases, automatic token name generation would produce too generic / not useful names
-    static NameGenerator createDefault(TokenNameGenerator tokenNameGenerator) {
-        Objects.requireNonNull(tokenNameGenerator);
+    class DefaultNameGenerator implements NameGenerator {
+        private final TokenNameGenerator tokenNameGenerator;
 
-        return new NameGenerator() {
-            @Override
-            public String generateJavaTypeName(String typeName) {
-                // Remove leading '_', for hidden types
-                if (typeName.startsWith("_")) {
-                    typeName = typeName.substring(1);
-                }
+        // Note: This specifically supports customizing token names because unlike the other names which might be good
+        //   enough for many use cases, automatic token name generation would produce too generic / not useful names
+        public DefaultNameGenerator(TokenNameGenerator tokenNameGenerator) {
+            this.tokenNameGenerator = Objects.requireNonNull(tokenNameGenerator);
+        }
 
-                // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
-                return "Node" + upperFirstChar(convertSnakeToCamelCase(typeName));
-            }
+        @Override
+        public String generateJavaTypeName(String typeName) {
+            // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
+            return "Node" + typeNameToUpperCamel(typeName);
+        }
 
-            @Override
-            public String generateTypeNameConstant(String typeName) {
-                return "TYPE_NAME";
-            }
+        @Override
+        public String generateTypeNameConstant(String typeName) {
+            return "TYPE_NAME";
+        }
 
-            @Override
-            public String generateTypeIdConstant(String typeName) {
-                return "TYPE_ID";
-            }
+        @Override
+        public String generateTypeIdConstant(String typeName) {
+            return "TYPE_ID";
+        }
 
-            @Override
-            public String generateChildrenTypesName(String parentTypeName, List<String> childrenTypesNames) {
-                return "Child";
-            }
+        @Override
+        public String generateChildrenTypesName(String parentTypeName, List<String> childrenTypesNames) {
+            return "Child";
+        }
 
-            @Override
-            public String generateChildrenTokenTypeName(String parentTypeName, List<String> tokenChildrenTypesNames) {
-                return generateChildrenTypesName(parentTypeName, tokenChildrenTypesNames) + "TokenType";
-            }
+        @Override
+        public String generateChildrenTokenTypeName(String parentTypeName, List<String> tokenChildrenTypesNames) {
+            return generateChildrenTypesName(parentTypeName, tokenChildrenTypesNames) + "TokenType";
+        }
 
-            @Override
-            public String generateChildrenTokenName(String parentTypeName, String tokenType, int index) {
-                return tokenNameGenerator.generateChildrenTokenName(parentTypeName, tokenType, index);
-            }
+        @Override
+        public String generateChildrenTokenName(String parentTypeName, String tokenType, int index) {
+            return tokenNameGenerator.generateChildrenTokenName(parentTypeName, tokenType, index);
+        }
 
-            @Override
-            public String generateChildrenGetterName(String parentTypeName, List<String> childrenTypesNames, boolean multiple, boolean required) {
-                return multiple ? "getChildren" : "getChild";
-            }
+        @Override
+        public String generateChildrenGetterName(String parentTypeName, List<String> childrenTypesNames, boolean multiple, boolean required) {
+            return multiple ? "getChildren" : "getChild";
+        }
 
-            @Override
-            public String generateFieldNameConstant(String parentTypeName, String fieldName) {
-                return "FIELD_" + convertToConstantName(fieldName);
-            }
+        @Override
+        public String generateFieldNameConstant(String parentTypeName, String fieldName) {
+            return "FIELD_" + convertToConstantName(fieldName);
+        }
 
-            @Override
-            public String generateFieldIdConstant(String parentTypeName, String fieldName) {
-                return "FIELD_" + convertToConstantName(fieldName) + "_ID";
-            }
+        @Override
+        public String generateFieldIdConstant(String parentTypeName, String fieldName) {
+            return "FIELD_" + convertToConstantName(fieldName) + "_ID";
+        }
 
-            private static String fieldNameAsSuffix(String fieldName) {
-                return upperFirstChar(convertSnakeToCamelCase(fieldName));
-            }
+        private static String fieldNameAsSuffix(String fieldName) {
+            return upperFirstChar(convertSnakeToCamelCase(fieldName));
+        }
 
-            @Override
-            public String generateFieldTypesName(String parentTypeName, String fieldName) {
-                // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
-                return "Field" + fieldNameAsSuffix(fieldName);
-            }
+        @Override
+        public String generateFieldTypesName(String parentTypeName, String fieldName) {
+            // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
+            return "Field" + fieldNameAsSuffix(fieldName);
+        }
 
-            @Override
-            public String generateFieldTokenTypeName(String parentTypeName, String fieldName, List<String> tokenFieldTypesNames) {
-                // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
-                return "FieldToken" + fieldNameAsSuffix(fieldName);
-            }
+        @Override
+        public String generateFieldTokenTypeName(String parentTypeName, String fieldName, List<String> tokenFieldTypesNames) {
+            // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
+            return "FieldToken" + fieldNameAsSuffix(fieldName);
+        }
 
-            @Override
-            public String generateFieldTokenName(String parentTypeName, String fieldName, String tokenType, int index) {
-                return tokenNameGenerator.generateFieldTokenName(parentTypeName, fieldName, tokenType, index);
-            }
+        @Override
+        public String generateFieldTokenName(String parentTypeName, String fieldName, String tokenType, int index) {
+            return tokenNameGenerator.generateFieldTokenName(parentTypeName, fieldName, tokenType, index);
+        }
 
-            @Override
-            public String generateFieldGetterName(String parentTypeName, String fieldName, boolean multiple, boolean required) {
-                // Prefix makes names consistent and prevents clashes with Object method names or other generated method names
-                return "getField" + fieldNameAsSuffix(fieldName);
-            }
+        @Override
+        public String generateFieldGetterName(String parentTypeName, String fieldName, boolean multiple, boolean required) {
+            // Prefix makes names consistent and prevents clashes with Object method names or other generated method names
+            return "getField" + fieldNameAsSuffix(fieldName);
+        }
 
-            @Override
-            public Optional<String> generateNonNamedChildrenGetterName(String parentTypeName, boolean hasNamedChildren, boolean hasFields) {
-                // For now only generate if type has no fields, otherwise user likely included non-named children as fields
-                // in their grammar in case they are relevant
-                return hasFields ? Optional.empty() : Optional.of("getUnnamedChildren");
-            }
-        };
+        @Override
+        public Optional<String> generateNonNamedChildrenGetterName(String parentTypeName, boolean hasNamedChildren, boolean hasFields) {
+            // For now only generate if type has no fields, otherwise user likely included non-named children as fields
+            // in their grammar in case they are relevant
+            return hasFields ? Optional.empty() : Optional.of("getUnnamedChildren");
+        }
     }
 }

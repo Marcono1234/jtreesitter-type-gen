@@ -37,7 +37,8 @@ class CodeGeneratorTest {
     private static final String DEFAULT_PACKAGE_NAME = "org.example";
     private static final String DEFAULT_NON_EMPTY_NAME = "NonEmpty";
     private static final CodeGenConfig.ChildTypeAsTopLevel DEFAULT_CHILD_AS_TOP_LEVEL = CodeGenConfig.ChildTypeAsTopLevel.AS_NEEDED;
-    private static final NameGenerator DEFAULT_NAME_GENERATOR = NameGenerator.createDefault(NameGenerator.TokenNameGenerator.AUTOMATIC);
+    private static final NameGenerator DEFAULT_NAME_GENERATOR = new NameGenerator.DefaultNameGenerator(TokenNameGenerator.AUTOMATIC);
+    private static final boolean DEFAULT_GENERATE_FIND_NODES_METHODS = true;
 
     // Use fixed version to avoid test output changes for every version change / Git commit
     private static final CodeGenerator.Version VERSION_INFO = new CodeGenerator.Version(
@@ -116,7 +117,9 @@ class CodeGeneratorTest {
 
         var tokenNameGenerator = baseFileName.contains("(token-name-generator)") ? TokenNameGenerator.fromMapping(Map.of("", Map.of("", Map.of("<", "LEFT", ">", "RIGHT"))), true)
             : TokenNameGenerator.AUTOMATIC;
-        var nameGenerator = NameGenerator.createDefault(tokenNameGenerator);
+        var nameGenerator = new NameGenerator.DefaultNameGenerator(tokenNameGenerator);
+
+        boolean findNodesMethods = !baseFileName.contains("(no-findNodes)");
 
         var typedQueryNameGenerator = baseFileName.contains("(typed-query)") ? TypedQueryNameGenerator.createDefault(nameGenerator)
             : null;
@@ -131,6 +134,7 @@ class CodeGeneratorTest {
             childAsTopLevel,
             Optional.ofNullable(typedNodeSuperinterface),
             nameGenerator,
+            findNodesMethods,
             Optional.ofNullable(typedQueryNameGenerator),
             Optional.ofNullable(customMethodsProvider),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
@@ -527,7 +531,8 @@ class CodeGeneratorTest {
             DEFAULT_NON_EMPTY_NAME,
             DEFAULT_CHILD_AS_TOP_LEVEL,
             Optional.empty(),
-            NameGenerator.createDefault(TokenNameGenerator.AUTOMATIC),
+            DEFAULT_NAME_GENERATOR,
+            DEFAULT_GENERATE_FIND_NODES_METHODS,
             Optional.empty(),
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
@@ -553,6 +558,7 @@ class CodeGeneratorTest {
             DEFAULT_CHILD_AS_TOP_LEVEL,
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
+            DEFAULT_GENERATE_FIND_NODES_METHODS,
             Optional.empty(),
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
@@ -587,6 +593,7 @@ class CodeGeneratorTest {
             DEFAULT_CHILD_AS_TOP_LEVEL,
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
+            DEFAULT_GENERATE_FIND_NODES_METHODS,
             Optional.empty(),
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
@@ -625,6 +632,7 @@ class CodeGeneratorTest {
             DEFAULT_CHILD_AS_TOP_LEVEL,
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
+            DEFAULT_GENERATE_FIND_NODES_METHODS,
             Optional.empty(),
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
@@ -667,6 +675,7 @@ class CodeGeneratorTest {
             DEFAULT_CHILD_AS_TOP_LEVEL,
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
+            DEFAULT_GENERATE_FIND_NODES_METHODS,
             Optional.empty(),
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)

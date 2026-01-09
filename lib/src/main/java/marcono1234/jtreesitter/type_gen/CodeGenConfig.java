@@ -38,6 +38,12 @@ import java.util.Optional;
  *      additional methods with {@code default} implementation which delegate to those abstract methods.
  * @param nameGenerator
  *      Determines the names for fields, methods, classes, ... in the generated code.
+ * @param generateFindNodesMethods
+ *      Whether to generate {@code findNodes(...)} methods for the typed node classes.<br>
+ *      These methods allow obtaining all instances of a node type starting at a given node. Disabling this can be
+ *      useful to reduce the size of the generated code when it is known that these methods will not be used.
+ *      For example when the tree is always traversed manually or when the more powerful {@linkplain #typedQueryNameGenerator() 'typed query'}
+ *      is used instead.
  * @param typedQueryNameGenerator
  *      Determines the names for the generated 'typed query' code. The generated code allows building a Tree-sitter
  *      query and consuming captures, both in a type-safe way.<br>
@@ -62,6 +68,8 @@ public record CodeGenConfig(
     ChildTypeAsTopLevel childTypeAsTopLevel,
     Optional<TypeName> typedNodeSuperinterface,
     NameGenerator nameGenerator,
+    // This config for `findNodes()` mainly exists at the request of users (see https://github.com/Marcono1234/jtreesitter-type-gen/issues/4)
+    boolean generateFindNodesMethods,
     Optional<TypedQueryNameGenerator> typedQueryNameGenerator,
     Optional<CustomMethodsProvider> customMethodsProvider,
     Optional<GeneratedAnnotationConfig> generatedAnnotationConfig

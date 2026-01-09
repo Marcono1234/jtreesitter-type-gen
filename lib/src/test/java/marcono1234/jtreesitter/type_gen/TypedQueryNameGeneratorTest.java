@@ -1,5 +1,6 @@
 package marcono1234.jtreesitter.type_gen;
 
+import marcono1234.jtreesitter.type_gen.NameGenerator.TokenNameGenerator;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -14,7 +15,7 @@ class TypedQueryNameGeneratorTest {
      */
     @Nested
     class DefaultTest {
-        private final TypedQueryNameGenerator nameGenerator = TypedQueryNameGenerator.createDefault(NameGenerator.createDefault(NameGenerator.TokenNameGenerator.AUTOMATIC));
+        private final TypedQueryNameGenerator nameGenerator = TypedQueryNameGenerator.createDefault(new NameGenerator.DefaultNameGenerator(TokenNameGenerator.AUTOMATIC));
 
         @ParameterizedTest
         @CsvSource({
