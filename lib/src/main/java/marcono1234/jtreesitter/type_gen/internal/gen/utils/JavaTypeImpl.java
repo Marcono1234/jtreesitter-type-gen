@@ -17,6 +17,10 @@ public record JavaTypeImpl(TypeName type) implements JavaType {
         return new JavaTypeImpl(type);
     }
 
+    /**
+     * Parser for the string representation of a JavaPoet {@link TypeName}.
+     * The main entrypoint is {@link #parse()}.
+     */
     // It seems JavaPoet itself does not provide functionality to parse a type string, see https://github.com/square/javapoet/issues/940#issuecomment-1362996591
     private static class TypeStringParser {
         private final String s;
@@ -84,6 +88,7 @@ public record JavaTypeImpl(TypeName type) implements JavaType {
                 if (tryConsume('<')) {
                     var className = parsedClassName.asClassName(this);
                     var typeArgs = new ArrayList<TypeName>();
+                    // Require at least one type argument
                     do {
                         TypeName typeArg = maybeParseWildcard();
                         if (typeArg == null) {
@@ -133,7 +138,8 @@ public record JavaTypeImpl(TypeName type) implements JavaType {
 
             if (!isArray && !isTopLevel && parsedClassName != null) {
                 // Primitive types cannot be used as type arguments or wildcard bounds, and JavaPoet checks this,
-                // so fail fast here (though maybe that could become valid in future Java versions related to Project Valhalla?)
+                // so fail fast here in case type is primitive (though maybe that could become valid in future Java
+                // versions related to Project Valhalla?)
                 var ignored = parsedClassName.asClassName(this);
             }
 
@@ -155,7 +161,8 @@ public record JavaTypeImpl(TypeName type) implements JavaType {
         // Note: This intentionally deviates from standard Java code annotation parsing behavior where using the qualified name
         // would require placing the annotation after the package name, e.g. `java.lang.@TA Object`
         // see https://docs.oracle.com/javase/specs/jls/se25/html/jls-9.html#jls-9.7.4-400
-        // However, that makes parsing more complicated and usage more cumbersome because user always has to use qualified names
+        // However, that makes parsing more complicated and usage more cumbersome because JavaType parsing requires
+        // always using qualified names, so this situation would occur for every annotation usage
         private List<AnnotationSpec> parseAnnotations() {
             var annotations = new ArrayList<AnnotationSpec>();
 
@@ -180,26 +187,26 @@ public record JavaTypeImpl(TypeName type) implements JavaType {
                 return null;
             }
 
-            int typeNameI = i;
-            while (typeNameI < s.length()) {
-                int c = s.charAt(typeNameI);
-                // Check if name contains '.' or '$'  and is therefore not a type variable
+            int iName = i;
+            while (iName < s.length()) {
+                int c = s.charAt(iName);
+                // Check if name contains '.' or '$' and is therefore not a type variable
                 if (c == '.' || c == '$') {
-                    typeNameI = END;
+                    iName = END;
                     break;
                 }
                 if (!isIdentifierChar(c)) {
                     break;
                 }
-                typeNameI++;
+                iName++;
             }
 
-            if (typeNameI == i || typeNameI == END) {
+            if (iName == i || iName == END) {
                 return null;
             }
 
-            String name = s.substring(i, typeNameI);
-            i = typeNameI;
+            String name = s.substring(i, iName);
+            i = iName;
             return TypeVariableName.get(name);
         }
 
@@ -249,10 +256,10 @@ public record JavaTypeImpl(TypeName type) implements JavaType {
             }
         }
 
-        // Note: This uses '$' to differentiate nested type names, to avoid ambiguity
+        // Note: For nested types this uses '$' instead of '.' to avoid ambiguity with the package name
         private ParsedClassName parseClassName() {
-            int start = i;
-            int lastDot = i - 1;
+            final int start = i;
+            int lastDot = i - 1;  // this initial value prevents leading dots, and simplifies simple name splitting, see below
             var dollarSignPos = new ArrayList<Integer>();
 
             while (true) {
@@ -321,7 +328,7 @@ public record JavaTypeImpl(TypeName type) implements JavaType {
                 case "double" -> TypeName.DOUBLE;
                 case "void" -> {
                     this.i = startIndex;
-                    // For return type use empty Optional / null instead
+                    // To represent 'void' return type use empty Optional / null instead
                     throw error("'void' is not valid");
                 }
                 default -> null;

@@ -90,11 +90,11 @@ public sealed interface GenChildType {
         String generateTokenTypeConstantName(String tokenType, int index);
     }
 
-    interface CustomMethodsProvider {
+    interface ChildCustomMethodsProvider {
         List<CustomMethodData> createCustomMethods(CodeGenHelper codeGenHelper, List<String> allChildTypes);
     }
 
-    static GenChildType create(GenRegularNodeType enclosingNodeType, List<Type> types, ChildTypeNameGenerator nameGenerator, NodeTypeLookup nodeTypeLookup, Consumer<GenJavaType> additionalTypedNodeSubtypeCollector, CustomMethodsProvider customMethodsProvider) {
+    static GenChildType create(GenRegularNodeType enclosingNodeType, List<Type> types, ChildTypeNameGenerator nameGenerator, NodeTypeLookup nodeTypeLookup, Consumer<GenJavaType> additionalTypedNodeSubtypeCollector, ChildCustomMethodsProvider customMethodsProvider) {
         if (types.isEmpty()) {
             throw new IllegalArgumentException("Empty types");
         }

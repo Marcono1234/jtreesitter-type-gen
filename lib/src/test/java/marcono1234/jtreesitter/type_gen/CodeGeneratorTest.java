@@ -267,7 +267,7 @@ class CodeGeneratorTest {
                 List.of(),
                 sequencedMap("a", JavaType.fromTypeString("int"), "b", JavaType.fromType(String.class)),
                 Optional.empty(),
-                Optional.empty(),
+                Optional.of("typed node javadoc\nwith link {@link java.lang.String#length()}"),
                 TypeName.fromQualifiedName("org.example.custom.CustomMethods"),
                 "typedNode",
                 List.of()

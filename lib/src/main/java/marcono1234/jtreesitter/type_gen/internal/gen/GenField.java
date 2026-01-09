@@ -129,7 +129,7 @@ public class GenField extends GenChildren {
                 return nameGenerator.generateFieldTokenName(parentTypeName, fieldName, tokenType, index);
             }
         };
-        var customMethodsProvider = new GenChildType.CustomMethodsProvider() {
+        var customMethodsProvider = new GenChildType.ChildCustomMethodsProvider() {
             @Override
             public List<CustomMethodData> createCustomMethods(CodeGenHelper codeGenHelper, List<String> allChildTypes) {
                 // For now ignore `allChildTypes` for obtaining custom methods since field name probably suffices

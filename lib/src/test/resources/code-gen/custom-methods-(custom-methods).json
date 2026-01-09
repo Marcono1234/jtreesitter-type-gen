@@ -8,6 +8,20 @@
     "named": true
   },
   {
+    "type": "super",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "contained_a",
+        "named": true
+      },
+      {
+        "type": "contained_b",
+        "named": true
+      }
+    ]
+  },
+  {
     "type": "children_single",
     "named": true,
     "fields": {},

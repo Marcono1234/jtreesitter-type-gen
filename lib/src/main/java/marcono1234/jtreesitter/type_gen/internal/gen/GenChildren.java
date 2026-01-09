@@ -172,7 +172,6 @@ public class GenChildren {
             );
         }
 
-        // Note: This includes non-named types (if any) as well
         List<String> childrenTypesNames = childTypeRaw.types.stream().map(t -> t.type).toList();
         String getterName = nameGenerator.generateChildrenGetterName(parentTypeName, childrenTypesNames, multiple, required);
 
@@ -194,7 +193,7 @@ public class GenChildren {
                 return nameGenerator.generateChildrenTokenName(parentTypeName, tokenType, index);
             }
         };
-        var customMethodsProvider = new GenChildType.CustomMethodsProvider() {
+        var customMethodsProvider = new GenChildType.ChildCustomMethodsProvider() {
             @Override
             public List<CustomMethodData> createCustomMethods(CodeGenHelper codeGenHelper, List<String> allChildTypes) {
                 return codeGenHelper.customMethodsForNodeChildrenType(parentTypeName, allChildTypes);

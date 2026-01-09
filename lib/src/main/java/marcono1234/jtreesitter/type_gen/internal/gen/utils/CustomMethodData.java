@@ -10,6 +10,9 @@ import javax.lang.model.element.Modifier;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Internal representation of {@link CustomMethodsProvider.MethodData}.
+ */
 public record CustomMethodData(
     String name,
     List<TypeVariableName> typeVariables,
@@ -64,6 +67,10 @@ public record CustomMethodData(
         };
     }
 
+    /**
+     * @param forInterface
+     *      whether the type to which the method will be added is a Java interface ({@code true}) or a Java class ({@code false})
+     */
     public MethodSpec generateMethod(boolean forInterface) {
         var methodBuilder = MethodSpec.methodBuilder(name)
             .addModifiers(Modifier.PUBLIC);
@@ -145,6 +152,6 @@ public record CustomMethodData(
             javadocBuilder.add("\n<li>").add(methodData.generateJavadocLink());
         }
 
-        return Optional.of(javadocBuilder.add("\n<ul>").build());
+        return Optional.of(javadocBuilder.add("\n</ul>").build());
     }
 }

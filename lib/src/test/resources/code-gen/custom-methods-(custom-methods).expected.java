@@ -139,7 +139,7 @@ import org.jspecify.annotations.Nullable;
  * <p>Custom methods:
  * <ul>
  * <li>{@link #typedNodeCustom(int, String)}
- * <ul>
+ * </ul>
  *
  * <h2>Node subtypes</h2>
  * <ul>
@@ -148,6 +148,7 @@ import org.jspecify.annotations.Nullable;
  * <li>{@link NodeChildrenSingle children_single}
  * <li>{@link NodeChildrenMulti children_multi}
  * <li>{@link NodeFields fields}
+ * <li>{@link NodeSuper super}
  * </ul>
  */
 @Generated(
@@ -155,7 +156,7 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public sealed interface TypedNode permits NodeContainedA, NodeContainedB, NodeChildrenSingle, NodeChildrenMulti, NodeFields, NodeChildrenMulti.Child, NodeFields.FieldMultiNamed, NodeFields.FieldTokenUnnamed, NodeFields.FieldMixed {
+public sealed interface TypedNode permits NodeContainedA, NodeContainedB, NodeChildrenSingle, NodeChildrenMulti, NodeFields, NodeSuper, NodeChildrenMulti.Child, NodeFields.FieldMultiNamed, NodeFields.FieldTokenUnnamed, NodeFields.FieldMixed {
   /**
    * Returns the underlying jtreesitter node.
    */
@@ -231,6 +232,10 @@ public sealed interface TypedNode permits NodeContainedA, NodeContainedB, NodeCh
     return typedNode;
   }
 
+  /**
+   * typed node javadoc
+   * with link {@link java.lang.String#length()}
+   */
   default void typedNodeCustom(int a, String b) {
     CustomMethods.typedNode(this, a, b);
   }
@@ -290,7 +295,7 @@ import org.jspecify.annotations.Nullable;
  * <p>Custom methods:
  * <ul>
  * <li>{@link #nodeTypeCustom(int)}
- * <ul>
+ * </ul>
  */
 @Generated(
     value = "marcono1234.jtreesitter.type_gen.CodeGenerator",
@@ -298,6 +303,7 @@ import org.jspecify.annotations.Nullable;
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
 public final class NodeContainedA implements TypedNode,
+    NodeSuper,
     NodeChildrenMulti.Child,
     NodeFields.FieldMultiNamed,
     NodeFields.FieldMixed {
@@ -466,14 +472,17 @@ import org.jspecify.annotations.Nullable;
  * <p>Custom methods:
  * <ul>
  * <li>{@link #nodeTypeCustom(int)}
- * <ul>
+ * </ul>
  */
 @Generated(
     value = "marcono1234.jtreesitter.type_gen.CodeGenerator",
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeContainedB implements TypedNode, NodeChildrenMulti.Child, NodeFields.FieldMultiNamed {
+public final class NodeContainedB implements TypedNode,
+    NodeSuper,
+    NodeChildrenMulti.Child,
+    NodeFields.FieldMultiNamed {
   /**
    * Type name of this node, as defined in the grammar.
    */
@@ -641,7 +650,7 @@ import org.jspecify.annotations.Nullable;
  * <p>Custom methods:
  * <ul>
  * <li>{@link #nodeTypeCustom(int)}
- * <ul>
+ * </ul>
  */
 @Generated(
     value = "marcono1234.jtreesitter.type_gen.CodeGenerator",
@@ -830,7 +839,7 @@ import org.jspecify.annotations.Nullable;
  * <p>Custom methods:
  * <ul>
  * <li>{@link #nodeTypeCustom(int)}
- * <ul>
+ * </ul>
  */
 @Generated(
     value = "marcono1234.jtreesitter.type_gen.CodeGenerator",
@@ -1000,7 +1009,7 @@ public final class NodeChildrenMulti implements TypedNode {
    * <p>Custom methods:
    * <ul>
    * <li>{@link #childrenTypeCustom(int)}
-   * <ul>
+   * </ul>
    */
   public sealed interface Child extends TypedNode permits NodeContainedA, NodeContainedB {
     default void childrenTypeCustom(int a) {
@@ -1045,7 +1054,7 @@ import org.jspecify.annotations.Nullable;
  * <p>Custom methods:
  * <ul>
  * <li>{@link #nodeTypeCustom(int)}
- * <ul>
+ * </ul>
  */
 @Generated(
     value = "marcono1234.jtreesitter.type_gen.CodeGenerator",
@@ -1273,7 +1282,7 @@ public final class NodeFields implements TypedNode {
    * <p>Custom methods:
    * <ul>
    * <li>{@link #fieldTypeCustom_multi_named(int)}
-   * <ul>
+   * </ul>
    */
   public sealed interface FieldMultiNamed extends TypedNode permits NodeContainedA, NodeContainedB {
     default void fieldTypeCustom_multi_named(int a) {
@@ -1462,12 +1471,149 @@ public final class NodeFields implements TypedNode {
    * <p>Custom methods:
    * <ul>
    * <li>{@link #fieldTypeCustom_mixed(int)}
-   * <ul>
+   * </ul>
    */
   public sealed interface FieldMixed extends TypedNode permits NodeContainedA, FieldTokenMixed {
     default void fieldTypeCustom_mixed(int a) {
       CustomMethods.fieldType(this, a, "fields", "mixed");
     }
+  }
+}
+
+
+/* ==================== */ 
+
+package org.example;
+
+import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
+import java.lang.IllegalArgumentException;
+import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
+import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+import javax.annotation.processing.Generated;
+import org.example.custom.CustomMethods;
+import org.jspecify.annotations.Nullable;
+
+/**
+ * Supertype {@code super}, with subtypes:
+ * <ul>
+ * <li>{@link NodeContainedA contained_a}
+ * <li>{@link NodeContainedB contained_b}
+ * </ul>
+ *
+ * <p>Custom methods:
+ * <ul>
+ * <li>{@link #nodeTypeCustom(int)}
+ * </ul>
+ */
+@Generated(
+    value = "marcono1234.jtreesitter.type_gen.CodeGenerator",
+    date = "1970-01-01T00:00:00Z",
+    comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
+)
+public sealed interface NodeSuper extends TypedNode permits NodeContainedA, NodeContainedB {
+  /**
+   * Type name of this node, as defined in the grammar.
+   */
+  String TYPE_NAME = "super";
+
+  /**
+   * Wraps a jtreesitter node as this node type, returning {@code null} if the node has the wrong type.
+   *
+   * @see #fromNodeThrowing
+   */
+  static @Nullable NodeSuper fromNode(Node node) {
+    var result = switch (node.getType()) {
+      case NodeContainedA.TYPE_NAME -> new NodeContainedA(node);
+      case NodeContainedB.TYPE_NAME -> new NodeContainedB(node);
+      default -> null;
+    }
+    ;
+    return result;
+  }
+
+  /**
+   * Wraps a jtreesitter node as this node type, throwing an {@link IllegalArgumentException} if the node has the wrong type.
+   *
+   * @see #fromNode
+   */
+  static NodeSuper fromNodeThrowing(Node node) {
+    var typedNodeOptional = fromNode(node);
+    var typedNode = typedNodeOptional;
+    if (typedNode == null) {
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
+    }
+    return typedNode;
+  }
+
+  private static Stream<NodeSuper> findNodesImpl(TypedNode startNode, SegmentAllocator allocator) {
+    var startNodeUnwrapped = startNode.getNode();
+    var language = startNodeUnwrapped.getTree().getLanguage();
+    // tree-sitter query which matches the nodes of this type, and captures them
+    var captureName = "node";
+    var queryString = "["
+        + "(" + NodeContainedA.TYPE_NAME + ")"
+        + "(" + NodeContainedB.TYPE_NAME + ")"
+        + "] @" + captureName;
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSuper::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeSuper.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  static Stream<NodeSuper> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
+    return findNodesImpl(startNode, allocator);
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
+   * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeSuper.findNodes(start)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   */
+  static Stream<NodeSuper> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
+    return findNodesImpl(startNode, null);
+  }
+
+  default void nodeTypeCustom(int a) {
+    CustomMethods.nodeType(this, a, "super");
   }
 }
 

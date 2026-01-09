@@ -913,8 +913,8 @@ class MainTest {
             ]
             """);
 
-        Path customMethodConfigFile = tempDir.resolve("custom-methods-config.json");
-        Files.writeString(customMethodConfigFile, """
+        Path customMethodsConfigFile = tempDir.resolve("custom-methods-config.json");
+        Files.writeString(customMethodsConfigFile, """
             {
               "typed-tree": [
                 {
@@ -962,7 +962,7 @@ class MainTest {
                 "--node-types", nodeTypesFile.toString(),
                 "--package", "com.example",
                 "--output-dir", outputDir.toString(),
-                "--custom-methods-config", customMethodConfigFile.toString()
+                "--custom-methods-config", customMethodsConfigFile.toString()
             ),
             CommandLine.ExitCode.OK,
             stdOut -> assertEquals(

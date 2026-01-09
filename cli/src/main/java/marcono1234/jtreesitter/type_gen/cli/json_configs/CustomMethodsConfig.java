@@ -74,10 +74,6 @@ public class CustomMethodsConfig {
         }
     }
 
-    @JsonDeserialize(using = ReceiverDeserializer.class)
-    public record Receiver(TypeName type, String methodName) {
-    }
-
     public static class TypeVariableConfig {
         @JsonProperty(value = "name", required = true)
         public String name;
@@ -85,6 +81,10 @@ public class CustomMethodsConfig {
         @JsonProperty("bounds")
         @Nullable
         public List<JavaType> bounds;
+    }
+
+    @JsonDeserialize(using = ReceiverDeserializer.class)
+    public record Receiver(TypeName type, String methodName) {
     }
 
     @JsonProperty("typed-tree")
@@ -115,10 +115,10 @@ public class CustomMethodsConfig {
         return mapper.readValue(file, CustomMethodsConfig.class);
     }
 
-    /** Strict deserializer which only accepts a JSON string and performs no coercion. */
+    /** Strict deserializer which only accepts a JSON string and performs no type coercion. */
     private static abstract class FromStringDeserializer<T> extends StdDeserializer<T> {
-        protected FromStringDeserializer(Class<T> vc) {
-            super(vc);
+        protected FromStringDeserializer(Class<T> c) {
+            super(c);
         }
 
         @Override

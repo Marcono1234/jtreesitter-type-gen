@@ -139,7 +139,7 @@ import org.jspecify.annotations.Nullable;
  * <p>Custom methods:
  * <ul>
  * <li>{@link #typedNodeCustom(int, String)}
- * <ul>
+ * </ul>
  *
  * <h2>Node subtypes</h2>
  * <ul>
@@ -223,6 +223,10 @@ public sealed interface TypedNode permits NodeContainedA {
     return typedNode;
   }
 
+  /**
+   * typed node javadoc
+   * with link {@link java.lang.String#length()}
+   */
   default void typedNodeCustom(int a, String b) {
     CustomMethods.typedNode(this, a, b);
   }
@@ -282,7 +286,7 @@ import org.jspecify.annotations.Nullable;
  * <p>Custom methods:
  * <ul>
  * <li>{@link #nodeTypeCustom(int)}
- * <ul>
+ * </ul>
  */
 @Generated(
     value = "marcono1234.jtreesitter.type_gen.CodeGenerator",
@@ -453,7 +457,7 @@ import org.jspecify.annotations.Nullable;
  * <p>Custom methods:
  * <ul>
  * <li>{@link #typedTreeCustom(List)}
- * <ul>
+ * </ul>
  */
 @Generated(
     value = "marcono1234.jtreesitter.type_gen.CodeGenerator",
