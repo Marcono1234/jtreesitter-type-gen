@@ -5,6 +5,7 @@ import marcono1234.jtreesitter.type_gen.NameGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.TypedNodeInterfaceGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper.TypedNodeConfig.JavaFieldRef;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodData;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.ChildType;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.NodeType;
@@ -247,7 +248,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
         );
     }
 
-    private void generateJavadoc(TypeSpec.Builder typeBuilder) {
+    private void generateJavadoc(TypeSpec.Builder typeBuilder, List<CustomMethodData> customMethods) {
         typeBuilder.addJavadoc("Type {@value #$N}.", typeNameConstant);
 
         if (children != null) {
@@ -263,6 +264,8 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
             }
             typeBuilder.addJavadoc("\n</ul>");
         }
+
+        CustomMethodData.createCustomMethodsJavadocSection(customMethods).ifPresent(typeBuilder::addJavadoc);
     }
 
     @Override
@@ -279,7 +282,8 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
             typeBuilder.addSuperinterface(superInterface.createJavaTypeName(codeGenHelper));
         }
 
-        generateJavadoc(typeBuilder);
+        var customMethods = codeGenHelper.customMethodsForNodeType(typeName);
+        generateJavadoc(typeBuilder, customMethods);
 
         typeBuilder.addField(CodeGenHelper.createTypeNameConstantField(typeName, typeNameConstant));
         if (codeGenHelper.generatesNumericIdConstants()) {
@@ -308,6 +312,8 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
         typeBuilder.addMethods(typedNode.generateMethodsFindNodes(ownClassName, List.of(new JavaFieldRef(ownClassName, typeNameConstant))));
 
         generateOverriddenObjectMethods(typeBuilder, codeGenHelper, nodeField);
+        customMethods.forEach(m -> typeBuilder.addMethod(m.generateMethod(false)));
+
         javaTypes.add(typeBuilder);
 
         return javaTypes.stream().map(codeGenHelper::createOwnJavaFile).toList();

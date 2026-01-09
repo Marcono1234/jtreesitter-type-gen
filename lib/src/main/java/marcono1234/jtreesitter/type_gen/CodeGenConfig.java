@@ -48,6 +48,9 @@ import java.util.Optional;
  *      Determines the names for the generated 'typed query' code. The generated code allows building a Tree-sitter
  *      query and consuming captures, both in a type-safe way.<br>
  *      If an empty {@link Optional} is given, no 'typed query' code will be generated.
+ * @param customMethodsProvider
+ *      Provides the configuration for custom methods to be added to the generated classes.<br>
+ *      If an empty {@link Optional} is given, no custom methods will be added.
  * @param generatedAnnotationConfig
  *      Configuration for {@code @Generated} annotations placed on generated classes; empty if such annotations
  *      should be not added.
@@ -68,6 +71,7 @@ public record CodeGenConfig(
     // This config for `findNodes()` mainly exists at the request of users (see https://github.com/Marcono1234/jtreesitter-type-gen/issues/4)
     boolean generateFindNodesMethods,
     Optional<TypedQueryNameGenerator> typedQueryNameGenerator,
+    Optional<CustomMethodsProvider> customMethodsProvider,
     Optional<GeneratedAnnotationConfig> generatedAnnotationConfig
 ) {
     public CodeGenConfig {

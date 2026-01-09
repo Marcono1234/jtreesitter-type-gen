@@ -8,6 +8,7 @@ import marcono1234.jtreesitter.type_gen.CodeGenException;
 import marcono1234.jtreesitter.type_gen.NameGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper.TypedNodeConfig.JavaFieldRef;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodData;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.NodeType;
 
@@ -147,9 +148,11 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
             .toList();
     }
 
-    private void generateJavadoc(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper) {
+    private void generateJavadoc(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper, List<CustomMethodData> customMethods) {
         typeBuilder.addJavadoc("Supertype $L, with subtypes:", CodeGenHelper.createJavadocCodeTag(typeName));
         codeGenHelper.addJavadocTypeMapping(typeBuilder, subtypes, null);
+
+        CustomMethodData.createCustomMethodsJavadocSection(customMethods).ifPresent(typeBuilder::addJavadoc);
     }
 
     private static void getAllSubtypeClasses(GenSupertypeNodeType type, Consumer<GenRegularNodeType> consumer) {
@@ -236,7 +239,8 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
             typeBuilder.addPermittedSubclass(subtype.createJavaTypeName(codeGenHelper));
         }
 
-        generateJavadoc(typeBuilder, codeGenHelper);
+        var customMethods = codeGenHelper.customMethodsForNodeType(typeName);
+        generateJavadoc(typeBuilder, codeGenHelper, customMethods);
 
         typeBuilder.addField(CodeGenHelper.createTypeNameConstantField(typeName, typeNameConstant));
         // Note: Most likely for supertype nodes the numeric type ID is not that useful because they don't exist
@@ -249,6 +253,7 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
         typeBuilder.addMethod(generateMethodFromNodeThrowing(codeGenHelper));
 
         typeBuilder.addMethods(generateMethodsFindNodes(codeGenHelper));
+        customMethods.forEach(m -> typeBuilder.addMethod(m.generateMethod(true)));
 
         return List.of(codeGenHelper.createOwnJavaFile(typeBuilder));
     }

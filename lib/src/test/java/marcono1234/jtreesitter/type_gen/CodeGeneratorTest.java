@@ -8,7 +8,6 @@ import marcono1234.jtreesitter.type_gen.CodeGenConfig.GeneratedAnnotationConfig.
 import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageProviderConfig;
 import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageVersion;
 import marcono1234.jtreesitter.type_gen.NameGenerator.TokenNameGenerator;
-import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -125,6 +124,8 @@ class CodeGeneratorTest {
         var typedQueryNameGenerator = baseFileName.contains("(typed-query)") ? TypedQueryNameGenerator.createDefault(nameGenerator)
             : null;
 
+        var customMethodsProvider = baseFileName.contains("(custom-methods)") ? new DummyCustomMethodsProvider() : null;
+
         var config = new CodeGenConfig(
             packageName,
             nullableAsOptional ? Optional.empty() : Optional.of(TypeName.JSPECIFY_NULLABLE_ANNOTATION),
@@ -135,6 +136,7 @@ class CodeGeneratorTest {
             nameGenerator,
             findNodesMethods,
             Optional.ofNullable(typedQueryNameGenerator),
+            Optional.ofNullable(customMethodsProvider),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
 
@@ -186,7 +188,7 @@ class CodeGeneratorTest {
             }
 
             @Override
-            public void write(@NonNull JavaFile javaCode) throws CodeGenException {
+            public void write(JavaFile javaCode) throws CodeGenException {
                 actualGeneratedFiles.add(new JavaFileSource(javaCode));
                 try {
                     javaCode.writeTo(actualContent);
@@ -197,7 +199,7 @@ class CodeGeneratorTest {
             }
 
             @Override
-            public void writePackageInfo(@NonNull String packageName, @NonNull String content) {
+            public void writePackageInfo(String packageName, String content) {
                 actualGeneratedFiles.add(new JavaFileSource(packageName, "package-info.java", content));
                 actualContent.append(content);
                 appendFileContentSeparator();
@@ -227,6 +229,93 @@ class CodeGeneratorTest {
 
     private static final String DUMMY_TYPED_NODE_SUPERINTERFACE = "org.example.lang.TypedNodeSuper";
     private static final String DUMMY_LANGUAGE_PROVIDER_NAME = "org.example.lang.LangProvider";
+    private static final String DUMMY_CUSTOM_METHODS_IMPL = "org.example.custom.CustomMethods";
+
+    private static class DummyCustomMethodsProvider implements CustomMethodsProvider {
+        private static <K, V> SequencedMap<K, V> sequencedMap(Object... keysAndValues) {
+            var map = new LinkedHashMap<>();
+            if (keysAndValues.length % 2 != 0) {
+                throw new IllegalArgumentException("Must provide an even number of keys and values");
+            }
+            for (int i = 0; i < keysAndValues.length; i += 2) {
+                map.put(keysAndValues[i], keysAndValues[i + 1]);
+            }
+
+            @SuppressWarnings("unchecked")
+            var typedMap = (SequencedMap<K, V>) map;
+            return typedMap;
+        }
+
+        @Override
+        public List<MethodData> forTypedTree() {
+            return List.of(new MethodData(
+                "typedTreeCustom",
+                List.of(new JavaTypeVariable("E", List.of(JavaType.fromType(CharSequence.class)))),
+                sequencedMap("a", JavaType.fromTypeString("java.util.List<@org.jspecify.annotations.Nullable E>")),
+                Optional.of(JavaType.fromType(boolean.class)),
+                Optional.of("custom javadoc\nwith line break"),
+                TypeName.fromQualifiedName(DUMMY_CUSTOM_METHODS_IMPL),
+                "typedTree",
+                List.of()
+            ));
+        }
+
+        @Override
+        public List<MethodData> forTypedNode() {
+            return List.of(new MethodData(
+                "typedNodeCustom",
+                List.of(),
+                sequencedMap("a", JavaType.fromTypeString("int"), "b", JavaType.fromType(String.class)),
+                Optional.empty(),
+                Optional.of("typed node javadoc\nwith link {@link java.lang.String#length()}"),
+                TypeName.fromQualifiedName("org.example.custom.CustomMethods"),
+                "typedNode",
+                List.of()
+            ));
+        }
+
+        @Override
+        public List<MethodData> forNodeType(String nodeType) {
+            return List.of(new MethodData(
+                "nodeTypeCustom",
+                List.of(),
+                sequencedMap("a", JavaType.fromTypeString("int")),
+                Optional.empty(),
+                Optional.empty(),
+                TypeName.fromQualifiedName("org.example.custom.CustomMethods"),
+                "nodeType",
+                List.of(new JavaLiteral.String(nodeType))
+            ));
+        }
+
+        @Override
+        public List<MethodData> forNodeChildrenType(String parentNodeType, List<String> childrenNodeTypes) {
+            return List.of(new MethodData(
+                "childrenTypeCustom",
+                List.of(),
+                sequencedMap("a", JavaType.fromTypeString("int")),
+                Optional.empty(),
+                Optional.empty(),
+                TypeName.fromQualifiedName("org.example.custom.CustomMethods"),
+                "childrenType",
+                List.of(new JavaLiteral.String(parentNodeType), new JavaLiteral.String(childrenNodeTypes.getFirst()))
+            ));
+        }
+
+        @Override
+        public List<MethodData> forNodeFieldType(String parentNodeType, String fieldName) {
+            return List.of(new MethodData(
+                "fieldTypeCustom_" + fieldName,
+                List.of(),
+                sequencedMap("a", JavaType.fromTypeString("int")),
+                Optional.empty(),
+                Optional.empty(),
+                TypeName.fromQualifiedName("org.example.custom.CustomMethods"),
+                "fieldType",
+                List.of(new JavaLiteral.String(parentNodeType), new JavaLiteral.String(fieldName))
+            ));
+        }
+    }
 
     private static String[] createFilePath(String packageName, String fileName) {
         List<String> filePath = new ArrayList<>(Arrays.asList(packageName.split("\\.")));
@@ -326,6 +415,38 @@ class CodeGeneratorTest {
                         """);
             }
 
+            boolean hasCustomMethods = codeGenConfig.customMethodsProvider().isPresent();
+            if (hasCustomMethods) {
+                // Create a dummy class providing the implementations for the custom methods
+                sourcePath.createFile(classNameToSourcePath(DUMMY_CUSTOM_METHODS_IMPL))
+                    .withContents("""
+                        package org.example.custom;
+                        
+                        import org.example.TypedNode;
+                        
+                        import java.util.List;
+                        
+                        public class CustomMethods {
+                            // Use `Object` instead of `TypedTree` here as type because some of the tests don't generate TypedTree
+                            public static boolean typedTree(Object t, List<?> l) {
+                                return true;
+                            }
+                        
+                            public static void typedNode(TypedNode n, int i, String s) {
+                            }
+                        
+                            public static void nodeType(TypedNode n, int i, String s) {
+                            }
+                        
+                            public static void childrenType(TypedNode n, int i, String s, String s2) {
+                            }
+                        
+                            public static void fieldType(TypedNode n, int i, String s, String s2) {
+                            }
+                        }
+                        """);
+            }
+
             // Note: `-Xlint:all` might lead to JDK version specific warnings, but Gradle JVM toolchain should make sure
             // specific JDK version is used
             compiler.addCompilerOptions("-Xlint:all").showWarnings(true);
@@ -364,6 +485,13 @@ class CodeGeneratorTest {
                     .fileExists(classNameToCompiledPath(DUMMY_LANGUAGE_PROVIDER_NAME))
                     .isNotEmptyFile();
             }
+
+            if (hasCustomMethods) {
+                assertThatCompilation(compilation)
+                    .classOutputPackages()
+                    .fileExists(classNameToCompiledPath(DUMMY_CUSTOM_METHODS_IMPL))
+                    .isNotEmptyFile();
+            }
         }
     }
 
@@ -378,12 +506,12 @@ class CodeGeneratorTest {
         }
 
         @Override
-        public void write(@NonNull JavaFile javaCode) {
+        public void write(JavaFile javaCode) {
             fail();
         }
 
         @Override
-        public void writePackageInfo(@NonNull String packageName, @NonNull String content) {
+        public void writePackageInfo(String packageName, String content) {
             fail();
         }
 
@@ -405,6 +533,7 @@ class CodeGeneratorTest {
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
             DEFAULT_GENERATE_FIND_NODES_METHODS,
+            Optional.empty(),
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
@@ -430,6 +559,7 @@ class CodeGeneratorTest {
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
             DEFAULT_GENERATE_FIND_NODES_METHODS,
+            Optional.empty(),
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
@@ -464,6 +594,7 @@ class CodeGeneratorTest {
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
             DEFAULT_GENERATE_FIND_NODES_METHODS,
+            Optional.empty(),
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
@@ -502,6 +633,7 @@ class CodeGeneratorTest {
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
             DEFAULT_GENERATE_FIND_NODES_METHODS,
+            Optional.empty(),
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
@@ -544,6 +676,7 @@ class CodeGeneratorTest {
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
             DEFAULT_GENERATE_FIND_NODES_METHODS,
+            Optional.empty(),
             Optional.empty(),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );

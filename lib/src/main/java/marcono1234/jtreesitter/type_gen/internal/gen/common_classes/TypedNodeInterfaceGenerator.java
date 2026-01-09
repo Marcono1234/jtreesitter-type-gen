@@ -5,6 +5,7 @@ import marcono1234.jtreesitter.type_gen.internal.gen.GenJavaType;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenNodeType;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenRegularNodeType;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodData;
 import org.jspecify.annotations.Nullable;
 
 import javax.lang.model.element.Modifier;
@@ -26,13 +27,15 @@ public class TypedNodeInterfaceGenerator {
         this.config = this.codeGenHelper.typedNodeConfig();
     }
 
-    private void generateJavadoc(TypeSpec.Builder typeBuilder, List<GenNodeType> nodeTypes) {
+    private void generateJavadoc(TypeSpec.Builder typeBuilder, List<GenNodeType> nodeTypes, List<CustomMethodData> customMethods) {
         var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
 
         typeBuilder.addJavadoc("Base type for all 'typed nodes'.");
         typeBuilder.addJavadoc("\nA jtreesitter {@link $T} can be converted to a typed node with {@link #$N} or {@link #$N},",
-            jtreesitterNode.className(), config.methodFromNode(), config.methodFromNodeThrowing())
-        .addJavadoc("\nor with the corresponding methods on the specific typed node classes.");
+                jtreesitterNode.className(), config.methodFromNode(), config.methodFromNodeThrowing())
+            .addJavadoc("\nor with the corresponding methods on the specific typed node classes.");
+
+        CustomMethodData.createCustomMethodsJavadocSection(customMethods).ifPresent(typeBuilder::addJavadoc);
 
         typeBuilder.addJavadoc("\n\n<h2>Node subtypes</h2>");
         codeGenHelper.addJavadocTypeMapping(typeBuilder, nodeTypes, null);
@@ -101,12 +104,15 @@ public class TypedNodeInterfaceGenerator {
             typeBuilder.addPermittedSubclass(subtype.createJavaTypeName(codeGenHelper));
         }
 
-        generateJavadoc(typeBuilder, nodeTypes);
+        var customMethods = codeGenHelper.customMethodsForTypedNode();
+        generateJavadoc(typeBuilder, nodeTypes, customMethods);
 
         generateInstanceMethods(typeBuilder, codeGenHelper);
 
         typeBuilder.addMethod(generateMethodFromNode(nodeTypes));
         typeBuilder.addMethod(generateMethodFromNodeThrowing());
+
+        customMethods.forEach(m -> typeBuilder.addMethod(m.generateMethod(true)));
 
         return codeGenHelper.createOwnJavaFile(typeBuilder);
     }
@@ -144,7 +150,7 @@ public class TypedNodeInterfaceGenerator {
             .addJavadoc("Returns the end point of this node.")
             .build());
 
-        typeBuilder.addMethod(CodeGenHelper.createDelegatingGetter(jtreesitterNode.methodHasError(), TypeName.get(boolean.class), getNodeMethodCall)
+        typeBuilder.addMethod(CodeGenHelper.createDelegatingGetter(jtreesitterNode.methodHasError(), TypeName.BOOLEAN, getNodeMethodCall)
             .addModifiers(Modifier.DEFAULT)
             // Note: Most likely the node itself cannot be an ERROR, because then construction of TypedNode would
             // have failed

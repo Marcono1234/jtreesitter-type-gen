@@ -4,6 +4,7 @@ import com.palantir.javapoet.*;
 import marcono1234.jtreesitter.type_gen.CodeGenerator;
 import marcono1234.jtreesitter.type_gen.NameGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodData;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.ChildType;
 
@@ -174,7 +175,7 @@ public class GenChildren {
         List<String> childrenTypesNames = childTypeRaw.types.stream().map(t -> t.type).toList();
         String getterName = nameGenerator.generateChildrenGetterName(parentTypeName, childrenTypesNames, multiple, required);
 
-        GenChildType.ChildTypeNameGenerator childTypeNameGenerator = new GenChildType.ChildTypeNameGenerator() {
+        var childTypeNameGenerator = new GenChildType.ChildTypeNameGenerator() {
             @Override
             public String generateInterfaceName(List<String> allChildTypes) {
                 return nameGenerator.generateChildrenTypesName(parentTypeName, allChildTypes);
@@ -192,7 +193,13 @@ public class GenChildren {
                 return nameGenerator.generateChildrenTokenName(parentTypeName, tokenType, index);
             }
         };
-        var childType = GenChildType.create(enclosingNodeType, childTypeRaw.types, childTypeNameGenerator, nodeTypeLookup, additionalTypedNodeSubtypeCollector);
+        var customMethodsProvider = new GenChildType.ChildCustomMethodsProvider() {
+            @Override
+            public List<CustomMethodData> createCustomMethods(CodeGenHelper codeGenHelper, List<String> allChildTypes) {
+                return codeGenHelper.customMethodsForNodeChildrenType(parentTypeName, allChildTypes);
+            }
+        };
+        var childType = GenChildType.create(enclosingNodeType, childTypeRaw.types, childTypeNameGenerator, nodeTypeLookup, additionalTypedNodeSubtypeCollector, customMethodsProvider);
 
         return new GenChildren(getterName, childType, multiple, required);
     }

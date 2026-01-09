@@ -4,6 +4,7 @@ import com.palantir.javapoet.*;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.NodeUtilsGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.TypedNodeInterfaceGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodData;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.Type;
 import org.jspecify.annotations.Nullable;
@@ -89,7 +90,11 @@ public sealed interface GenChildType {
         String generateTokenTypeConstantName(String tokenType, int index);
     }
 
-    static GenChildType create(GenRegularNodeType enclosingNodeType, List<Type> types, ChildTypeNameGenerator nameGenerator, NodeTypeLookup nodeTypeLookup, Consumer<GenJavaType> additionalTypedNodeSubtypeCollector) {
+    interface ChildCustomMethodsProvider {
+        List<CustomMethodData> createCustomMethods(CodeGenHelper codeGenHelper, List<String> allChildTypes);
+    }
+
+    static GenChildType create(GenRegularNodeType enclosingNodeType, List<Type> types, ChildTypeNameGenerator nameGenerator, NodeTypeLookup nodeTypeLookup, Consumer<GenJavaType> additionalTypedNodeSubtypeCollector, ChildCustomMethodsProvider customMethodsProvider) {
         if (types.isEmpty()) {
             throw new IllegalArgumentException("Empty types");
         }
@@ -144,13 +149,15 @@ public sealed interface GenChildType {
             }
         }
 
-        // Note: Uses `types` here (instead of `namedTypes`), which potentially includes non-named types as well
+        // Note: Uses `types` here (instead of `namedTypes`), which includes non-named types (if any) as well
         List<String> allTypesNames = types.stream().map(t -> t.type).toList();
         String javaName = nameGenerator.generateInterfaceName(allTypesNames);
 
+        Function<CodeGenHelper, List<CustomMethodData>> customMethodsProviderFunction = codeGenHelper -> customMethodsProvider.createCustomMethods(codeGenHelper, allTypesNames);
+
         List<String> namedTypesNames = namedTypes.stream().map(t -> t.type).toList();
         List<GenNodeType> genTypes = namedTypesNames.stream().map(nodeTypeLookup::getNodeType).toList();
-        MultiChildType childType = new MultiChildType(genTypes, tokensChildType, enclosingNodeType, javaName);
+        MultiChildType childType = new MultiChildType(genTypes, tokensChildType, enclosingNodeType, javaName, customMethodsProviderFunction);
         additionalTypedNodeSubtypeCollector.accept(childType);
         genTypes.forEach(t -> t.addInterfaceToImplement(childType));
         return childType;
@@ -433,7 +440,7 @@ public sealed interface GenChildType {
      *
      * <p>A single named type is represented by {@link SingleChildType}.
      */
-    record MultiChildType(List<GenNodeType> types, @Nullable UnnamedTokensChildType tokensChildType, GenRegularNodeType enclosingNodeType, String javaName) implements GenJavaInterface, GenChildTypeAsNewJavaType {
+    record MultiChildType(List<GenNodeType> types, @Nullable UnnamedTokensChildType tokensChildType, GenRegularNodeType enclosingNodeType, String javaName, Function<CodeGenHelper, List<CustomMethodData>> customMethodsProvider) implements GenJavaInterface, GenChildTypeAsNewJavaType {
         public MultiChildType {
             if (tokensChildType != null) {
                 tokensChildType.setInterfaceToImplement(this);
@@ -473,10 +480,12 @@ public sealed interface GenChildType {
             return tokensChildType.getTokenEnumInfo(codeGenHelper);
         }
 
-        private void generateJavadoc(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper, String childGetterName) {
+        private void generateJavadoc(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper, String childGetterName, List<CustomMethodData> customMethods) {
             typeBuilder.addJavadoc("Child type returned by {@link $T#$N}.\n", enclosingNodeType.createJavaTypeName(codeGenHelper), childGetterName);
             typeBuilder.addJavadoc("<p>Possible types:");
             codeGenHelper.addJavadocTypeMapping(typeBuilder, types, tokensChildType);
+
+            CustomMethodData.createCustomMethodsJavadocSection(customMethods).ifPresent(typeBuilder::addJavadoc);
         }
 
         @Override
@@ -489,13 +498,16 @@ public sealed interface GenChildType {
                 typeBuilder.addPermittedSubclass(subtype.createJavaTypeName(codeGenHelper));
             }
 
-            generateJavadoc(typeBuilder, codeGenHelper, childGetterName);
+            var customMethods = customMethodsProvider.apply(codeGenHelper);
+            generateJavadoc(typeBuilder, codeGenHelper, childGetterName, customMethods);
 
             List<JavaTypeConfig> javaTypes = new ArrayList<>();
             if (tokensChildType != null) {
                 typeBuilder.addPermittedSubclass(tokensChildType.createJavaTypeName(codeGenHelper));
                 javaTypes.addAll(tokensChildType.generateJavaTypes(codeGenHelper, childGetterName));
             }
+
+            customMethods.forEach(m -> typeBuilder.addMethod(m.generateMethod(true)));
 
             boolean asTopLevel = isChildTypeAsTopLevel(codeGenHelper);
             javaTypes.add(new JavaTypeConfig(typeBuilder, asTopLevel));

@@ -590,10 +590,10 @@ public interface NameGenerator {
          *
          * @param tokenNameMapping
          *      Map in the form <code>Map&lt;<i>parentType</i>, Map&lt;<i>fieldName</i>, Map&lt;<i>tokenType</i>, <i>tokenName</i>&gt;&gt;&gt;</code>.
-         *      That means, if a node type {@code MyNode} has a field {@code myField} which has a token of type {@code !=},
+         *      That means, if a node type {@code my_node} has a field {@code my_field} which has a token of type {@code !=},
          *      then a map like the following could provide a mapping for it, giving the token the name "NOT_EQUALS":
          *      {@snippet lang=java :
-         *      Map.of("MyNode", Map.of("myField", Map.of("!=", "NOT_EQUALS")))
+         *      Map.of("my_node", Map.of("my_field", Map.of("!=", "NOT_EQUALS")))
          *      }
          *      The special key {@code ""} (empty string) can be used as fallback to match any node type respectively
          *      field name. This can be used to provide a mapping regardless of which node type or which of its fields

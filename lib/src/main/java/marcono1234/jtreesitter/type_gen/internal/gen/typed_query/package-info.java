@@ -22,10 +22,10 @@
  *
  * <p>The builder classes ...
  * <ul>
- *  <li>are immutable
- *  <li>cannot be extended by the user
- *  <li>only expose what is relevant for the user; e.g. {@code QWildcardNode} is not publicly visible to the user
- *      because it offers no additional API which the user can use, it is exposed only as {@code QQuantifiable}
+ *   <li>are immutable
+ *   <li>cannot be extended by the user
+ *   <li>only expose what is relevant for the user; e.g. {@code QWildcardNode} is not publicly visible to the user
+ *       because it offers no additional API which the user can use, it is exposed only as {@code QQuantifiable}
  * </ul>
  *
  * <p>The hierarchy of the builder classes is:

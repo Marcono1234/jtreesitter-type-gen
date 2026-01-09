@@ -26,6 +26,7 @@ class CodeGenConfigTest {
             DEFAULT_NAME_GENERATOR,
             DEFAULT_GENERATE_FIND_NODES_METHODS,
             Optional.empty(),
+            Optional.empty(),
             Optional.empty()
         ));
         assertEquals("Not a valid package name: -invalid", e.getMessage());
@@ -42,6 +43,7 @@ class CodeGenConfigTest {
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
             DEFAULT_GENERATE_FIND_NODES_METHODS,
+            Optional.empty(),
             Optional.empty(),
             Optional.empty()
         ));
@@ -60,6 +62,7 @@ class CodeGenConfigTest {
             DEFAULT_NAME_GENERATOR,
             DEFAULT_GENERATE_FIND_NODES_METHODS,
             Optional.empty(),
+            Optional.empty(),
             Optional.empty()
         ));
         assertEquals("Not a valid type name: -invalid", e.getMessage());
@@ -74,6 +77,7 @@ class CodeGenConfigTest {
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
             DEFAULT_GENERATE_FIND_NODES_METHODS,
+            Optional.empty(),
             Optional.empty(),
             Optional.empty()
         ));
