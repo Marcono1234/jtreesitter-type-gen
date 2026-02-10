@@ -2,6 +2,7 @@ package marcono1234.jtreesitter.type_gen.internal.gen.utils;
 
 import com.palantir.javapoet.*;
 import marcono1234.jtreesitter.type_gen.JavaLiteral;
+import marcono1234.jtreesitter.type_gen.internal.gen.GeneratedMethod;
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -48,6 +49,56 @@ class CustomMethodDataTest {
     void emitLiteral(JavaLiteral literal, String expectedCode) {
         var code = CustomMethodData.emitLiteral(literal);
         assertEquals(expectedCode, code.toString());
+    }
+
+    @Test
+    void asGeneratedMethod() {
+        var customMethod = new CustomMethodData(
+            "myName",
+            List.of(TypeVariableName.get("T", Number.class)),
+            List.of(ParameterSpec.builder(String.class, "s").build()),
+            TypeName.BOOLEAN,
+            "some javadoc",
+            ClassName.get("example", "Receiver"),
+            "receiverMethod",
+            List.of(new JavaLiteral.Integer(1))
+        );
+
+        var expectedGeneratedMethod = new GeneratedMethod(
+            GeneratedMethod.SimpleKind.CUSTOM_METHOD,
+            new GeneratedMethod.Signature(
+                "myName",
+                List.of(TypeVariableName.get("T", Number.class)),
+                List.of(new GeneratedMethod.Signature.Parameter("s", ClassName.get(String.class)))
+            ),
+            new GeneratedMethod.ReturnType(TypeName.BOOLEAN, GeneratedMethod.SupertypesResolver.EMPTY)
+        );
+        assertEquals(expectedGeneratedMethod, customMethod.asGeneratedMethod());
+    }
+
+    @Test
+    void asGeneratedMethod_VoidReturn() {
+        var customMethod = new CustomMethodData(
+            "myName",
+            List.of(TypeVariableName.get("T", Number.class)),
+            List.of(ParameterSpec.builder(String.class, "s").build()),
+            null,
+            "some javadoc",
+            ClassName.get("example", "Receiver"),
+            "receiverMethod",
+            List.of(new JavaLiteral.Integer(1))
+        );
+
+        var expectedGeneratedMethod = new GeneratedMethod(
+            GeneratedMethod.SimpleKind.CUSTOM_METHOD,
+            new GeneratedMethod.Signature(
+                "myName",
+                List.of(TypeVariableName.get("T", Number.class)),
+                List.of(new GeneratedMethod.Signature.Parameter("s", ClassName.get(String.class)))
+            ),
+            null
+        );
+        assertEquals(expectedGeneratedMethod, customMethod.asGeneratedMethod());
     }
 
     @Test

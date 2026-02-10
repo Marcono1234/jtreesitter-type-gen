@@ -3,7 +3,6 @@ package marcono1234.jtreesitter.type_gen.internal.gen.utils;
 import com.palantir.javapoet.*;
 import marcono1234.jtreesitter.type_gen.CodeGenConfig;
 import marcono1234.jtreesitter.type_gen.CodeGenerator;
-import marcono1234.jtreesitter.type_gen.CustomMethodsProvider;
 import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageProviderConfig;
 import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageVersion;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenJavaType;
@@ -45,8 +44,6 @@ public class CodeGenHelper {
     private final AnnotationSpec nullableAnnotation;
     private final ClassName nonEmptyClassName;
     private final AnnotationSpec nonEmptyAnnotation;
-    @Nullable
-    private final CustomMethodsProvider customMethodsProvider;
 
     public CodeGenHelper(CodeGenConfig config, CodeGenerator.Version versionInfo, @Nullable LanguageUtilsConfigData languageUtilsConfigData) {
         this.config = Objects.requireNonNull(config);
@@ -59,7 +56,6 @@ public class CodeGenHelper {
             .orElse(null);
         nonEmptyClassName = ClassName.get(config.packageName(), config.nonEmptyTypeName());
         nonEmptyAnnotation = AnnotationSpec.builder(nonEmptyClassName).build();
-        customMethodsProvider = config.customMethodsProvider().orElse(null);
     }
 
     public record LanguageUtilsConfigData(
@@ -283,56 +279,6 @@ public class CodeGenHelper {
             builder.addJavadoc("\n<li>{@linkplain $T <i>tokens</i>}", tokensType.createJavaTypeName(this));
         }
         builder.addJavadoc("\n</ul>");
-    }
-
-    public List<CustomMethodData> customMethodsForTypedTree() {
-        if (customMethodsProvider == null) {
-            return List.of();
-        }
-
-        return customMethodsProvider.forTypedTree().stream()
-            .map(CustomMethodData::fromUserConfig)
-            .toList();
-    }
-
-    public List<CustomMethodData> customMethodsForTypedNode() {
-        if (customMethodsProvider == null) {
-            return List.of();
-        }
-
-        return customMethodsProvider.forTypedNode().stream()
-            .map(CustomMethodData::fromUserConfig)
-            .toList();
-    }
-
-    public List<CustomMethodData> customMethodsForNodeType(String nodeType) {
-        if (customMethodsProvider == null) {
-            return List.of();
-        }
-
-        return customMethodsProvider.forNodeType(nodeType).stream()
-            .map(CustomMethodData::fromUserConfig)
-            .toList();
-    }
-
-    public List<CustomMethodData> customMethodsForNodeChildrenType(String parentNodeType, List<String> childrenNodeTypes) {
-        if (customMethodsProvider == null) {
-            return List.of();
-        }
-
-        return customMethodsProvider.forNodeChildrenType(parentNodeType, childrenNodeTypes).stream()
-            .map(CustomMethodData::fromUserConfig)
-            .toList();
-    }
-
-    public List<CustomMethodData> customMethodsForNodeFieldType(String parentNodeType, String fieldName) {
-        if (customMethodsProvider == null) {
-            return List.of();
-        }
-
-        return customMethodsProvider.forNodeFieldType(parentNodeType, fieldName).stream()
-            .map(CustomMethodData::fromUserConfig)
-            .toList();
     }
 
     /**

@@ -7,6 +7,7 @@ import com.palantir.javapoet.TypeSpec;
 import marcono1234.jtreesitter.type_gen.NameGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodData;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodsProviderImpl;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.ChildType;
 
@@ -51,6 +52,11 @@ public class GenField extends GenChildren {
     /** Name of the Java constant field in the generated class storing the field name. */
     public String getFieldNameConstant() {
         return fieldNameConstant;
+    }
+
+    @Override
+    GeneratedMethod.Kind getGetterKind() {
+        return new GeneratedMethod.KindField(fieldName, multiple, required);
     }
 
     @Override
@@ -104,7 +110,16 @@ public class GenField extends GenChildren {
         return super.generateJavaCode(enclosingTypeBuilder, codeGenHelper, nodeFieldName);
     }
 
-    public static GenField create(String parentTypeName, GenRegularNodeType enclosingNodeType, String fieldName, ChildType fieldTypeRaw, NodeTypeLookup nodeTypeLookup, NameGenerator nameGenerator, Consumer<GenJavaType> additionalTypedNodeSubtypeCollector) {
+    public static GenField create(
+        String parentTypeName,
+        GenRegularNodeType enclosingNodeType,
+        String fieldName,
+        ChildType fieldTypeRaw,
+        NodeTypeLookup nodeTypeLookup,
+        NameGenerator nameGenerator,
+        CustomMethodsProviderImpl customMethodsProvider,
+        Consumer<GenJavaType> additionalTypedNodeSubtypeCollector
+    ) {
         boolean multiple = fieldTypeRaw.multiple;
         boolean required = fieldTypeRaw.required;
 
@@ -129,14 +144,14 @@ public class GenField extends GenChildren {
                 return nameGenerator.generateFieldTokenName(parentTypeName, fieldName, tokenType, index);
             }
         };
-        var customMethodsProvider = new GenChildType.ChildCustomMethodsProvider() {
+        var childCustomMethodsProvider = new GenChildType.ChildCustomMethodsProvider() {
             @Override
-            public List<CustomMethodData> createCustomMethods(CodeGenHelper codeGenHelper, List<String> allChildTypes) {
+            public List<CustomMethodData> createCustomMethods(List<String> allChildTypes) {
                 // For now ignore `allChildTypes` for obtaining custom methods since field name probably suffices
-                return codeGenHelper.customMethodsForNodeFieldType(parentTypeName, fieldName);
+                return customMethodsProvider.customMethodsForNodeFieldType(parentTypeName, fieldName);
             }
         };
-        var fieldType = GenChildType.create(enclosingNodeType, fieldTypeRaw.types, fieldTypeNameGenerator, nodeTypeLookup, additionalTypedNodeSubtypeCollector, customMethodsProvider);
+        var fieldType = GenChildType.create(enclosingNodeType, fieldTypeRaw.types, fieldTypeNameGenerator, nodeTypeLookup, additionalTypedNodeSubtypeCollector, childCustomMethodsProvider);
 
         return new GenField(fieldName, nameConstant, idConstant, getterName, fieldType, multiple, required);
     }
