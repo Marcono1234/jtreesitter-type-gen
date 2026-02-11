@@ -4,11 +4,8 @@ import com.palantir.javapoet.JavaFile;
 import marcono1234.jtreesitter.type_gen.internal.gen.*;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.*;
 import marcono1234.jtreesitter.type_gen.internal.gen.typed_query.TypedQueryGenerator;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.*;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper.LanguageUtilsConfigData;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.CommonMethodsGenerator;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodsProviderImpl;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.NodeType;
 import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JacksonException;
@@ -134,6 +131,10 @@ public class CodeGenerator {
     }
 
     private void generate(List<NodeType> nodeTypes, LanguageConfig languageConfig, JavaCodeWriter codeWriter, Version versionInfo) throws CodeGenException {
+        /*
+         * Phase 1: Create code structure and names
+         */
+
         SequencedMap<String, NodeType> nodeTypesByName = new LinkedHashMap<>();
         for (NodeType nodeType : nodeTypes) {
             if (nodeType.named) {
@@ -145,8 +146,9 @@ public class CodeGenerator {
             }
         }
 
+        var typeNameCreator = new TypeNameCreator(config);
         var customMethodsProvider = new CustomMethodsProviderImpl(config.customMethodsProvider().orElse(null));
-        var nodeGens = determineGenElements(nodeTypes, languageConfig.rootNodeTypeName().orElse(null), config.nameGenerator(), languageConfig.fallbackNodeTypeMapping(), customMethodsProvider);
+        var nodeGens = determineGenElements(nodeTypes, languageConfig.rootNodeTypeName().orElse(null), config.nameGenerator(), typeNameCreator, languageConfig.fallbackNodeTypeMapping(), customMethodsProvider);
         var languageUtilsConfigData = languageConfig.languageProviderConfig()
             .map(languageProvider -> new LanguageUtilsConfigData(
                 languageProvider,
@@ -154,15 +156,23 @@ public class CodeGenerator {
                 languageConfig.expectedLanguageVersion().orElse(null)
             ))
             .orElse(null);
-        CodeGenHelper codeGenHelper = new CodeGenHelper(config, versionInfo, languageUtilsConfigData);
 
+        /*
+         * Phase 1.1: Determine common methods
+         */
         var allGenInterfaces = nodeGens.typedNodeSubtypes().stream().map(t -> t instanceof GenJavaInterface i ? i : null).filter(Objects::nonNull).toList();
         //noinspection NullableProblems; IntelliJ does not understand `Objects::nonNull` check?
-        CommonMethodsGenerator.addCommonMethods(allGenInterfaces, codeGenHelper);
+        CommonMethodsGenerator.addCommonMethods(allGenInterfaces);
+
+        /*
+         * Phase 2: Generate code
+         */
+        CodeGenHelper codeGenHelper = new CodeGenHelper(config, versionInfo, languageUtilsConfigData, typeNameCreator);
 
         var nullMarkedAnnotation = config.nullMarkedPackageAnnotationTypeName().map(CodeGenHelper::createClassName).orElse(null);
         if (nullMarkedAnnotation != null) {
-            codeWriter.writePackageInfo(config.packageName(), codeGenHelper.createPackageInfoContent(nullMarkedAnnotation));
+            String packageName = config.packageName();
+            codeWriter.writePackageInfo(packageName, codeGenHelper.createPackageInfoContent(packageName, nullMarkedAnnotation));
         }
 
         var languageUtilsConfig = codeGenHelper.languageUtilsConfig();
@@ -176,7 +186,7 @@ public class CodeGenerator {
             nodeGens.nodeTypes(),
             nodeGens.typedNodeSubtypes()
         ));
-        codeWriter.write(new NonEmptyAnnotationGenerator(codeGenHelper).generateCode());
+        codeWriter.write(new NonEmptyAnnotationGenerator(typeNameCreator).generateCode(codeGenHelper));
 
         for (var nodeGen : nodeGens.nodeTypes()) {
             for (var javaCode : nodeGen.generateJavaCode(codeGenHelper)) {
@@ -186,23 +196,26 @@ public class CodeGenerator {
 
         if (nodeGens.rootNode != null) {
             var customMethods = customMethodsProvider.customMethodsForTypedTree();
-            codeWriter.write(new TypedTreeClassGenerator(codeGenHelper, customMethods).generateCode(nodeGens.rootNode));
+            codeWriter.write(new TypedTreeClassGenerator(typeNameCreator, codeGenHelper, customMethods).generateCode(nodeGens.rootNode));
         }
 
+        /*
+         * Phase 2.1: Generate TypedQuery code
+         */
         var typedQueryNameGenerator = config.typedQueryNameGenerator().orElse(null);
         if (typedQueryNameGenerator != null) {
-            var javaFiles = new TypedQueryGenerator(codeGenHelper, typedQueryNameGenerator).generateCode(nodeGens.nodeTypes);
+            var javaFiles = new TypedQueryGenerator(typeNameCreator, codeGenHelper, typedQueryNameGenerator).generateCode(nodeGens.nodeTypes);
             for (var javaFile : javaFiles) {
                 codeWriter.write(javaFile);
             }
         }
     }
 
-    private SequencedMap<String, GenSupertypeNodeType> createSupertypeGens(List<NodeType> supertypes, NameGenerator nameGenerator, CustomMethodsProviderImpl customMethodsProvider) throws CodeGenException {
+    private SequencedMap<String, GenSupertypeNodeType> createSupertypeGens(List<NodeType> supertypes, NameGenerator nameGenerator, TypeNameCreator typeNameCreator, CustomMethodsProviderImpl customMethodsProvider) throws CodeGenException {
         SequencedMap<String, GenSupertypeNodeType> supertypeGens = new LinkedHashMap<>();
         for (var supertype : supertypes) {
             String typeName = supertype.type;
-            var interfaceGen = GenSupertypeNodeType.create(supertype, nameGenerator, customMethodsProvider);
+            var interfaceGen = GenSupertypeNodeType.create(supertype, nameGenerator, typeNameCreator, customMethodsProvider);
             supertypeGens.put(typeName, interfaceGen);
         }
 
@@ -225,6 +238,7 @@ public class CodeGenerator {
         List<NodeType> nodeTypes,
         @Nullable String rootNodeTypeCustom,
         NameGenerator nameGenerator,
+        TypeNameCreator typeNameCreator,
         Map<String, String> fallbackNodeTypeMapping,
         CustomMethodsProviderImpl customMethodsProvider
     ) throws CodeGenException {
@@ -276,10 +290,10 @@ public class CodeGenerator {
                 continue;
             }
 
-            regularNodeGens.put(typeName, GenRegularNodeType.create(nodeType, nameGenerator, customMethodsProvider));
+            regularNodeGens.put(typeName, GenRegularNodeType.create(nodeType, nameGenerator, typeNameCreator, customMethodsProvider));
         }
 
-        var supertypeGens = createSupertypeGens(supertypes, nameGenerator, customMethodsProvider);
+        var supertypeGens = createSupertypeGens(supertypes, nameGenerator, typeNameCreator, customMethodsProvider);
 
         NodeTypeLookup nodeTypeLookup = new NodeTypeLookup() {
             private GenNodeType getNodeType(String typeName, boolean canUseFallbackTypeName) {
@@ -324,7 +338,7 @@ public class CodeGenerator {
 
         // Populate children and fields now, once all types have been resolved
         for (var nodeTypeGen : regularNodeGens.values()) {
-            nodeTypeGen.populateChildrenAndFields(nodeTypeLookup, nameGenerator, customMethodsProvider, typedNodeSubtypes::add);
+            nodeTypeGen.populateChildrenAndFields(nodeTypeLookup, nameGenerator, typeNameCreator, customMethodsProvider, typedNodeSubtypes::add);
         }
 
         var allNodeTypeGens = concat(regularNodeGens.values(), supertypeGens.values());

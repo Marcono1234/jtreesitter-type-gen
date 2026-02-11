@@ -243,7 +243,8 @@ public class NodeUtilsGenerator {
     }
 
     public JavaFile generateCode() {
-        var typeBuilder = TypeSpec.classBuilder(codeGenHelper.nodeUtilsConfig().name())
+        var javaTypeName = codeGenHelper.nodeUtilsConfig().className();
+        var typeBuilder = TypeSpec.classBuilder(javaTypeName)
             .addModifiers(Modifier.FINAL)
             .addMethod(MethodSpec.constructorBuilder().addModifiers(Modifier.PRIVATE).build())
             .addJavadoc("Internal helper class.");
@@ -254,6 +255,6 @@ public class NodeUtilsGenerator {
 
         generateNodeListConverterMethods(typeBuilder);
 
-        return codeGenHelper.createOwnJavaFile(typeBuilder);
+        return codeGenHelper.createJavaFile(typeBuilder, javaTypeName);
     }
 }

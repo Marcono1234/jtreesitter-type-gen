@@ -1,26 +1,24 @@
 package marcono1234.jtreesitter.type_gen.internal.gen.typed_query;
 
 import com.palantir.javapoet.ClassName;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.TypeNameCreator;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Predicate;
 
 /**
  * Config for the 'typed query' code generation. Provides class and member names to be used in the generated code.
  */
 // TODO: Rename the `ClassName name()` methods here to `className()` for consistency with the CodeGenHelper config classes?
-//   and maybe have separate `String name()` and `ClassName className()` similar to CodeGenHelper config classes?
 class TypedQueryConfig {
-    private final CodeGenHelper codeGenHelper;
+    private final ClassName name;
 
-    public TypedQueryConfig(CodeGenHelper codeGenHelper) {
-        this.codeGenHelper = Objects.requireNonNull(codeGenHelper);
+    public TypedQueryConfig(TypeNameCreator typeNameCreator) {
+        this.name = typeNameCreator.createOwnClassName("TypedQuery");
     }
 
     public ClassName name() {
-        return codeGenHelper.createOwnClassName("TypedQuery");
+        return name;
     }
 
     /**

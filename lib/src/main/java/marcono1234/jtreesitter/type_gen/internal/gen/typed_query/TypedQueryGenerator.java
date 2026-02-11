@@ -5,6 +5,7 @@ import marcono1234.jtreesitter.type_gen.TypedQueryNameGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenNodeType;
 import marcono1234.jtreesitter.type_gen.internal.gen.typed_query.QNodeCommonGenerator.QTypedNodeBuilderMethodData;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.TypeNameCreator;
 
 import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import static marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper.
  * The code generation is performed by {@link #generateCode(List)}.
  */
 public class TypedQueryGenerator {
+    private final TypeNameCreator typeNameCreator;
     final CodeGenHelper codeGenHelper;
     private final TypedQueryNameGenerator nameGenerator;
     final TypedQueryConfig typedQueryConfig;
@@ -54,10 +56,11 @@ public class TypedQueryGenerator {
 
     private final FieldSpec fieldCaptureRegistry;
 
-    public TypedQueryGenerator(CodeGenHelper codeGenHelper, TypedQueryNameGenerator nameGenerator) {
+    public TypedQueryGenerator(TypeNameCreator typeNameCreator, CodeGenHelper codeGenHelper, TypedQueryNameGenerator nameGenerator) {
+        this.typeNameCreator = typeNameCreator;
         this.codeGenHelper = codeGenHelper;
         this.nameGenerator = nameGenerator;
-        this.typedQueryConfig = new TypedQueryConfig(codeGenHelper);
+        this.typedQueryConfig = new TypedQueryConfig(typeNameCreator);
         this.typedNodeName = codeGenHelper.typedNodeConfig().className();
         // For consistency and simplicity use the same type var name as `typeVarNode`
         this.typeVarNodeBound = typeVarNode.withBounds(typedNodeName);
@@ -536,7 +539,7 @@ public class TypedQueryGenerator {
             .add("\nand the captured node, and are then supposed to pass the node to the collector.")
             .add(" Capture handlers are registered using {@link $T#$N}.", qCapturableConfig.name(), qCapturableConfig.methodCaptured())
             .add("\n</ul>")
-            .add("\nIn the simplest case the 'collector' might just be a {@code List<$N>} and the 'capture handlers'", codeGenHelper.typedNodeConfig().name())
+            .add("\nIn the simplest case the 'collector' might just be a {@code List<$N>} and the 'capture handlers'", codeGenHelper.typedNodeConfig().className().simpleName())
             .add("\nare {@code List::add}. That means {@code $N} is called with a {@code List} as argument, the capture handlers", typedQueryMatchConfig.methodCollectCaptures())
             .add("\nadd the nodes to the list, and afterwards the captured nodes can be retrieved from the list.")
             .add("\n\n<p>However, depending on the use case a custom type might provide more flexibility. Consider this example")
@@ -608,7 +611,7 @@ public class TypedQueryGenerator {
         for (var node : nodes) {
             String typeName = node.getTypeName();
             String builderMethodName = nameGenerator.generateBuilderMethodName(typeName);
-            var qTypedNodeData = qTypedNodeGenerator.generateQTypedNodeSubclass(node, builderMethodName);
+            var qTypedNodeData = qTypedNodeGenerator.generateQTypedNodeSubclass(typeNameCreator, node, builderMethodName);
             nodeBuilderMethodData.add(new QTypedNodeBuilderMethodData(
                 builderMethodName,
                 qTypedNodeData.className(),
@@ -633,7 +636,7 @@ public class TypedQueryGenerator {
         addTypedQueryMembers(typeBuilder);
 
         // Emit TypedQuery class first
-        javaFiles.addFirst(codeGenHelper.createOwnJavaFile(typeBuilder));
+        javaFiles.addFirst(codeGenHelper.createJavaFile(typeBuilder, typedQueryConfig.name()));
 
         return javaFiles;
     }

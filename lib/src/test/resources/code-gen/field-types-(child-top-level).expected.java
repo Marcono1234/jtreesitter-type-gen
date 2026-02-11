@@ -668,7 +668,7 @@ public final class NodeRoot$FieldTokenSingleTypeNonNamed implements TypedNode {
 
   @Override
   public String toString() {
-    return "FieldTokenSingleTypeNonNamed" + "[id=" + Long.toUnsignedString(node.getId()) + ",token=" + token + "]";
+    return "NodeRoot$FieldTokenSingleTypeNonNamed" + "[id=" + Long.toUnsignedString(node.getId()) + ",token=" + token + "]";
   }
 
   /**
@@ -768,7 +768,7 @@ public final class NodeRoot$FieldTokenMultiTypeNonNamed implements TypedNode {
 
   @Override
   public String toString() {
-    return "FieldTokenMultiTypeNonNamed" + "[id=" + Long.toUnsignedString(node.getId()) + ",token=" + token + "]";
+    return "NodeRoot$FieldTokenMultiTypeNonNamed" + "[id=" + Long.toUnsignedString(node.getId()) + ",token=" + token + "]";
   }
 
   /**
@@ -886,7 +886,7 @@ public final class NodeRoot$FieldTokenMixedNamedNonNamed implements NodeRoot$Fie
 
   @Override
   public String toString() {
-    return "FieldTokenMixedNamedNonNamed" + "[id=" + Long.toUnsignedString(node.getId()) + ",token=" + token + "]";
+    return "NodeRoot$FieldTokenMixedNamedNonNamed" + "[id=" + Long.toUnsignedString(node.getId()) + ",token=" + token + "]";
   }
 
   /**
@@ -1675,7 +1675,7 @@ public final class NodeFieldOfEachOtherWithTokenA$FieldTokenF implements NodeFie
 
   @Override
   public String toString() {
-    return "FieldTokenF" + "[id=" + Long.toUnsignedString(node.getId()) + ",token=" + token + "]";
+    return "NodeFieldOfEachOtherWithTokenA$FieldTokenF" + "[id=" + Long.toUnsignedString(node.getId()) + ",token=" + token + "]";
   }
 
   /**
@@ -1977,7 +1977,7 @@ public final class NodeFieldOfEachOtherWithTokenB$FieldTokenF implements NodeFie
 
   @Override
   public String toString() {
-    return "FieldTokenF" + "[id=" + Long.toUnsignedString(node.getId()) + ",token=" + token + "]";
+    return "NodeFieldOfEachOtherWithTokenB$FieldTokenF" + "[id=" + Long.toUnsignedString(node.getId()) + ",token=" + token + "]";
   }
 
   /**

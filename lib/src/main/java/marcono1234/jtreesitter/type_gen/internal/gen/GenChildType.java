@@ -3,16 +3,16 @@ package marcono1234.jtreesitter.type_gen.internal.gen;
 import com.palantir.javapoet.*;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.NodeUtilsGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.TypedNodeInterfaceGenerator;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodData;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.*;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.Type;
 import org.jspecify.annotations.Nullable;
 
 import javax.lang.model.element.Modifier;
 import java.util.*;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper.createInitializingConstructor;
 
@@ -22,27 +22,10 @@ import static marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper.
  * <p>Use {@link #create} to create instances.
  */
 public sealed interface GenChildType {
-    /** Internal interface for child types variants which generate a new Java type. */
-    sealed interface GenChildTypeAsNewJavaType extends GenChildType {
-        default ClassName createNestedJavaTypeName(String javaEnclosingName, String javaName, CodeGenHelper codeGenHelper) {
-            if (isChildTypeAsTopLevel(codeGenHelper)) {
-                // Create top-level class name
-                // TODO: Maybe don't use '$' here but instead for example '_'; '$' might confuse IDEs during debugging
-                //   or when looking up source code, because they assume the name refers to a nested class
-                return codeGenHelper.createOwnClassName(javaEnclosingName + "$" + javaName);
-            } else {
-                // Create nested class name
-                return codeGenHelper.createOwnClassName(javaEnclosingName, javaName);
-            }
-        }
-
-        boolean isChildTypeAsTopLevel(CodeGenHelper codeGenHelper);
-    }
-
     /**
-     * Gets the Java type name for this type.
+     * Gets a supplier for the Java type name for this type.
      */
-    ClassName createJavaTypeName(CodeGenHelper codeGenHelper);
+    Supplier<ClassName> getJavaTypeNameSupplier();
 
     /**
      * If this child type represents a single node type, returns that, otherwise returns {@code null}.
@@ -83,13 +66,11 @@ public sealed interface GenChildType {
      */
     boolean refersToTypeThroughInterface(GenRegularNodeType type, Set<GenRegularNodeType> seenTypes);
 
-    record JavaTypeConfig(TypeSpec.Builder type, boolean asTopLevel) {}
-
     /**
      * @param childGetterName
      *      name of the getter method for obtaining this child type, generated in the class for the parent node type
      */
-    List<JavaTypeConfig> generateJavaTypes(CodeGenHelper codeGenHelper, String childGetterName);
+    List<TypeBuilderWithName> generateJavaTypes(CodeGenHelper codeGenHelper, String childGetterName);
 
     interface ChildTypeNameGenerator {
         String generateInterfaceName(List<String> allChildTypes);
@@ -101,7 +82,15 @@ public sealed interface GenChildType {
         List<CustomMethodData> createCustomMethods(List<String> allChildTypes);
     }
 
-    static GenChildType create(GenRegularNodeType enclosingNodeType, List<Type> types, ChildTypeNameGenerator nameGenerator, NodeTypeLookup nodeTypeLookup, Consumer<GenJavaType> additionalTypedNodeSubtypeCollector, ChildCustomMethodsProvider customMethodsProvider) {
+    static GenChildType create(
+        GenRegularNodeType enclosingNodeType,
+        List<Type> types,
+        ChildTypeNameGenerator nameGenerator,
+        TypeNameCreator typeNameCreator,
+        NodeTypeLookup nodeTypeLookup,
+        Consumer<GenJavaType> additionalTypedNodeSubtypeCollector,
+        ChildCustomMethodsProvider customMethodsProvider
+    ) {
         if (types.isEmpty()) {
             throw new IllegalArgumentException("Empty types");
         }
@@ -133,7 +122,11 @@ public sealed interface GenChildType {
 
         UnnamedTokensChildType tokensChildType = null;
         if (!nonNamedTypes.isEmpty()) {
+            // This is generated as Java class and not as interface, so there is no need to implement it as top-level
+            // because there won't be cyclic inheritance
+            BooleanSupplier mustBeTopLevel = () -> false;
             String javaName = nameGenerator.generateTokenClassName(nonNamedTypes);
+            ClassName javaTypeName = typeNameCreator.createChildClassName(enclosingNodeType.getJavaTypeName(), javaName, mustBeTopLevel);
 
             SequencedMap<String, String> tokensToJavaConstants = new LinkedHashMap<>();
             for (int i = 0; i < nonNamedTypes.size(); i++) {
@@ -145,7 +138,7 @@ public sealed interface GenChildType {
                 }
             }
 
-            tokensChildType = new UnnamedTokensChildType(enclosingNodeType, javaName, tokensToJavaConstants);
+            tokensChildType = new UnnamedTokensChildType(enclosingNodeType, javaTypeName, tokensToJavaConstants);
 
             if (namedTypes.isEmpty()) {
                 // Only add tokensChildType at this place, if `namedTypes.isEmpty()`; otherwise if it is part of MultiChildType,
@@ -156,15 +149,35 @@ public sealed interface GenChildType {
             }
         }
 
+        List<String> namedTypesNames = namedTypes.stream().map(t -> t.type).toList();
+        List<GenNodeType> genTypes = namedTypesNames.stream().map(nodeTypeLookup::getNodeType).toList();
+
+        // Check if there is a direct or indirect reference back to the enclosing type,
+        // for example `Node.Child -> Node` or `Node.Child -> Supertype -> Node`
+        // In that case child type must be top-level; generating it as nested type leads to "cyclic inheritance" error
+        BooleanSupplier mustBeTopLevel = () -> genTypes.contains(enclosingNodeType)
+            // Also have to check indirect references, e.g. `Node.Child -> Supertype -> Node`; javac does not
+            // permit this either when Child is a nested class
+            || genTypes.stream().anyMatch(t -> t.refersToType(enclosingNodeType, new HashSet<>()));
+
         // Note: Uses `types` here (instead of `namedTypes`), which includes non-named types (if any) as well
         List<String> allTypesNames = types.stream().map(t -> t.type).toList();
         String javaName = nameGenerator.generateInterfaceName(allTypesNames);
+        /*
+         * Must use a Supplier here to delay creation of the type name, because `mustBeTopLevel` can only be evaluated once
+         * children of referenced types have been populated
+         *
+         * This is not ideal but cannot be easily improved? Ideally type names are already available when creating code
+         * structure, but `mustBeTopLevel` requires waiting until node types have already been created and their children have
+         * been populated (alternative would be to perform name creation after code structure creation, but that would
+         * require large refactoring, and would probably require making all classes stateful)
+         */
+        Supplier<ClassName> javaTypeNameSupplier = () -> typeNameCreator.createChildClassName(enclosingNodeType.getJavaTypeName(), javaName, mustBeTopLevel);
+        javaTypeNameSupplier = new MemoizedSupplier<>(javaTypeNameSupplier);
 
         var customMethods = customMethodsProvider.createCustomMethods(allTypesNames);
 
-        List<String> namedTypesNames = namedTypes.stream().map(t -> t.type).toList();
-        List<GenNodeType> genTypes = namedTypesNames.stream().map(nodeTypeLookup::getNodeType).toList();
-        MultiChildType childType = new MultiChildType(genTypes, tokensChildType, enclosingNodeType, javaName, customMethods, new ArrayList<>());
+        MultiChildType childType = new MultiChildType(genTypes, tokensChildType, enclosingNodeType, javaTypeNameSupplier, customMethods, new ArrayList<>());
         additionalTypedNodeSubtypeCollector.accept(childType);
         genTypes.forEach(t -> t.addInterfaceToImplement(childType));
         return childType;
@@ -175,7 +188,7 @@ public sealed interface GenChildType {
      * methods to convert from a jtreesitter Node to a TypedNode.
      */
     private static void addMapperVariable(MethodSpec.Builder builder, CodeGenHelper codeGenHelper, String mapperVar, GenJavaType javaType) {
-        ClassName javaTypeName = javaType.createJavaTypeName(codeGenHelper);
+        ClassName javaTypeName = javaType.getJavaTypeName();
 
         // Only GenNodeType classes have dedicated `fromNode` methods
         if (javaType instanceof GenNodeType) {
@@ -193,8 +206,8 @@ public sealed interface GenChildType {
      */
     record SingleChildType(GenNodeType nodeType) implements GenChildType {
         @Override
-        public ClassName createJavaTypeName(CodeGenHelper codeGenHelper) {
-            return nodeType.createJavaTypeName(codeGenHelper);
+        public Supplier<ClassName> getJavaTypeNameSupplier() {
+            return nodeType::getJavaTypeName;
         }
 
         @Override
@@ -203,7 +216,7 @@ public sealed interface GenChildType {
         }
 
         @Override
-        public List<JavaTypeConfig> generateJavaTypes(CodeGenHelper codeGenHelper, String childGetterName) {
+        public List<TypeBuilderWithName> generateJavaTypes(CodeGenHelper codeGenHelper, String childGetterName) {
             // Refers to existing type, nothing to generate
             return List.of();
         }
@@ -233,9 +246,9 @@ public sealed interface GenChildType {
      * For non-named child types, create an enum class representing all of the 'token' types,
      * and then an enclosing {@code ChildType{Node, TokenType}}.
      */
-    final class UnnamedTokensChildType implements GenChildTypeAsNewJavaType, GenJavaType {
+    final class UnnamedTokensChildType implements GenChildType, GenJavaType {
         private final GenRegularNodeType enclosingNodeType;
-        private final String javaName;
+        private final ClassName javaTypeName;
         /** Map from token type name to Java constant name */
         // SequencedMap for deterministic order
         private final SequencedMap<String, String> tokensToJavaConstants;
@@ -243,9 +256,9 @@ public sealed interface GenChildType {
         @Nullable
         private GenJavaInterface interfaceToImplement;
 
-        public UnnamedTokensChildType(GenRegularNodeType enclosingNodeType, String javaName, SequencedMap<String, String> tokensToJavaConstants) {
+        public UnnamedTokensChildType(GenRegularNodeType enclosingNodeType, ClassName javaTypeName, SequencedMap<String, String> tokensToJavaConstants) {
             this.enclosingNodeType = enclosingNodeType;
-            this.javaName = javaName;
+            this.javaTypeName = javaTypeName;
             this.tokensToJavaConstants = tokensToJavaConstants;
             this.interfaceToImplement = null;
         }
@@ -264,24 +277,19 @@ public sealed interface GenChildType {
         }
 
         @Override
-        public boolean isChildTypeAsTopLevel(CodeGenHelper codeGenHelper) {
-            return switch (codeGenHelper.getChildTypeAsTopLevel()) {
-                // This is generated as Java class and not as interface, so there is no need to implement it as top-level
-                // because there won't be cyclic inheritance
-                case NEVER, AS_NEEDED -> false;
-                case ALWAYS -> true;
-            };
-        }
-
-        @Override
         public boolean refersToTypeThroughInterface(GenRegularNodeType type, Set<GenRegularNodeType> seenTypes) {
             // Irrelevant since a Java class and not an interface is generated for this type
             return false;
         }
 
         @Override
-        public ClassName createJavaTypeName(CodeGenHelper codeGenHelper) {
-            return createNestedJavaTypeName(enclosingNodeType.getJavaName(), javaName, codeGenHelper);
+        public Supplier<ClassName> getJavaTypeNameSupplier() {
+            return () -> javaTypeName;
+        }
+
+        @Override
+        public ClassName getJavaTypeName() {
+            return javaTypeName;
         }
 
         @Override
@@ -293,7 +301,7 @@ public sealed interface GenChildType {
         }
 
         @Override
-        public List<GeneratedMethod> getGeneratedMethods(CodeGenHelper codeGenHelper) {
+        public List<GeneratedMethod> getGeneratedMethods() {
             // Currently does not support custom methods, see also CustomMethodsProvider
             return List.of();
         }
@@ -302,7 +310,7 @@ public sealed interface GenChildType {
         private static final String TOKEN_ENUM_FROM_NODE_METHOD_NAME = "fromNode";
 
         private ClassName getTokenEnumClassName(CodeGenHelper codeGenHelper) {
-            return createJavaTypeName(codeGenHelper).nestedClass(codeGenHelper.tokenEnumConfig().name());
+            return javaTypeName.nestedClass(codeGenHelper.tokenEnumConfig().name());
         }
 
         /** Generates the Java enum where each constant represents one of the 'tokens' / non-named types. */
@@ -368,8 +376,7 @@ public sealed interface GenChildType {
 
         /** Generates {@code Object} methods such as {@code equals}, {@code hashCode} and {@code toString}. */
         private void generateOverriddenObjectMethods(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper, String nodeField, String tokenField) {
-            ClassName ownClassName = createJavaTypeName(codeGenHelper);
-            var equalsMethod = CodeGenHelper.createDelegatingEqualsMethod(ownClassName, nodeField);
+            var equalsMethod = CodeGenHelper.createDelegatingEqualsMethod(javaTypeName, nodeField);
             typeBuilder.addMethod(equalsMethod);
 
             var hashCodeMethod = CodeGenHelper.createDelegatingHashCodeMethod(nodeField);
@@ -378,33 +385,33 @@ public sealed interface GenChildType {
             var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
             var toStringMethod = CodeGenHelper.createToStringMethodSignature()
                 // TODO: Include more information, e.g. position information? Or include wrapped node.toString()?
-                .addStatement("return $S + \"[id=\" + $T.toUnsignedString($N.$N()) + \",token=\" + $N + \"]\"", javaName, Long.class, nodeField, jtreesitterNode.methodGetId(), tokenField)
+                .addStatement("return $S + \"[id=\" + $T.toUnsignedString($N.$N()) + \",token=\" + $N + \"]\"", javaTypeName.simpleName(), Long.class, nodeField, jtreesitterNode.methodGetId(), tokenField)
                 .build();
             typeBuilder.addMethod(toStringMethod);
         }
 
-        private void generateJavadoc(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper, String childGetterName, String tokenGetterName) {
-            typeBuilder.addJavadoc("Child node type without name, returned by {@link $T#$N}.\n", enclosingNodeType.createJavaTypeName(codeGenHelper), childGetterName);
+        private void generateJavadoc(TypeSpec.Builder typeBuilder, String childGetterName, String tokenGetterName) {
+            typeBuilder.addJavadoc("Child node type without name, returned by {@link $T#$N}.\n", enclosingNodeType.getJavaTypeName(), childGetterName);
             typeBuilder.addJavadoc("<p>The type of the node can be obtained using {@link #$N}.", tokenGetterName);
         }
 
         @Override
-        public List<JavaTypeConfig> generateJavaTypes(CodeGenHelper codeGenHelper, String childGetterName) {
-            var typeBuilder = TypeSpec.classBuilder(createJavaTypeName(codeGenHelper))
+        public List<TypeBuilderWithName> generateJavaTypes(CodeGenHelper codeGenHelper, String childGetterName) {
+            var typeBuilder = TypeSpec.classBuilder(javaTypeName)
                 .addModifiers(Modifier.PUBLIC, Modifier.FINAL);
 
-            boolean asTopLevel = isChildTypeAsTopLevel(codeGenHelper);
+            boolean asTopLevel = javaTypeName.enclosingClassName() == null;
             if (!asTopLevel) {
                 typeBuilder.addModifiers(Modifier.STATIC);
             }
 
             String tokenGetterName = codeGenHelper.tokenEnumConfig().enclosingMethodGetToken();
-            generateJavadoc(typeBuilder, codeGenHelper, childGetterName, tokenGetterName);
+            generateJavadoc(typeBuilder, childGetterName, tokenGetterName);
 
             if (interfaceToImplement == null) {
                 typeBuilder.addSuperinterface(codeGenHelper.typedNodeConfig().className());
             } else {
-                typeBuilder.addSuperinterface(interfaceToImplement.createJavaTypeName(codeGenHelper));
+                typeBuilder.addSuperinterface(interfaceToImplement.getJavaTypeName());
             }
 
             var tokenClassName = getTokenEnumClassName(codeGenHelper);
@@ -426,7 +433,7 @@ public sealed interface GenChildType {
 
             generateOverriddenObjectMethods(typeBuilder, codeGenHelper, nodeField, tokenField);
 
-            return List.of(new JavaTypeConfig(typeBuilder, asTopLevel));
+            return List.of(new TypeBuilderWithName(typeBuilder, javaTypeName));
         }
 
         /**
@@ -434,10 +441,9 @@ public sealed interface GenChildType {
          * methods to convert from a jtreesitter Node to a TypedNode.
          */
         void addMapperVariable(MethodSpec.Builder builder, CodeGenHelper codeGenHelper, String mapperVar) {
-            ClassName ownClass = createJavaTypeName(codeGenHelper);
             var nodeType = codeGenHelper.jtreesitterConfig().node().className();
-            var mapperType = ParameterizedTypeName.get(ClassName.get(Function.class), nodeType, ownClass);
-            builder.addStatement("$T $N = n -> new $T(n, $T.$N(n))", mapperType, mapperVar, ownClass, getTokenEnumClassName(codeGenHelper), TOKEN_ENUM_FROM_NODE_METHOD_NAME);
+            var mapperType = ParameterizedTypeName.get(ClassName.get(Function.class), nodeType, javaTypeName);
+            builder.addStatement("$T $N = n -> new $T(n, $T.$N(n))", mapperType, mapperVar, javaTypeName, getTokenEnumClassName(codeGenHelper), TOKEN_ENUM_FROM_NODE_METHOD_NAME);
         }
 
         @Override
@@ -447,7 +453,7 @@ public sealed interface GenChildType {
             addMapperVariable(builder, codeGenHelper, mapperVar);
 
             // Cast `null` to `Class<...>` to avoid overload ambiguity
-            var ownClassType = ParameterizedTypeName.get(ClassName.get(Class.class), createJavaTypeName(codeGenHelper));
+            var ownClassType = ParameterizedTypeName.get(ClassName.get(Class.class), javaTypeName);
             builder.addStatement("var $N = $T.$N($N, ($T) null, $N)", resultVar, nodeUtils.className(), nodeUtils.methodMapChildrenNamedNonNamed(), childrenVar, ownClassType, mapperVar);
         }
     }
@@ -462,30 +468,15 @@ public sealed interface GenChildType {
         List<GenNodeType> types,
         @Nullable UnnamedTokensChildType tokensChildType,
         GenRegularNodeType enclosingNodeType,
-        String javaName,
+        Supplier<ClassName> javaTypeNameSupplier,
         List<CustomMethodData> customMethods,
         // commonMethods are populated after construction
         List<GeneratedMethod> commonMethods
-    ) implements GenJavaInterface, GenChildTypeAsNewJavaType {
+    ) implements GenChildType, GenJavaInterface {
         public MultiChildType {
             if (tokensChildType != null) {
                 tokensChildType.setInterfaceToImplement(this);
             }
-        }
-
-        @Override
-        public boolean isChildTypeAsTopLevel(CodeGenHelper codeGenHelper) {
-            return switch (codeGenHelper.getChildTypeAsTopLevel()) {
-                case NEVER -> false;
-                case ALWAYS -> true;
-                // Check if there is a direct or indirect reference back to the enclosing type,
-                // for example `Node.Child -> Node` or `Node.Child -> Supertype -> Node`
-                // In that case child type must be top-level; generating it as nested type leads to "cyclic inheritance" error
-                case AS_NEEDED -> types.contains(enclosingNodeType)
-                    // Also have to check indirect references, e.g. `Node.Child -> Supertype -> Node`; javac does not
-                    // permit this either when Child is a nested class
-                    || types.stream().anyMatch(t -> t.refersToType(enclosingNodeType, new HashSet<>()));
-            };
         }
 
         @Override
@@ -494,8 +485,13 @@ public sealed interface GenChildType {
         }
 
         @Override
-        public ClassName createJavaTypeName(CodeGenHelper codeGenHelper) {
-            return createNestedJavaTypeName(enclosingNodeType.getJavaName(), javaName, codeGenHelper);
+        public Supplier<ClassName> getJavaTypeNameSupplier() {
+            return javaTypeNameSupplier;
+        }
+
+        @Override
+        public ClassName getJavaTypeName() {
+            return javaTypeNameSupplier.get();
         }
 
         @Override
@@ -509,7 +505,7 @@ public sealed interface GenChildType {
         }
 
         @Override
-        public List<GeneratedMethod> getGeneratedMethods(CodeGenHelper codeGenHelper) {
+        public List<GeneratedMethod> getGeneratedMethods() {
             return customMethods.stream().map(CustomMethodData::asGeneratedMethod).toList();
         }
 
@@ -530,7 +526,7 @@ public sealed interface GenChildType {
         }
 
         private void generateJavadoc(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper, String childGetterName) {
-            typeBuilder.addJavadoc("Child type returned by {@link $T#$N}.\n", enclosingNodeType.createJavaTypeName(codeGenHelper), childGetterName);
+            typeBuilder.addJavadoc("Child type returned by {@link $T#$N}.\n", enclosingNodeType.getJavaTypeName(), childGetterName);
             typeBuilder.addJavadoc("<p>Possible types:");
             codeGenHelper.addJavadocTypeMapping(typeBuilder, types, tokensChildType);
 
@@ -538,20 +534,21 @@ public sealed interface GenChildType {
         }
 
         @Override
-        public List<JavaTypeConfig> generateJavaTypes(CodeGenHelper codeGenHelper, String childGetterName) {
-            var typeBuilder = TypeSpec.interfaceBuilder(createJavaTypeName(codeGenHelper))
+        public List<TypeBuilderWithName> generateJavaTypes(CodeGenHelper codeGenHelper, String childGetterName) {
+            var javaTypeName = getJavaTypeName();
+            var typeBuilder = TypeSpec.interfaceBuilder(javaTypeName)
                 .addModifiers(Modifier.PUBLIC, Modifier.SEALED)
                 .addSuperinterface(codeGenHelper.typedNodeConfig().className());
 
             for (var subtype : types) {
-                typeBuilder.addPermittedSubclass(subtype.createJavaTypeName(codeGenHelper));
+                typeBuilder.addPermittedSubclass(subtype.getJavaTypeName());
             }
 
             generateJavadoc(typeBuilder, codeGenHelper, childGetterName);
 
-            List<JavaTypeConfig> javaTypes = new ArrayList<>();
+            List<TypeBuilderWithName> javaTypes = new ArrayList<>();
             if (tokensChildType != null) {
-                typeBuilder.addPermittedSubclass(tokensChildType.createJavaTypeName(codeGenHelper));
+                typeBuilder.addPermittedSubclass(tokensChildType.getJavaTypeName());
                 javaTypes.addAll(tokensChildType.generateJavaTypes(codeGenHelper, childGetterName));
             }
 
@@ -559,8 +556,7 @@ public sealed interface GenChildType {
 
             commonMethods.forEach(m -> typeBuilder.addMethod(m.createCommonInterfaceMethodSpec()));
 
-            boolean asTopLevel = isChildTypeAsTopLevel(codeGenHelper);
-            javaTypes.add(new JavaTypeConfig(typeBuilder, asTopLevel));
+            javaTypes.add(new TypeBuilderWithName(typeBuilder, javaTypeName));
 
             return javaTypes;
         }

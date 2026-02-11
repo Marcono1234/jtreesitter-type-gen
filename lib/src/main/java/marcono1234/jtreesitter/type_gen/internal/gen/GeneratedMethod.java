@@ -79,7 +79,7 @@ public record GeneratedMethod(Kind kind, Signature signature, @Nullable ReturnTy
         /**
          * Creates a resolver which resolves the supertypes for the given node types (and their supertypes).
          */
-        static SupertypesResolver forNodeTypes(Collection<? extends GenNodeType> nodeTypes, CodeGenHelper codeGenHelper) {
+        static SupertypesResolver forNodeTypes(Collection<? extends GenNodeType> nodeTypes) {
             var allNodeTypes = new HashSet<GenNodeType>(nodeTypes);
             // Also resolve supertypes of all the node types; this is needed when generating common method for a method
             // which itself is already a common method which uses a supertype of the original type
@@ -87,7 +87,7 @@ public record GeneratedMethod(Kind kind, Signature signature, @Nullable ReturnTy
 
             var typeMapping = new HashMap<ClassName, GenNodeType>();
             for (var nodeType : allNodeTypes) {
-                typeMapping.put(nodeType.createJavaTypeName(codeGenHelper), nodeType);
+                typeMapping.put(nodeType.getJavaTypeName(), nodeType);
             }
 
             return c -> {
@@ -96,7 +96,7 @@ public record GeneratedMethod(Kind kind, Signature signature, @Nullable ReturnTy
                     return null;
                 }
                 return nodeType.getAllSupertypesTopoOrder().stream()
-                    .map(s -> s.createJavaTypeName(codeGenHelper))
+                    .map(GenSupertypeNodeType::getJavaTypeName)
                     .collect(Collectors.toCollection(LinkedHashSet::new));
             };
         }

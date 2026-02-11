@@ -39,14 +39,14 @@ public class CommonMethodsGenerator {
         /**
          * Gets the methods which will be generated for this type.
          */
-        List<GeneratedMethod> getGeneratedMethods(CodeGenHelper codeGenHelper);
+        List<GeneratedMethod> getGeneratedMethods();
     }
 
     /**
      * Determines the custom methods to generate for the interfaces, and adds them using
      * {@link InterfaceType#setCommonMethods(Collection)}.
      */
-    public static void addCommonMethods(List<? extends InterfaceType> interfaces, CodeGenHelper codeGenHelper) {
+    public static void addCommonMethods(List<? extends InterfaceType> interfaces) {
         // Perform topological sorting so that leaf subtypes are processed first and common methods are propagated,
         // e.g. when for an interface all its subinterfaces have a common method then the interface gets that
         // common method as well, and so on
@@ -69,7 +69,7 @@ public class CommonMethodsGenerator {
             SequencedMap<CommonMethodSignature, SequencedSet<GeneratedMethod.@Nullable ReturnType>> commonMethodsCandidates = null;
 
             for (var subtype : i.getSubtypes()) {
-                var methods = new ArrayList<>(subtype.getGeneratedMethods(codeGenHelper));
+                var methods = new ArrayList<>(subtype.getGeneratedMethods());
                 // Add to-be-generated common methods of subinterfaces which were determined in a previous iteration (if any)
                 if (subtype instanceof InterfaceType subinterface) {
                     methods.addAll(methodsToGenerate.getOrDefault(subinterface, Collections.emptyList()));

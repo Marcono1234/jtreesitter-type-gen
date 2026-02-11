@@ -3,11 +3,8 @@ package marcono1234.jtreesitter.type_gen.internal.gen;
 import com.palantir.javapoet.*;
 import marcono1234.jtreesitter.type_gen.NameGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.TypedNodeInterfaceGenerator;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.*;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper.TypedNodeConfig.JavaFieldRef;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodData;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodsProviderImpl;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.ChildType;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.NodeType;
 import org.jspecify.annotations.Nullable;
@@ -46,7 +43,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
 
     private final String typeName;
     private final boolean isExtra;
-    private final String javaName;
+    private final ClassName javaTypeName;
     private final GeneratedJavaClassMembers javaClassMembers;
 
     private boolean populatedChildren;
@@ -62,10 +59,10 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
 
     private final List<GenJavaInterface> interfacesToImplement;
 
-    private GenRegularNodeType(String typeName, boolean isExtra, String javaName, GeneratedJavaClassMembers javaClassMembers, @Nullable ChildType childrenRaw, Map<String, ChildType> fieldsRaw) {
+    private GenRegularNodeType(String typeName, boolean isExtra, ClassName javaTypeName, GeneratedJavaClassMembers javaClassMembers, @Nullable ChildType childrenRaw, Map<String, ChildType> fieldsRaw) {
         this.typeName = typeName;
         this.isExtra = isExtra;
-        this.javaName = javaName;
+        this.javaTypeName = javaTypeName;
         this.javaClassMembers = javaClassMembers;
 
         this.populatedChildren = false;
@@ -77,9 +74,9 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
         this.interfacesToImplement = new ArrayList<>();
     }
 
-    public static GenRegularNodeType create(NodeType nodeType, NameGenerator nameGenerator, CustomMethodsProviderImpl customMethodsProvider) {
+    public static GenRegularNodeType create(NodeType nodeType, NameGenerator nameGenerator, TypeNameCreator typeNameCreator, CustomMethodsProviderImpl customMethodsProvider) {
         String typeName = nodeType.type;
-        String javaName = nameGenerator.generateJavaTypeName(typeName);
+        ClassName javaTypeName = typeNameCreator.createOwnClassName(nameGenerator.generateJavaTypeName(typeName));
         String typeNameConstant = nameGenerator.generateTypeNameConstant(typeName);
         String typeIdConstant = nameGenerator.generateTypeIdConstant(typeName);
 
@@ -99,7 +96,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
             customMethods
         );
 
-        return new GenRegularNodeType(typeName, nodeType.extra, javaName, javaClassMembers, childrenRaw, fieldsRaw);
+        return new GenRegularNodeType(typeName, nodeType.extra, javaTypeName, javaClassMembers, childrenRaw, fieldsRaw);
     }
 
     @Override
@@ -123,19 +120,19 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
      * @param additionalTypedNodeSubtypeCollector
      *      collects TypedNode Java types in case additional ones are needed for children or fields
      */
-    public void populateChildrenAndFields(NodeTypeLookup nodeTypeLookup, NameGenerator nameGenerator, CustomMethodsProviderImpl customMethodsProvider, Consumer<GenJavaType> additionalTypedNodeSubtypeCollector) {
+    public void populateChildrenAndFields(NodeTypeLookup nodeTypeLookup, NameGenerator nameGenerator, TypeNameCreator typeNameCreator, CustomMethodsProviderImpl customMethodsProvider, Consumer<GenJavaType> additionalTypedNodeSubtypeCollector) {
         if (populatedChildren) {
             throw new IllegalStateException("Children or fields have already been populated");
         }
         populatedChildren = true;
 
         if (childrenRaw != null) {
-            children = GenChildren.create(typeName, this, childrenRaw, nodeTypeLookup, nameGenerator, customMethodsProvider, additionalTypedNodeSubtypeCollector);
+            children = GenChildren.create(typeName, this, childrenRaw, nodeTypeLookup, nameGenerator, typeNameCreator, customMethodsProvider, additionalTypedNodeSubtypeCollector);
         }
         for (var field : fieldsRaw.entrySet()) {
             String fieldName = field.getKey();
             ChildType fieldType = field.getValue();
-            fields.add(GenField.create(typeName, this, fieldName, fieldType, nodeTypeLookup, nameGenerator, customMethodsProvider, additionalTypedNodeSubtypeCollector));
+            fields.add(GenField.create(typeName, this, fieldName, fieldType, nodeTypeLookup, nameGenerator, typeNameCreator, customMethodsProvider, additionalTypedNodeSubtypeCollector));
         }
     }
 
@@ -150,13 +147,8 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
     }
 
     @Override
-    public String getJavaName() {
-        return javaName;
-    }
-
-    @Override
-    public ClassName createJavaTypeName(CodeGenHelper codeGenHelper) {
-        return codeGenHelper.createOwnClassName(getJavaName());
+    public ClassName getJavaTypeName() {
+        return javaTypeName;
     }
 
     @Override
@@ -194,15 +186,15 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
     }
 
     @Override
-    public List<GeneratedMethod> getGeneratedMethods(CodeGenHelper codeGenHelper) {
+    public List<GeneratedMethod> getGeneratedMethods() {
         checkPopulatedChildren();
 
         List<GeneratedMethod> methods = new ArrayList<>();
         if (children != null) {
-            methods.add(children.getGetterGeneratedMethod(codeGenHelper));
+            methods.add(children.getGetterGeneratedMethod());
         }
         for (var field : fields) {
-            methods.add(field.getGetterGeneratedMethod(codeGenHelper));
+            methods.add(field.getGetterGeneratedMethod());
         }
 
         javaClassMembers.customMethods().stream().map(CustomMethodData::asGeneratedMethod).forEach(methods::add);
@@ -212,8 +204,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
 
     /** Generates {@code Object} methods such as {@code equals}, {@code hashCode} and {@code toString}. */
     private void generateOverriddenObjectMethods(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper, String nodeField) {
-        ClassName ownClassName = createJavaTypeName(codeGenHelper);
-        var equalsMethod = CodeGenHelper.createDelegatingEqualsMethod(ownClassName, nodeField);
+        var equalsMethod = CodeGenHelper.createDelegatingEqualsMethod(javaTypeName, nodeField);
         typeBuilder.addMethod(equalsMethod);
 
         var hashCodeMethod = CodeGenHelper.createDelegatingHashCodeMethod(nodeField);
@@ -222,7 +213,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
         var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
         var toStringMethod = CodeGenHelper.createToStringMethodSignature()
             // TODO: Include more information, e.g. position information? Or include wrapped node.toString()?
-            .addStatement("return $S + \"[id=\" + $T.toUnsignedString($N.$N()) + \"]\"", javaName, Long.class, nodeField, jtreesitterNode.methodGetId())
+            .addStatement("return $S + \"[id=\" + $T.toUnsignedString($N.$N()) + \"]\"", javaTypeName.simpleName(), Long.class, nodeField, jtreesitterNode.methodGetId())
             .build();
         typeBuilder.addMethod(toStringMethod);
     }
@@ -253,24 +244,23 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
     private MethodSpec generateMethodFromNode(CodeGenHelper codeGenHelper) {
         var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
         var typedNode = codeGenHelper.typedNodeConfig();
-        var ownClassName = createJavaTypeName(codeGenHelper);
 
         String nodeParam = "node";
         var methodBuilder = MethodSpec.methodBuilder(typedNode.methodFromNode())
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .addParameter(jtreesitterNode.className(), nodeParam)
-            .returns(codeGenHelper.getReturnOptionalType(ownClassName))
+            .returns(codeGenHelper.getReturnOptionalType(javaTypeName))
             .addJavadoc("Wraps a jtreesitter node as this node type, returning $L if the node has the wrong type.", codeGenHelper.getEmptyOptionalJavadocText())
             .addJavadoc("\n\n@see #$N", typedNode.methodFromNodeThrowing());
 
         String resultVar = "result";
-        methodBuilder.addStatement("$T $N = null", ownClassName, resultVar);
+        methodBuilder.addStatement("$T $N = null", javaTypeName, resultVar);
         CodeBlock nodeTypeCheck = codeGenHelper.generatesNumericIdConstants() ?
             CodeBlock.of("if ($N.$N() == $N)", nodeParam, jtreesitterNode.methodGetTypeId(), javaClassMembers.typeIdConstant())
             : CodeBlock.of("if ($N.equals($N.$N()))", javaClassMembers.typeNameConstant(), nodeParam, jtreesitterNode.methodGetType());
         methodBuilder
             .beginControlFlow(nodeTypeCheck)
-            .addStatement("$N = new $T($N)", resultVar, ownClassName, nodeParam)
+            .addStatement("$N = new $T($N)", resultVar, javaTypeName, nodeParam)
             .endControlFlow();
 
         codeGenHelper.addReturnOptionalStatement(methodBuilder, resultVar);
@@ -280,7 +270,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
     /** Generates the {@code fromNodeThrowing} method. */
     private MethodSpec generateMethodFromNodeThrowing(CodeGenHelper codeGenHelper) {
         return codeGenHelper.typedNodeConfig().generateMethodFromNodeThrowing(
-            createJavaTypeName(codeGenHelper),
+            javaTypeName,
             "Wraps a jtreesitter node as this node type, throwing an {@link $T} if the node has the wrong type.",
             "Wrong node type"
         );
@@ -312,12 +302,12 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
 
         var typedNode = codeGenHelper.typedNodeConfig();
 
-        var typeBuilder = TypeSpec.classBuilder(javaName)
+        var typeBuilder = TypeSpec.classBuilder(javaTypeName)
             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
             .addSuperinterface(typedNode.className());
 
         for (var superInterface : interfacesToImplement) {
-            typeBuilder.addSuperinterface(superInterface.createJavaTypeName(codeGenHelper));
+            typeBuilder.addSuperinterface(superInterface.getJavaTypeName());
         }
 
         generateJavadoc(typeBuilder);
@@ -332,7 +322,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
         typeBuilder.addMethod(generateMethodFromNode(codeGenHelper));
         typeBuilder.addMethod(generateMethodFromNodeThrowing(codeGenHelper));
 
-        List<TypeSpec.Builder> javaTypes = new ArrayList<>();
+        List<TypeBuilderWithName> javaTypes = new ArrayList<>();
         if (children != null) {
             javaTypes.addAll(children.generateJavaCode(typeBuilder, codeGenHelper, nodeField));
         }
@@ -346,15 +336,14 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
             javaTypes.addAll(field.generateJavaCode(typeBuilder, codeGenHelper, nodeField));
         }
 
-        var ownClassName = createJavaTypeName(codeGenHelper);
-        typeBuilder.addMethods(typedNode.generateMethodsFindNodes(ownClassName, List.of(new JavaFieldRef(ownClassName, javaClassMembers.typeNameConstant()))));
+        typeBuilder.addMethods(typedNode.generateMethodsFindNodes(javaTypeName, List.of(new JavaFieldRef(javaTypeName, javaClassMembers.typeNameConstant()))));
 
         generateOverriddenObjectMethods(typeBuilder, codeGenHelper, nodeField);
         javaClassMembers.customMethods().forEach(m -> typeBuilder.addMethod(m.generateMethod(false)));
 
-        javaTypes.add(typeBuilder);
+        javaTypes.add(new TypeBuilderWithName(typeBuilder, javaTypeName));
 
-        return javaTypes.stream().map(codeGenHelper::createOwnJavaFile).toList();
+        return javaTypes.stream().map(codeGenHelper::createJavaFile).toList();
     }
 
     @Override

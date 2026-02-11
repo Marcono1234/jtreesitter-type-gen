@@ -92,6 +92,14 @@ public record CodeGenConfig(
 
     /**
      * Whether to generate a top-level or a nested Java class for a node child type.
+     *
+     * <p>This is relevant when a node type can have itself as child. If a nested interface is
+     * used, the compiler might reject the code due to cyclic inheritance, e.g.:
+     * {@snippet lang=java :
+     * class MyNode implements MyNode.Children {
+     *     interface Children {}
+     * }
+     * }
      */
     public enum ChildTypeAsTopLevel {
         /**

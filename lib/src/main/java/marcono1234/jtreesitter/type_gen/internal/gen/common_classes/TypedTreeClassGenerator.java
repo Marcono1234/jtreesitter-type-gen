@@ -7,6 +7,7 @@ import com.palantir.javapoet.TypeSpec;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenNodeType;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodData;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.TypeNameCreator;
 
 import javax.lang.model.element.Modifier;
 import java.util.List;
@@ -22,10 +23,10 @@ public class TypedTreeClassGenerator {
         String methodGetRootNode,
         String methodHasError
     ) {
-        public static Config createDefault(CodeGenHelper codeGenHelper) {
+        public static Config createDefault(TypeNameCreator typeNameCreator, CodeGenHelper codeGenHelper) {
             var jtreesitter = codeGenHelper.jtreesitterConfig();
             return new Config(
-                codeGenHelper.createOwnClassName("TypedTree"),
+                typeNameCreator.createOwnClassName("TypedTree"),
                 "fromTree",
                 "getTree",
                 // Uses same method name as jtreesitter
@@ -46,15 +47,15 @@ public class TypedTreeClassGenerator {
         this.customMethods = customMethods;
     }
 
-    public TypedTreeClassGenerator(CodeGenHelper codeGenHelper, List<CustomMethodData> customMethods) {
-        this(codeGenHelper, Config.createDefault(codeGenHelper), customMethods);
+    public TypedTreeClassGenerator(TypeNameCreator typeNameCreator, CodeGenHelper codeGenHelper, List<CustomMethodData> customMethods) {
+        this(codeGenHelper, Config.createDefault(typeNameCreator, codeGenHelper), customMethods);
     }
 
     private void generateJavadoc(TypeSpec.Builder typeBuilder, GenNodeType rootNodeType) {
         var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
         var typedNode = codeGenHelper.typedNodeConfig();
 
-        typeBuilder.addJavadoc("A 'typed parse-tree', with expected root node {@link $T $L}.", rootNodeType.createJavaTypeName(codeGenHelper), CodeGenHelper.escapeJavadocText(rootNodeType.getTypeName()));
+        typeBuilder.addJavadoc("A 'typed parse-tree', with expected root node {@link $T $L}.", rootNodeType.getJavaTypeName(), CodeGenHelper.escapeJavadocText(rootNodeType.getTypeName()));
         typeBuilder.addJavadoc(" jtreesitter {@link $T} can be converted to a typed tree with {@link #$N}.", jtreesitterNode.className(), config.methodFromTree());
 
         typeBuilder.addJavadoc("\n\n<p>Individual jtreesitter nodes can be converted to a typed node with {@link $T#$N},", typedNode.className(), typedNode.methodFromNode());
@@ -125,10 +126,10 @@ public class TypedTreeClassGenerator {
         String typedNodeVar = "result";
         var getRootNodeMethodBuilder = MethodSpec.methodBuilder(config.methodGetRootNode())
             .addModifiers(Modifier.PUBLIC)
-            .returns(rootNodeType.createJavaTypeName(codeGenHelper))
+            .returns(rootNodeType.getJavaTypeName())
             .addJavadoc("Returns the typed root node.")
             .addStatement("var $N = $N.$N()", rootNodeVar, treeField, jtreesitterTree.methodGetRootNode())
-            .addStatement("var $N = $T.$N($N)", typedNodeVar, rootNodeType.createJavaTypeName(codeGenHelper), typedNode.methodFromNodeThrowing(), rootNodeVar)
+            .addStatement("var $N = $T.$N($N)", typedNodeVar, rootNodeType.getJavaTypeName(), typedNode.methodFromNodeThrowing(), rootNodeVar)
             .addStatement("return $N", typedNodeVar);
         typeBuilder.addMethod(getRootNodeMethodBuilder.build());
 
@@ -167,6 +168,6 @@ public class TypedTreeClassGenerator {
 
         generateBody(typeBuilder, codeGenHelper, rootNodeType);
 
-        return codeGenHelper.createOwnJavaFile(typeBuilder);
+        return codeGenHelper.createJavaFile(typeBuilder, config.className());
     }
 }
