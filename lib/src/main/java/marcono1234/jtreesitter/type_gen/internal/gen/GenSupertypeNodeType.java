@@ -6,11 +6,8 @@ import com.palantir.javapoet.MethodSpec;
 import com.palantir.javapoet.TypeSpec;
 import marcono1234.jtreesitter.type_gen.CodeGenException;
 import marcono1234.jtreesitter.type_gen.NameGenerator;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.*;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper.TypedNodeConfig.JavaFieldRef;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodData;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodsProviderImpl;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.NodeType;
 import org.jspecify.annotations.Nullable;
 
@@ -46,7 +43,7 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
 
     private final String typeName;
     private final boolean isExtra;
-    private final String javaName;
+    private final ClassName javaTypeName;
     private final GeneratedJavaClassMembers javaClassMembers;
 
     private final List<String> subtypesNames;
@@ -58,10 +55,10 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
     /** Populated by {@link #setCommonMethods(Collection)} (optional) */
     private @Nullable List<GeneratedMethod> commonMethods;
 
-    private GenSupertypeNodeType(String typeName, boolean isExtra, String javaName, GeneratedJavaClassMembers javaClassMembers, List<String> subtypesNames) {
+    private GenSupertypeNodeType(String typeName, boolean isExtra, ClassName javaTypeName, GeneratedJavaClassMembers javaClassMembers, List<String> subtypesNames) {
         this.typeName = typeName;
         this.isExtra = isExtra;
-        this.javaName = javaName;
+        this.javaTypeName = javaTypeName;
         this.javaClassMembers = javaClassMembers;
 
         this.subtypesNames = subtypesNames;
@@ -70,7 +67,7 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
         this.interfacesToImplement = new ArrayList<>();
     }
 
-    public static GenSupertypeNodeType create(NodeType nodeType, NameGenerator nameGenerator, CustomMethodsProviderImpl customMethodsProvider) throws CodeGenException {
+    public static GenSupertypeNodeType create(NodeType nodeType, NameGenerator nameGenerator, TypeNameCreator typeNameCreator, CustomMethodsProviderImpl customMethodsProvider) throws CodeGenException {
         String typeName = nodeType.type;
 
         if (nodeType.children != null) {
@@ -98,13 +95,13 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
             //   for example tree-sitter-java has supertype `statement` with non-named subtype ';' (for empty statement)
         }
 
-        String javaName = nameGenerator.generateJavaTypeName(typeName);
+        ClassName javaTypeName = typeNameCreator.createOwnClassName(nameGenerator.generateJavaTypeName(typeName));
         String typeNameConstant = nameGenerator.generateTypeNameConstant(typeName);
         String typeIdConstant = nameGenerator.generateTypeIdConstant(typeName);
         var customMethods = customMethodsProvider.customMethodsForNodeType(typeName);
         var javaClassMembers = new GeneratedJavaClassMembers(typeNameConstant, typeIdConstant, customMethods);
 
-        return new GenSupertypeNodeType(typeName, nodeType.extra, javaName, javaClassMembers, subtypesNames);
+        return new GenSupertypeNodeType(typeName, nodeType.extra, javaTypeName, javaClassMembers, subtypesNames);
     }
 
     @Override
@@ -118,8 +115,8 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
     }
 
     @Override
-    public String getJavaName() {
-        return javaName;
+    public ClassName getJavaTypeName() {
+        return javaTypeName;
     }
 
     /**
@@ -186,7 +183,7 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
     }
 
     @Override
-    public List<GeneratedMethod> getGeneratedMethods(CodeGenHelper codeGenHelper) {
+    public List<GeneratedMethod> getGeneratedMethods() {
         return javaClassMembers.customMethods().stream().map(CustomMethodData::asGeneratedMethod).toList();
     }
 
@@ -224,7 +221,7 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
         var methodBuilder = MethodSpec.methodBuilder(typedNode.methodFromNode())
             .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
             .addParameter(jtreesitterNode.className(), nodeParam)
-            .returns(codeGenHelper.getReturnOptionalType(createJavaTypeName(codeGenHelper)))
+            .returns(codeGenHelper.getReturnOptionalType(javaTypeName))
             .addJavadoc("Wraps a jtreesitter node as this node type, returning $L if the node has the wrong type.", codeGenHelper.getEmptyOptionalJavadocText())
             .addJavadoc("\n\n@see #$N", typedNode.methodFromNodeThrowing());
 
@@ -233,7 +230,7 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
 
         // Consider all subtypes, including transitive ones
         for (var subtype : getAllSubtypeClasses()) {
-            ClassName nodeClass = subtype.createJavaTypeName(codeGenHelper);
+            ClassName nodeClass = subtype.getJavaTypeName();
             methodBuilder.addStatement("case $T.$N -> new $T($N)", nodeClass, subtype.getTypeNameConstant(), nodeClass, nodeParam);
         }
         methodBuilder.addStatement("default -> null");
@@ -247,38 +244,36 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
     /** Generates the {@code fromNodeThrowing} method. */
     private MethodSpec generateMethodFromNodeThrowing(CodeGenHelper codeGenHelper) {
         return codeGenHelper.typedNodeConfig().generateMethodFromNodeThrowing(
-            createJavaTypeName(codeGenHelper),
+            javaTypeName,
             "Wraps a jtreesitter node as this node type, throwing an {@link $T} if the node has the wrong type.",
             "Wrong node type"
         );
     }
 
     private List<MethodSpec> generateMethodsFindNodes(CodeGenHelper codeGenHelper) {
-        var ownClassName = createJavaTypeName(codeGenHelper);
-
         // Explicitly use the type names of all (transitive) subtypes, because even if tree-sitter query supported
         // supertype type name, it might include unnamed nodes in case supertype has unnamed nodes as subtype;
-        // however for those no typed node class is generated
+        // however for those no typed node class is generated, see related https://github.com/Marcono1234/jtreesitter-type-gen/issues/17
         var allSubtypeFields = getAllSubtypeClasses().stream()
-            .map(c -> new JavaFieldRef(c.createJavaTypeName(codeGenHelper), c.getTypeNameConstant()))
+            .map(c -> new JavaFieldRef(c.getJavaTypeName(), c.getTypeNameConstant()))
             .toList();
-        return codeGenHelper.typedNodeConfig().generateMethodsFindNodes(ownClassName, allSubtypeFields);
+        return codeGenHelper.typedNodeConfig().generateMethodsFindNodes(javaTypeName, allSubtypeFields);
     }
 
     @Override
     public List<JavaFile> generateJavaCode(CodeGenHelper codeGenHelper) {
         checkPopulatedSubtypes();
 
-        var typeBuilder = TypeSpec.interfaceBuilder(javaName)
+        var typeBuilder = TypeSpec.interfaceBuilder(javaTypeName)
             .addModifiers(Modifier.PUBLIC, Modifier.SEALED)
             .addSuperinterface(codeGenHelper.typedNodeConfig().className());
 
         for (var superInterface : interfacesToImplement) {
-            typeBuilder.addSuperinterface(superInterface.createJavaTypeName(codeGenHelper));
+            typeBuilder.addSuperinterface(superInterface.getJavaTypeName());
         }
 
         for (var subtype : subtypes) {
-            typeBuilder.addPermittedSubclass(subtype.createJavaTypeName(codeGenHelper));
+            typeBuilder.addPermittedSubclass(subtype.getJavaTypeName());
         }
 
         generateJavadoc(typeBuilder, codeGenHelper);
@@ -300,7 +295,7 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
             commonMethods.forEach(m -> typeBuilder.addMethod(m.createCommonInterfaceMethodSpec()));
         }
 
-        return List.of(codeGenHelper.createOwnJavaFile(typeBuilder));
+        return List.of(codeGenHelper.createJavaFile(typeBuilder, javaTypeName));
     }
 
     @Override

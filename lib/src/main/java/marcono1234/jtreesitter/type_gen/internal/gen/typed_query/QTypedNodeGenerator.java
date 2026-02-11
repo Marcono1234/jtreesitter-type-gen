@@ -5,6 +5,7 @@ import marcono1234.jtreesitter.type_gen.TypedQueryNameGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.*;
 import marcono1234.jtreesitter.type_gen.internal.gen.typed_query.TypedQueryConfig.QTypedNodeConfig;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.TypeNameCreator;
 import org.jspecify.annotations.Nullable;
 
 import javax.lang.model.element.Modifier;
@@ -429,7 +430,7 @@ class QTypedNodeGenerator {
 
             typeBuilder.addMethod(methodAsSubtypeBuilder
                 .addJavadoc(TreeSitterDoc.SUPERTYPE_NODE.createJavadocSee())
-                .addStatement("return new $T<>(this, $T.$N)", nodeData.queryNodeClass(), supertype.createJavaTypeName(codeGenHelper), supertype.getTypeNameConstant())
+                .addStatement("return new $T<>(this, $T.$N)", nodeData.queryNodeClass(), supertype.getJavaTypeName(), supertype.getTypeNameConstant())
                 .build()
             );
         }
@@ -510,14 +511,14 @@ class QTypedNodeGenerator {
     /**
      * Generates a {@code QTypedNode} subclass for the given node.
      */
-    public QTypedNodeSubclassData generateQTypedNodeSubclass(GenNodeType node, String builderMethodName) {
+    public QTypedNodeSubclassData generateQTypedNodeSubclass(TypeNameCreator typeNameCreator, GenNodeType node, String builderMethodName) {
         String nodeType = node.getTypeName();
-        var queryNodeClass = codeGenHelper.createOwnClassName(nameGenerator.generateBuilderClassName(nodeType));
+        var queryNodeClass = typeNameCreator.createOwnClassName(nameGenerator.generateBuilderClassName(nodeType));
         var nodeData = new NodeData(
             queryNodeClass,
             ParameterizedTypeName.get(queryNodeClass, typeVarCollector),
             builderMethodName,
-            node.createJavaTypeName(codeGenHelper),
+            node.getJavaTypeName(),
             nodeType,
             node.isExtra()
         );
@@ -533,7 +534,8 @@ class QTypedNodeGenerator {
             .addStatement("super($T.$N)", nodeData.typedNodeClass(), node.getTypeNameConstant())
             .build();
 
-        var typeBuilder = TypeSpec.classBuilder(nodeData.queryNodeClass())
+        var javaTypeName = nodeData.queryNodeClass();
+        var typeBuilder = TypeSpec.classBuilder(javaTypeName)
             .addModifiers(Modifier.PUBLIC)
             .addTypeVariable(typeVarCollector)
             .superclass(ParameterizedTypeName.get(qTypedNodeConfig.name(), typeVarCollector, nodeData.typedNodeClass()))
@@ -546,8 +548,8 @@ class QTypedNodeGenerator {
         addAsExtraMethod(typeBuilder, nodeData);
 
         return new QTypedNodeSubclassData(
-            nodeData.queryNodeClass(),
-            codeGenHelper.createOwnJavaFile(typeBuilder)
+            javaTypeName,
+            codeGenHelper.createJavaFile(typeBuilder, javaTypeName)
         );
     }
 
@@ -584,7 +586,7 @@ class QTypedNodeGenerator {
         String methodNameChildToken = null;
         if (genChildren != null) {
             var genChildType = genChildren.getGenChildType();
-            childClassName = genChildType.createJavaTypeName(codeGenHelper);
+            childClassName = genChildType.getJavaTypeNameSupplier().get();
             tokenEnumInfo = genChildType.getTokenEnumInfo(codeGenHelper);
             if (tokenEnumInfo != null) {
                 methodNameChildToken = nameGenerator.generateChildTokenMethodName(nodeData.nodeType(), tokenEnumInfo.tokenTypes());
@@ -640,7 +642,7 @@ class QTypedNodeGenerator {
 
         String fieldName = genField.getFieldName();
 
-        var fieldType = genField.getGenChildType().createJavaTypeName(codeGenHelper);
+        var fieldType = genField.getGenChildType().getJavaTypeNameSupplier().get();
         var tokenEnumInfo = genField.getGenChildType().getTokenEnumInfo(codeGenHelper);
         String methodNameFieldToken = tokenEnumInfo == null ? null : nameGenerator.generateFieldTokenMethodName(nodeData.nodeType(), fieldName, tokenEnumInfo.tokenTypes());
 
@@ -709,7 +711,8 @@ class QTypedNodeGenerator {
             .addStatement("super($N, $N)", paramOld, paramData)
             .build();
 
-        var typeBuilder = TypeSpec.classBuilder(nodeData.queryNodeClass)
+        var javaTypeName = nodeData.queryNodeClass();
+        var typeBuilder = TypeSpec.classBuilder(javaTypeName)
             .addModifiers(Modifier.PUBLIC)
             .addTypeVariable(typeVarCollector)
             .superclass(ParameterizedTypeName.get(qTypedNodeConfig.name(), typeVarCollector, nodeData.typedNodeClass()))
@@ -730,7 +733,7 @@ class QTypedNodeGenerator {
             .returns(nodeData.queryNodeClassParameterized())
             .addJavadoc("Creates a copy of this query node with an additional child anchor.")
             .addJavadoc(TreeSitterDoc.ANCHOR.createJavadocSee())
-            .addStatement("return new $T<>(this, $N.$N())", nodeData.queryNodeClass(), qTypedNodeConfig.fieldData(), dataConfig.methodWithAnchor())
+            .addStatement("return new $T<>(this, $N.$N())", javaTypeName, qTypedNodeConfig.fieldData(), dataConfig.methodWithAnchor())
             .build();
         typeBuilder.addMethod(methodWithChildAnchor);
 
@@ -738,8 +741,8 @@ class QTypedNodeGenerator {
         addAsExtraMethod(typeBuilder, nodeData);
 
         return new QTypedNodeSubclassData(
-            nodeData.queryNodeClass(),
-            codeGenHelper.createOwnJavaFile(typeBuilder)
+            javaTypeName,
+            codeGenHelper.createJavaFile(typeBuilder, javaTypeName)
         );
     }
 }

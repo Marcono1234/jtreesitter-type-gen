@@ -5,10 +5,7 @@ import com.palantir.javapoet.FieldSpec;
 import com.palantir.javapoet.MethodSpec;
 import com.palantir.javapoet.TypeSpec;
 import marcono1234.jtreesitter.type_gen.NameGenerator;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodData;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodsProviderImpl;
-import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.*;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.ChildType;
 
 import javax.lang.model.element.Modifier;
@@ -37,8 +34,8 @@ public class GenField extends GenChildren {
      */
     private final String fieldIdConstant;
 
-    private GenField(String fieldName, String fieldNameConstant, String fieldIdConstant, String getterName, GenChildType type, boolean multiple, boolean required) {
-        super(getterName, type, multiple, required);
+    private GenField(String fieldName, String fieldNameConstant, String fieldIdConstant, String getterName, TypeNameCreator typeNameCreator, GenChildType type, boolean multiple, boolean required) {
+        super(getterName, typeNameCreator, type, multiple, required);
         this.fieldName = fieldName;
         this.fieldNameConstant = fieldNameConstant;
         this.fieldIdConstant = fieldIdConstant;
@@ -84,11 +81,11 @@ public class GenField extends GenChildren {
     }
 
     @Override
-    public List<TypeSpec.Builder> generateJavaCode(TypeSpec.Builder enclosingTypeBuilder, CodeGenHelper codeGenHelper, String nodeFieldName) {
+    public List<TypeBuilderWithName> generateJavaCode(TypeSpec.Builder enclosingTypeBuilder, CodeGenHelper codeGenHelper, String nodeFieldName) {
         enclosingTypeBuilder.addField(FieldSpec.builder(String.class, fieldNameConstant, Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
             .initializer("$S", fieldName)
             .addJavadoc("Field name $L", CodeGenHelper.createJavadocCodeTag(fieldName))
-            .addJavadoc("\n\n@see #$N", getterName)
+            .addJavadoc("\n\n@see #$N", getGetterName())
             .build()
         );
 
@@ -117,6 +114,7 @@ public class GenField extends GenChildren {
         ChildType fieldTypeRaw,
         NodeTypeLookup nodeTypeLookup,
         NameGenerator nameGenerator,
+        TypeNameCreator typeNameCreator,
         CustomMethodsProviderImpl customMethodsProvider,
         Consumer<GenJavaType> additionalTypedNodeSubtypeCollector
     ) {
@@ -151,8 +149,8 @@ public class GenField extends GenChildren {
                 return customMethodsProvider.customMethodsForNodeFieldType(parentTypeName, fieldName);
             }
         };
-        var fieldType = GenChildType.create(enclosingNodeType, fieldTypeRaw.types, fieldTypeNameGenerator, nodeTypeLookup, additionalTypedNodeSubtypeCollector, childCustomMethodsProvider);
+        var fieldType = GenChildType.create(enclosingNodeType, fieldTypeRaw.types, fieldTypeNameGenerator, typeNameCreator, nodeTypeLookup, additionalTypedNodeSubtypeCollector, childCustomMethodsProvider);
 
-        return new GenField(fieldName, nameConstant, idConstant, getterName, fieldType, multiple, required);
+        return new GenField(fieldName, nameConstant, idConstant, getterName, typeNameCreator, fieldType, multiple, required);
     }
 }

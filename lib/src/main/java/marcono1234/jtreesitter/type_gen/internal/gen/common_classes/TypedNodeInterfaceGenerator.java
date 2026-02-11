@@ -61,7 +61,7 @@ public class TypedNodeInterfaceGenerator {
             // Only consider regular node types, because supertypes don't exist as nodes in the parsed tree
             // TODO ^ is this correct?
             if (nodeType instanceof GenRegularNodeType regularNodeType) {
-                ClassName nodeClass = nodeType.createJavaTypeName(codeGenHelper);
+                ClassName nodeClass = nodeType.getJavaTypeName();
                 methodBuilder.addStatement("case $T.$N -> new $T($N)", nodeClass, regularNodeType.getTypeNameConstant(), nodeClass, nodeParam);
             }
         }
@@ -94,7 +94,7 @@ public class TypedNodeInterfaceGenerator {
      * @return the generated Java code
      */
     public JavaFile generateCode(@Nullable TypeName superinterface, List<GenNodeType> nodeTypes, List<GenJavaType> subtypes) {
-        var typeBuilder = TypeSpec.interfaceBuilder(config.name())
+        var typeBuilder = TypeSpec.interfaceBuilder(config.className())
             .addModifiers(Modifier.PUBLIC, Modifier.SEALED);
 
         if (superinterface != null) {
@@ -102,7 +102,7 @@ public class TypedNodeInterfaceGenerator {
         }
 
         for (var subtype : subtypes) {
-            typeBuilder.addPermittedSubclass(subtype.createJavaTypeName(codeGenHelper));
+            typeBuilder.addPermittedSubclass(subtype.getJavaTypeName());
         }
 
         generateJavadoc(typeBuilder, nodeTypes);
@@ -114,7 +114,7 @@ public class TypedNodeInterfaceGenerator {
 
         customMethods.forEach(m -> typeBuilder.addMethod(m.generateMethod(true)));
 
-        return codeGenHelper.createOwnJavaFile(typeBuilder);
+        return codeGenHelper.createJavaFile(typeBuilder, config.className());
     }
 
     private void generateInstanceMethods(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper) {

@@ -66,14 +66,14 @@ class CommonMethodsGeneratorTest {
         }
 
         @Override
-        public List<GeneratedMethod> getGeneratedMethods(CodeGenHelper codeGenHelper) {
+        public List<GeneratedMethod> getGeneratedMethods() {
             return generatedMethods;
         }
     }
 
     record DummyRegularSubtype(List<GeneratedMethod> methods) implements CommonMethodsGenerator.Subtype {
         @Override
-        public List<GeneratedMethod> getGeneratedMethods(CodeGenHelper codeGenHelper) {
+        public List<GeneratedMethod> getGeneratedMethods() {
             return methods;
         }
     }
@@ -135,9 +135,7 @@ class CommonMethodsGeneratorTest {
             interfaces = interfaces.reversed();
         }
 
-        // TODO: This is wrong, but CodeGenHelper is currently simply ignored in this test setup; ideally `getGeneratedMethods` would not require CodeGenHelper
-        CodeGenHelper codeGenHelper = null;
-        CommonMethodsGenerator.addCommonMethods(interfaces, codeGenHelper);
+        CommonMethodsGenerator.addCommonMethods(interfaces);
 
         assertEquals(
             List.of(

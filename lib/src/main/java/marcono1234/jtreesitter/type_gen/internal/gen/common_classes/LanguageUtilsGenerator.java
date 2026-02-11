@@ -117,7 +117,8 @@ public class LanguageUtilsGenerator {
 
 
     public JavaFile generateCode() {
-        var typeBuilder = TypeSpec.classBuilder(languageUtilsConfig.name())
+        var javaTypeName = languageUtilsConfig.className();
+        var typeBuilder = TypeSpec.classBuilder(javaTypeName)
             .addModifiers(Modifier.FINAL)
             .addMethod(MethodSpec.constructorBuilder().addModifiers(Modifier.PRIVATE).build())
             .addJavadoc("Internal helper class.");
@@ -134,6 +135,6 @@ public class LanguageUtilsGenerator {
         typeBuilder.addMethod(generateGetTypeIdMethod(languageFieldName));
         typeBuilder.addMethod(generateGetFieldIdMethod(languageFieldName));
 
-        return codeGenHelper.createOwnJavaFile(typeBuilder);
+        return codeGenHelper.createJavaFile(typeBuilder, javaTypeName);
     }
 }

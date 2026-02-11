@@ -7,6 +7,7 @@ import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageProviderConfig;
 import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageVersion;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenJavaType;
 import marcono1234.jtreesitter.type_gen.internal.gen.GenNodeType;
+import marcono1234.jtreesitter.type_gen.internal.gen.TypeBuilderWithName;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.LanguageUtilsGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.NodeUtilsGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.TypedNodeInterfaceGenerator;
@@ -39,23 +40,20 @@ public class CodeGenHelper {
     private final CodeGenerator.Version versionInfo;
     @Nullable // null when no access to the Language object is possible
     private final LanguageUtilsConfigData languageUtilsConfigData;
-    private final Instant generationTime;
-    @Nullable // null when `Optional<T>` instead of `@Nullable T` should be generated
-    private final AnnotationSpec nullableAnnotation;
-    private final ClassName nonEmptyClassName;
-    private final AnnotationSpec nonEmptyAnnotation;
+    private final TypeNameCreator typeNameCreator;
 
-    public CodeGenHelper(CodeGenConfig config, CodeGenerator.Version versionInfo, @Nullable LanguageUtilsConfigData languageUtilsConfigData) {
+    @Nullable
+    private final AnnotationSpec nullableAnnotation;
+    private final Instant generationTime;
+
+    public CodeGenHelper(CodeGenConfig config, CodeGenerator.Version versionInfo, @Nullable LanguageUtilsConfigData languageUtilsConfigData, TypeNameCreator typeNameCreator) {
         this.config = Objects.requireNonNull(config);
         this.versionInfo = Objects.requireNonNull(versionInfo);
         this.languageUtilsConfigData = languageUtilsConfigData;
+        this.typeNameCreator = Objects.requireNonNull(typeNameCreator);
 
+        nullableAnnotation = this.typeNameCreator.getNullableAnnotation();
         generationTime = this.config.generatedAnnotationConfig().flatMap(c -> c.generationTime()).orElseGet(Instant::now);
-        nullableAnnotation = this.config.nullableAnnotationTypeName()
-            .map(name -> AnnotationSpec.builder(createClassName(name)).build())
-            .orElse(null);
-        nonEmptyClassName = ClassName.get(config.packageName(), config.nonEmptyTypeName());
-        nonEmptyAnnotation = AnnotationSpec.builder(nonEmptyClassName).build();
     }
 
     public record LanguageUtilsConfigData(
@@ -72,20 +70,6 @@ public class CodeGenHelper {
         List<String> simpleNames = Arrays.asList(typeName.name().split("\\$"));
         String[] nestedNames = simpleNames.subList(1, simpleNames.size()).toArray(String[]::new);
         return ClassName.get(typeName.packageName(), simpleNames.getFirst(), nestedNames);
-    }
-
-    /**
-     * Whether to generate child types as top-level interface instead of nested interface.
-     * This is needed when a node type can have itself as child. If a nested interface is
-     * used, the compiler rejects the code, e.g.:
-     * {@snippet lang=java :
-     * class MyNode implements MyNode.Children {
-     *     interface Children {}
-     * }
-     * }
-     */
-    public CodeGenConfig.ChildTypeAsTopLevel getChildTypeAsTopLevel() {
-        return config.childTypeAsTopLevel();
     }
 
     private Optional<AnnotationSpec> createGeneratedAnnotation() {
@@ -119,17 +103,38 @@ public class CodeGenHelper {
     }
 
     /**
-     * Creates a JavaFile for the given type. Should be used for all generated top-level types.
+     * Creates a {@link JavaFile} for the given type. Should be used for all generated top-level types.
      */
-    public JavaFile createOwnJavaFile(TypeSpec.Builder typeBuilder) {
+    public JavaFile createJavaFile(TypeSpec.Builder typeBuilder, ClassName typeName) {
+        // Note: Technically the `typeName` argument is not needed: the simple name can be obtained from the `typeBuilder`
+        // (respectively the type it builds) and the package name can be obtained from the code gen config; however the
+        // `typeName` argument provides some additional safety, especially in case multiple packages are generated in the future
+
+        if (typeName.enclosingClassName() != null) {
+            throw new IllegalArgumentException("Can only create Java file for top-level type, not for: " + typeName);
+        }
+
         createGeneratedAnnotation().ifPresent(typeBuilder::addAnnotation);
-        return JavaFile.builder(config.packageName(), typeBuilder.build()).build();
+        var type = typeBuilder.build();
+
+        if (!type.name().equals(typeName.simpleName())) {
+            throw new IllegalArgumentException("Type name '" + typeName + "' does not match name of type builder '" + type.name() + "'");
+        }
+        return JavaFile.builder(typeName.packageName(), type).build();
+    }
+
+    public JavaFile createJavaFile(TypeBuilderWithName typeBuilder) {
+        return createJavaFile(typeBuilder.typeBuilder(), typeBuilder.typeName());
     }
 
     /**
      * Creates the Java source content for a {@code package-info.java} file.
      */
-    public String createPackageInfoContent(ClassName nullMarkedAnnotationType) {
+    public String createPackageInfoContent(String packageName, ClassName nullMarkedAnnotationType) {
+        // Note: Technically the `packageName` argument is redundant because it can be retrieved from the code gen
+        // config; however having the argument is useful for consistency since the caller has to separately obtain
+        // the package name anyway (for creating the file path) and to support other package names in the future
+
         // TODO: JavaPoet does not support this natively yet, see https://github.com/square/javapoet/issues/666 (no corresponding issue in https://github.com/palantir/javapoet exists yet)
         //   therefore have to create this manually
 
@@ -151,19 +156,11 @@ public class CodeGenHelper {
 
         return contentBuilder
             .append('@').append(nullMarkedAnnotationType.simpleName())
-            .append("\npackage ").append(config.packageName()).append(';')
+            .append("\npackage ").append(packageName).append(';')
             .append('\n')
             .append("\nimport ").append(nullMarkedAnnotationType.canonicalName()).append(';')
             .append('\n')
             .toString();
-    }
-
-    /**
-     * Creates a JavaPoet class name for the given name, in the generated package.
-     */
-    // TODO: Maybe instead of creating this on demand, create it when the ...Gen classes are created
-    public ClassName createOwnClassName(String name, String... nestedNames) {
-        return ClassName.get(config.packageName(), name, nestedNames);
     }
 
     /**
@@ -199,31 +196,12 @@ public class CodeGenHelper {
     }
 
     /**
-     * Name for the {@code @NonEmpty} annotation.
-     */
-    public String getNonEmptyTypeName() {
-        return nonEmptyClassName.simpleName();
-    }
-
-    /**
-     * Creates a new type name annotated with {@code @NonEmpty}.
-     */
-    public TypeName annotatedNonEmpty(TypeName type) {
-        return type.annotated(nonEmptyAnnotation);
-    }
-
-    /**
-     * Creates a type name indicating that the type is optional. Depending on the config either by
-     * wrapping the type in {@link Optional}, or by annotating it with {@code @Nullable}.
+     * Creates a type name indicating that the type is optional.
      *
-     * <p>Only intended for single optional types; not for {@code List<T>} or similar.
+     * @see TypeNameCreator#getReturnOptionalType(TypeName)
      */
     public TypeName getReturnOptionalType(TypeName type) {
-        if (nullableAnnotation == null) {
-            return ParameterizedTypeName.get(ClassName.get(Optional.class), type);
-        } else {
-            return type.annotated(nullableAnnotation);
-        }
+        return typeNameCreator.getReturnOptionalType(type);
     }
 
     /**
@@ -273,10 +251,10 @@ public class CodeGenHelper {
         builder.addJavadoc("\n<ul>");
         // TODO: Sort these type names lexicographically (maybe already in `CodeGenerator`?)? It seems tree-sitter only emits them partially sorted
         for (var type : types) {
-            builder.addJavadoc("\n<li>{@link $T $L}", type.createJavaTypeName(this), CodeGenHelper.escapeJavadocText(type.getTypeName()));
+            builder.addJavadoc("\n<li>{@link $T $L}", type.getJavaTypeName(), CodeGenHelper.escapeJavadocText(type.getTypeName()));
         }
         if (tokensType != null) {
-            builder.addJavadoc("\n<li>{@linkplain $T <i>tokens</i>}", tokensType.createJavaTypeName(this));
+            builder.addJavadoc("\n<li>{@linkplain $T <i>tokens</i>}", tokensType.getJavaTypeName());
         }
         builder.addJavadoc("\n</ul>");
     }
@@ -288,17 +266,13 @@ public class CodeGenHelper {
      */
     public record TypedNodeConfig(
         CodeGenHelper codeGenHelper,
-        String name,
+        ClassName className,
         String methodGetNode,
         // These method names are also used for the static methods in the TypedNode subtypes
         String methodFromNode,
         String methodFromNodeThrowing, Class<? extends Exception> exceptionFromNodeThrowing,
         String methodFindNodes
     ) {
-        public ClassName className() {
-            return codeGenHelper.createOwnClassName(name);
-        }
-
         /**
          * Generates a {@link #methodFromNodeThrowing()} implementation which delegates to {@link #methodFromNode()}
          * in the same class.
@@ -503,7 +477,7 @@ public class CodeGenHelper {
         public static TypedNodeConfig createDefault(CodeGenHelper codeGenHelper) {
             return new TypedNodeConfig(
                 codeGenHelper,
-                "TypedNode",
+                codeGenHelper.typeNameCreator.createOwnClassName("TypedNode"),
                 "getNode",
                 "fromNode",
                 "fromNodeThrowing", IllegalArgumentException.class,
@@ -540,22 +514,16 @@ public class CodeGenHelper {
      * @see NodeUtilsGenerator
      */
     public record NodeUtilsConfig(
-        CodeGenHelper codeGenHelper,
-        String name,
+        ClassName className,
         String methodFromNodeThrowing,
         String methodGetNonFieldChildren,
         String methodMapChildrenNamedNonNamed,
         // Methods for converting List<TypedNode> to TypedNode / Optional<TypedNode> or @NonEmpty List<TypedNode>
         String methodOptionalChild, String methodRequiredChild, String methodAtLeastOneChild
     ) {
-        public ClassName className() {
-            return codeGenHelper.createOwnClassName(name);
-        }
-
-        public static NodeUtilsConfig createDefault(CodeGenHelper codeGenHelper) {
+        public static NodeUtilsConfig createDefault(TypeNameCreator typeNameCreator) {
             return new NodeUtilsConfig(
-                codeGenHelper,
-                "NodeUtils",
+                typeNameCreator.createOwnClassName("NodeUtils"),
                 "fromNodeThrowing",
                 "getNonFieldChildren",
                 "mapChildren",
@@ -565,7 +533,7 @@ public class CodeGenHelper {
     }
 
     public NodeUtilsConfig nodeUtilsConfig() {
-        return NodeUtilsConfig.createDefault(this);
+        return NodeUtilsConfig.createDefault(this.typeNameCreator);
     }
 
     /**
@@ -574,17 +542,12 @@ public class CodeGenHelper {
      * @see LanguageUtilsGenerator
      */
     public record LanguageUtilsConfig(
-        CodeGenHelper codeGenHelper,
         LanguageProviderConfig languageProviderConfig,
         @Nullable LanguageVersion expectedLanguageVersion,
-        String name,
+        ClassName className,
         String fieldLanguage,
         String methodGetTypeId, String methodGetFieldId
     ) {
-        public ClassName className() {
-            return codeGenHelper.createOwnClassName(name);
-        }
-
         public static @Nullable LanguageUtilsConfig createDefault(CodeGenHelper codeGenHelper) {
             var languageConfig = codeGenHelper.languageUtilsConfigData;
             if (languageConfig == null) {
@@ -592,10 +555,9 @@ public class CodeGenHelper {
             }
 
             return new LanguageUtilsConfig(
-                codeGenHelper,
                 languageConfig.languageProviderConfig(),
                 languageConfig.expectedLanguageVersion(),
-                "LanguageUtils",
+                codeGenHelper.typeNameCreator.createOwnClassName("LanguageUtils"),
                 "language",
                 "getTypeId", "getFieldId"
             );

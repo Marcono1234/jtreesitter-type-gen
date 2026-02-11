@@ -1,6 +1,5 @@
 package marcono1234.jtreesitter.type_gen.internal.gen;
 
-import com.palantir.javapoet.ClassName;
 import com.palantir.javapoet.JavaFile;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.TopoSorter;
@@ -22,19 +21,9 @@ public sealed interface GenNodeType extends GenJavaType permits GenRegularNodeTy
     boolean isExtra();
 
     /**
-     * Gets the Java class name for the generated class.
-     */
-    String getJavaName();
-
-    /**
      * Gets the name of the Java field in the generated class which stores the value of {@link #getTypeName()}.
      */
     String getTypeNameConstant();
-
-    @Override
-    default ClassName createJavaTypeName(CodeGenHelper codeGenHelper) {
-        return codeGenHelper.createOwnClassName(getJavaName());
-    }
 
     /**
      * Returns whether this type directly (e.g. as subtype of a supertype node) or indirectly (e.g. through child)
