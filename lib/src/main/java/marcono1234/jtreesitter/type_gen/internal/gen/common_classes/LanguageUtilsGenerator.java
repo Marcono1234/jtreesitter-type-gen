@@ -18,8 +18,8 @@ public class LanguageUtilsGenerator {
     private final LanguageUtilsConfig languageUtilsConfig;
 
     public LanguageUtilsGenerator(CodeGenHelper codeGenHelper, LanguageUtilsConfig languageUtilsConfig) {
-        this.codeGenHelper = Objects.requireNonNull(codeGenHelper);
-        this.languageUtilsConfig = Objects.requireNonNull(languageUtilsConfig);
+        this.codeGenHelper = codeGenHelper;
+        this.languageUtilsConfig = languageUtilsConfig;
     }
 
     private MethodSpec generateGetTypeIdMethod(String languageField) {

@@ -6,7 +6,6 @@ import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
 import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 
 /**
@@ -17,7 +16,7 @@ public class NodeUtilsGenerator {
     private final CodeGenHelper codeGenHelper;
 
     public NodeUtilsGenerator(CodeGenHelper codeGenHelper) {
-        this.codeGenHelper = Objects.requireNonNull(codeGenHelper);
+        this.codeGenHelper = codeGenHelper;
     }
 
     private static ParameterizedTypeName listType(TypeName argType) {

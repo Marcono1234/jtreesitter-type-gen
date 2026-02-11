@@ -47,10 +47,10 @@ public class CodeGenHelper {
     private final Instant generationTime;
 
     public CodeGenHelper(CodeGenConfig config, CodeGenerator.Version versionInfo, @Nullable LanguageUtilsConfigData languageUtilsConfigData, TypeNameCreator typeNameCreator) {
-        this.config = Objects.requireNonNull(config);
-        this.versionInfo = Objects.requireNonNull(versionInfo);
+        this.config = config;
+        this.versionInfo = versionInfo;
         this.languageUtilsConfigData = languageUtilsConfigData;
-        this.typeNameCreator = Objects.requireNonNull(typeNameCreator);
+        this.typeNameCreator = typeNameCreator;
 
         nullableAnnotation = this.typeNameCreator.getNullableAnnotation();
         generationTime = this.config.generatedAnnotationConfig().flatMap(c -> c.generationTime()).orElseGet(Instant::now);
