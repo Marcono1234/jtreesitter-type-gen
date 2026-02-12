@@ -608,7 +608,10 @@ public interface NameGenerator {
         static TokenNameGenerator fromMapping(Map<String, Map<String, Map<String, String>>> tokenNameMapping, boolean exhaustive) {
             Objects.requireNonNull(tokenNameMapping);
 
-            return new TokenNameGenerator() {
+            // Local class instead of anonymous class for more useful default `toString`
+            // Note: Don't use local record class for this, because including `tokenNameMapping` in `equals`, `hashCode` and
+            // `toString` might be inefficient and verbose
+            class FromMappingTokenNameGenerator implements TokenNameGenerator {
                 private String generateDefaultTokenName(String tokenType, int index) {
                     // Note: Avoid any default names which imply a certain usage, e.g. `*` should not be named "MULTIPLY"
                     // because it might have a different meaning in the grammar
@@ -664,7 +667,9 @@ public interface NameGenerator {
                         return generateDefaultTokenName(tokenType, index);
                     }
                 }
-            };
+            }
+
+            return new FromMappingTokenNameGenerator();
         }
     }
 
@@ -760,6 +765,28 @@ public interface NameGenerator {
             // For now only generate if type has no fields, otherwise user likely included non-named children as fields
             // in their grammar in case they are relevant
             return hasFields ? Optional.empty() : Optional.of("getUnnamedChildren");
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            // Only consider equal if it is exactly the same class; ignore subclasses
+            if (obj == null || obj.getClass() != getClass()) {
+                return false;
+            }
+            DefaultNameGenerator other = (DefaultNameGenerator) obj;
+            return this.tokenNameGenerator.equals(other.tokenNameGenerator);
+        }
+
+        @Override
+        public int hashCode() {
+            return tokenNameGenerator.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "DefaultNameGenerator{" +
+                    "tokenNameGenerator=" + tokenNameGenerator +
+                    '}';
         }
     }
 }

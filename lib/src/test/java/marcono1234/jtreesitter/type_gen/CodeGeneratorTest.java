@@ -36,9 +36,6 @@ class CodeGeneratorTest {
 
     private static final String DEFAULT_PACKAGE_NAME = "org.example";
     private static final String DEFAULT_NON_EMPTY_NAME = "NonEmpty";
-    private static final CodeGenConfig.ChildTypeAsTopLevel DEFAULT_CHILD_AS_TOP_LEVEL = CodeGenConfig.ChildTypeAsTopLevel.AS_NEEDED;
-    private static final NameGenerator DEFAULT_NAME_GENERATOR = new NameGenerator.DefaultNameGenerator(TokenNameGenerator.AUTOMATIC);
-    private static final boolean DEFAULT_GENERATE_FIND_NODES_METHODS = true;
 
     // Use fixed version to avoid test output changes for every version change / Git commit
     private static final CodeGenerator.Version VERSION_INFO = new CodeGenerator.Version(
@@ -531,25 +528,13 @@ class CodeGeneratorTest {
 
     @Test
     void testError_NonExistentNodeTypesFile(@TempDir Path tempDir) {
-        var config = new CodeGenConfig(
-            DEFAULT_PACKAGE_NAME,
-            Optional.empty(),
-            Optional.empty(),
-            DEFAULT_NON_EMPTY_NAME,
-            DEFAULT_CHILD_AS_TOP_LEVEL,
-            Optional.empty(),
-            DEFAULT_NAME_GENERATOR,
-            DEFAULT_GENERATE_FIND_NODES_METHODS,
-            Optional.empty(),
-            Optional.empty(),
-            Optional.of(GENERATED_ANNOTATION_CONFIG)
-        );
+        var config = CodeGenConfig.builder(DEFAULT_PACKAGE_NAME).build();
         var codeGenerator = new CodeGenerator(config);
 
         var codeWriter = new ThrowingCodeWriter();
         Path nodeTypesFile = tempDir.resolve("does-not-exist.json");
 
-        var languageConfig = new LanguageConfig(Optional.empty(), Map.of(), Optional.empty(), Optional.empty());
+        var languageConfig = LanguageConfig.builder().build();
         var e = assertThrows(CodeGenException.class, () -> codeGenerator.generate(nodeTypesFile, languageConfig, codeWriter, VERSION_INFO));
         assertEquals("Failed reading node types file: " + nodeTypesFile, e.getMessage());
         codeWriter.verifyNotCalled();
@@ -557,19 +542,7 @@ class CodeGeneratorTest {
 
     @Test
     void testError_FileAsOutputDir(@TempDir Path tempDir) throws Exception {
-        var config = new CodeGenConfig(
-            DEFAULT_PACKAGE_NAME,
-            Optional.empty(),
-            Optional.empty(),
-            DEFAULT_NON_EMPTY_NAME,
-            DEFAULT_CHILD_AS_TOP_LEVEL,
-            Optional.empty(),
-            DEFAULT_NAME_GENERATOR,
-            DEFAULT_GENERATE_FIND_NODES_METHODS,
-            Optional.empty(),
-            Optional.empty(),
-            Optional.of(GENERATED_ANNOTATION_CONFIG)
-        );
+        var config = CodeGenConfig.builder(DEFAULT_PACKAGE_NAME).build();
         var codeGenerator = new CodeGenerator(config);
 
         var nodeTypesFile = tempDir.resolve("node-types.json");
@@ -585,26 +558,14 @@ class CodeGeneratorTest {
         Path file = tempDir.resolve("some-file.txt");
         Files.createFile(file);
 
-        var languageConfig = new LanguageConfig(Optional.empty(), Map.of(), Optional.empty(), Optional.empty());
+        var languageConfig = LanguageConfig.builder().build();
         var e = assertThrows(CodeGenException.class, () -> codeGenerator.generate(nodeTypesFile, languageConfig, file));
         assertEquals("Output dir is not a directory: " + file, e.getMessage());
     }
 
     @Test
     void testError_UnknownRootType() {
-        var config = new CodeGenConfig(
-            DEFAULT_PACKAGE_NAME,
-            Optional.empty(),
-            Optional.empty(),
-            DEFAULT_NON_EMPTY_NAME,
-            DEFAULT_CHILD_AS_TOP_LEVEL,
-            Optional.empty(),
-            DEFAULT_NAME_GENERATOR,
-            DEFAULT_GENERATE_FIND_NODES_METHODS,
-            Optional.empty(),
-            Optional.empty(),
-            Optional.of(GENERATED_ANNOTATION_CONFIG)
-        );
+        var config = CodeGenConfig.builder(DEFAULT_PACKAGE_NAME).build();
         var codeGenerator = new CodeGenerator(config);
 
        var nodeTypesJson = """
@@ -618,7 +579,7 @@ class CodeGeneratorTest {
 
         String rootNode = "does-not-exist";
 
-        var languageConfig = new LanguageConfig(Optional.of(rootNode), Map.of(), Optional.empty(), Optional.empty());
+        var languageConfig = LanguageConfig.builder().rootNodeTypeName(rootNode).build();
         var codeWriter = new ThrowingCodeWriter();
         var e = assertThrows(CodeGenException.class, () -> codeGenerator.generate(new StringReader(nodeTypesJson), languageConfig, codeWriter, VERSION_INFO));
         assertEquals("Root node type '%s' not found".formatted(rootNode), e.getMessage());
@@ -631,19 +592,7 @@ class CodeGeneratorTest {
      */
     @Test
     void testError_JsonRootAndUserRoot() {
-        var config = new CodeGenConfig(
-            DEFAULT_PACKAGE_NAME,
-            Optional.empty(),
-            Optional.empty(),
-            DEFAULT_NON_EMPTY_NAME,
-            DEFAULT_CHILD_AS_TOP_LEVEL,
-            Optional.empty(),
-            DEFAULT_NAME_GENERATOR,
-            DEFAULT_GENERATE_FIND_NODES_METHODS,
-            Optional.empty(),
-            Optional.empty(),
-            Optional.of(GENERATED_ANNOTATION_CONFIG)
-        );
+        var config = CodeGenConfig.builder(DEFAULT_PACKAGE_NAME).build();
         var codeGenerator = new CodeGenerator(config);
 
         var nodeTypesJson = """
@@ -658,7 +607,7 @@ class CodeGeneratorTest {
 
         String rootNode = "my_node";
 
-        var languageConfig = new LanguageConfig(Optional.of(rootNode), Map.of(), Optional.empty(), Optional.empty());
+        var languageConfig = LanguageConfig.builder().rootNodeTypeName(rootNode).build();
         var codeWriter = new ThrowingCodeWriter();
         var e = assertThrows(CodeGenException.class, () -> codeGenerator.generate(new StringReader(nodeTypesJson), languageConfig, codeWriter, VERSION_INFO));
         assertEquals(
@@ -674,19 +623,7 @@ class CodeGeneratorTest {
      */
     @Test
     void testError_UnknownReferencedNodeType() {
-        var config = new CodeGenConfig(
-            DEFAULT_PACKAGE_NAME,
-            Optional.empty(),
-            Optional.empty(),
-            DEFAULT_NON_EMPTY_NAME,
-            DEFAULT_CHILD_AS_TOP_LEVEL,
-            Optional.empty(),
-            DEFAULT_NAME_GENERATOR,
-            DEFAULT_GENERATE_FIND_NODES_METHODS,
-            Optional.empty(),
-            Optional.empty(),
-            Optional.of(GENERATED_ANNOTATION_CONFIG)
-        );
+        var config = CodeGenConfig.builder(DEFAULT_PACKAGE_NAME).build();
         var codeGenerator = new CodeGenerator(config);
 
         // Snippet is from Python node-types.json, but any node-types.json which references unknown type should reproduce this
@@ -711,7 +648,7 @@ class CodeGeneratorTest {
             ]
             """;
 
-        var languageConfig = new LanguageConfig(Optional.empty(), Map.of(), Optional.empty(), Optional.empty());
+        var languageConfig = LanguageConfig.builder().build();
         var codeWriter = new ThrowingCodeWriter();
         var e = assertThrows(NoSuchElementException.class, () -> codeGenerator.generate(new StringReader(nodeTypesJson), languageConfig, codeWriter, VERSION_INFO));
         assertEquals(

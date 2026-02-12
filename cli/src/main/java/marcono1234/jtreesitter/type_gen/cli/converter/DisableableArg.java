@@ -12,6 +12,9 @@ import java.util.Optional;
  *     <li>{@link #enabled(Object)}: Explicitly enabled, with custom value</li>
  *     <li>{@link #disabled()}: Explicitly disabled</li>
  * </ul>
+ *
+ * <p>This class is pretty similar to the standard {@link Optional} class, except that unlike {@code Optional}
+ * it is not treated in a special way by picocli.
  */
 public class DisableableArg<T> {
     private static final DisableableArg<Object> DISABLED = new DisableableArg<>(null);
@@ -35,8 +38,18 @@ public class DisableableArg<T> {
         return value;
     }
 
+    /**
+     * If <i>enabled</i> returns an {@link Optional} containing the value, otherwise returns an empty {@code Optional}.
+     */
     public Optional<T> asOptional() {
         return Optional.ofNullable(value);
+    }
+
+    /**
+     * If <i>enabled</i> returns the value, otherwise returns {@code null}.
+     */
+    public @Nullable T asNullable() {
+        return value;
     }
 
     /**

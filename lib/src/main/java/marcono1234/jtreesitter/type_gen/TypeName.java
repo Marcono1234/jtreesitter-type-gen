@@ -12,13 +12,13 @@ import org.jspecify.annotations.Nullable;
 public record TypeName(String packageName, String name) {
 
     /**
-     * Type name of the {@code org.jspecify.annotations.Nullable} annotation.
+     * Type name of the <a href="https://jspecify.dev/">JSpecify</a> {@code org.jspecify.annotations.Nullable} annotation.
      */
     // Exists as constant here because jtreesitter uses this annotation, so users can benefit from it transitively
     public static final TypeName JSPECIFY_NULLABLE_ANNOTATION = TypeName.fromClass(Nullable.class);
 
     /**
-     * Type name of the {@code org.jspecify.annotations.NullMarked} annotation.
+     * Type name of the <a href="https://jspecify.dev/">JSpecify</a> {@code org.jspecify.annotations.NullMarked} annotation.
      */
     public static final TypeName JSPECIFY_NULLMARKED_ANNOTATION = TypeName.fromClass(NullMarked.class);
 

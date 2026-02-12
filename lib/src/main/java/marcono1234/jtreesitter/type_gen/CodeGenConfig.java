@@ -7,9 +7,14 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 /**
  * General code generation config, not specific to a {@code node-types.json} file or a language.
+ *
+ * <p><b>Tip:</b> Instead of using the constructor of this config class, prefer using {@link #builder(String)} to only specify
+ * the data which differs from the default config, and to avoid experiencing breaking changes in case new config
+ * parameters are added in the future.
  *
  * @param packageName
  *      Java package name the generated code should use; will create the corresponding subdirectories
@@ -91,6 +96,201 @@ public record CodeGenConfig(
     }
 
     /**
+     * Creates a new builder for {@link CodeGenConfig}.
+     *
+     * @param packageName see {@link CodeGenConfig#packageName()}
+     */
+    public static Builder builder(String packageName) {
+        Objects.requireNonNull(packageName);
+        return new Builder(packageName);
+    }
+
+    /**
+     * Builder for {@link CodeGenConfig}. The config instance can be created using {@link #build()}.
+     *
+     * <p>All builder methods modify the builder instance; the returned builder can be ignored and only exists as
+     * convenience to allow method call chaining.
+     *
+     * <h2>Defaults</h2>
+     * <ul>
+     * <li>{@link CodeGenConfig#nullableAnnotationTypeName() nullableAnnotationTypeName}: <a href="https://jspecify.dev/">JSpecify</a> {@code @Nullable}
+     * <li>{@link CodeGenConfig#nullMarkedPackageAnnotationTypeName() nullMarkedPackageAnnotationTypeName}: <a href="https://jspecify.dev/">JSpecify</a> {@code @NullMarked}
+     * <li>{@link CodeGenConfig#nonEmptyTypeName() nonEmptyTypeName}: {@value Builder#DEFAULT_NON_EMPTY_TYPE_NAME}
+     * <li>{@link CodeGenConfig#childTypeAsTopLevel() childTypeAsTopLevel}: {@link ChildTypeAsTopLevel#AS_NEEDED AS_NEEDED}
+     * <li>{@link CodeGenConfig#typedNodeSuperinterface() typedNodeSuperinterface}: none
+     * <li>{@link CodeGenConfig#nameGenerator() nameGenerator}: {@link NameGenerator.DefaultNameGenerator}
+     * <li>{@link CodeGenConfig#generateFindNodesMethods() generateFindNodesMethods}: true
+     * <li>{@link CodeGenConfig#typedQueryNameGenerator() typedQueryNameGenerator}: none (that means no 'typed query' code is generated)
+     * <li>{@link CodeGenConfig#customMethodsProvider() customMethodsProvider}: none
+     * <li>{@link CodeGenConfig#generatedAnnotationConfig() generatedAnnotationConfig}: Javax {@link Generated @Generated}, using the current time (when code generation is performed) as 'generation time'
+     * </ul>
+     */
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    public static class Builder {
+        private final String packageName;
+
+        private Builder(String packageName) {
+            this.packageName = packageName;
+        }
+
+        private Optional<TypeName> nullableAnnotationTypeName = Optional.of(TypeName.JSPECIFY_NULLABLE_ANNOTATION);
+        private Optional<TypeName> nullMarkedPackageAnnotationTypeName = Optional.of(TypeName.JSPECIFY_NULLMARKED_ANNOTATION);
+
+        /**
+         * Use {@link Optional} instead of {@code @Nullable} in the generated code.
+         *
+         * @see CodeGenConfig#nullableAnnotationTypeName()
+         */
+        public Builder usingOptional() {
+            nullableAnnotationTypeName = Optional.empty();
+            nullMarkedPackageAnnotationTypeName = Optional.empty();
+            return this;
+        }
+
+        /**
+         * @see CodeGenConfig#nullableAnnotationTypeName()
+         * @see CodeGenConfig#nullMarkedPackageAnnotationTypeName()
+         */
+        public Builder usingNullable(TypeName nullableAnnotationTypeName, TypeName nullMarkedPackageAnnotationTypeName) {
+            this.nullableAnnotationTypeName = Optional.of(nullableAnnotationTypeName);
+            this.nullMarkedPackageAnnotationTypeName = Optional.of(nullMarkedPackageAnnotationTypeName);
+            return this;
+        }
+
+        /**
+         * @see CodeGenConfig#nullableAnnotationTypeName()
+         */
+        public Builder usingNullable(TypeName nullableAnnotationTypeName) {
+            this.nullableAnnotationTypeName = Optional.of(nullableAnnotationTypeName);
+            this.nullMarkedPackageAnnotationTypeName = Optional.empty();
+            return this;
+        }
+
+        private static final String DEFAULT_NON_EMPTY_TYPE_NAME = "NonEmpty";
+        private String nonEmptyTypeName = DEFAULT_NON_EMPTY_TYPE_NAME;
+
+        /**
+         * @see CodeGenConfig#nonEmptyTypeName()
+         */
+        public Builder nonEmptyTypeName(String nonEmptyTypeName) {
+            this.nonEmptyTypeName = Objects.requireNonNull(nonEmptyTypeName);
+            return this;
+        }
+
+        private ChildTypeAsTopLevel childTypeAsTopLevel = ChildTypeAsTopLevel.AS_NEEDED;
+
+        /**
+         * @see CodeGenConfig#childTypeAsTopLevel()
+         */
+        public Builder childTypeAsTopLevel(ChildTypeAsTopLevel childTypeAsTopLevel) {
+            this.childTypeAsTopLevel = Objects.requireNonNull(childTypeAsTopLevel);
+            return this;
+        }
+
+        private Optional<TypeName> typedNodeSuperinterface = Optional.empty();
+
+        /**
+         * @see CodeGenConfig#typedNodeSuperinterface()
+         */
+        public Builder typedNodeSuperinterface(TypeName typedNodeSuperinterface) {
+            this.typedNodeSuperinterface = Optional.of(typedNodeSuperinterface);
+            return this;
+        }
+
+        // Visible for testing
+        static final NameGenerator DEFAULT_NAME_GENERATOR = new NameGenerator.DefaultNameGenerator(NameGenerator.TokenNameGenerator.AUTOMATIC);
+        private NameGenerator nameGenerator = DEFAULT_NAME_GENERATOR;
+
+        /**
+         * @see CodeGenConfig#nameGenerator()
+         */
+        public Builder nameGenerator(NameGenerator nameGenerator) {
+            this.nameGenerator = Objects.requireNonNull(nameGenerator);
+            return this;
+        }
+
+        private boolean generateFindNodesMethods = true;
+
+        /**
+         * @see CodeGenConfig#generateFindNodesMethods()
+         */
+        public Builder generateFindNodesMethods(boolean generateFindNodesMethods) {
+            this.generateFindNodesMethods = generateFindNodesMethods;
+            return this;
+        }
+
+        private Optional<TypedQueryNameGenerator> typedQueryNameGenerator = Optional.empty();
+
+        /**
+         * @see CodeGenConfig#typedQueryNameGenerator()
+         */
+        public Builder typedQueryNameGenerator(TypedQueryNameGenerator typedQueryNameGenerator) {
+            this.typedQueryNameGenerator = Optional.of(typedQueryNameGenerator);
+            return this;
+        }
+
+        private Optional<CustomMethodsProvider> customMethodsProvider = Optional.empty();
+
+        /**
+         * @see CodeGenConfig#customMethodsProvider()
+         */
+        public Builder customMethodsProvider(CustomMethodsProvider customMethodsProvider) {
+            this.customMethodsProvider = Optional.of(customMethodsProvider);
+            return this;
+        }
+
+        private Optional<GeneratedAnnotationConfig> generatedAnnotationConfig = Optional.of(new GeneratedAnnotationConfig(
+            GeneratedAnnotationConfig.GeneratedAnnotationType.JAVAX_GENERATED,
+            Optional.empty(),
+            Optional.empty()
+        ));
+
+        /**
+         * @see CodeGenConfig#generatedAnnotationConfig()
+         */
+        public Builder generatedAnnotationConfig(GeneratedAnnotationConfig generatedAnnotationConfig) {
+            this.generatedAnnotationConfig = Optional.of(generatedAnnotationConfig);
+            return this;
+        }
+
+        /**
+         * Do not add a {@code @Generated} annotation to the generated code.
+         *
+         * @see CodeGenConfig#generatedAnnotationConfig()
+         */
+        public Builder withoutGeneratedAnnotation() {
+            this.generatedAnnotationConfig = Optional.empty();
+            return this;
+        }
+
+        /**
+         * Applies the consumer to this builder and afterwards returns this builder.
+         *
+         * <p>This allows using a separate method to apply configuration, without interrupting the method call chain.
+         */
+        public Builder apply(Consumer<? super Builder> consumer) {
+            consumer.accept(this);
+            return this;
+        }
+
+        public CodeGenConfig build() {
+            return new CodeGenConfig(
+                packageName,
+                nullableAnnotationTypeName,
+                nullMarkedPackageAnnotationTypeName,
+                nonEmptyTypeName,
+                childTypeAsTopLevel,
+                typedNodeSuperinterface,
+                nameGenerator,
+                generateFindNodesMethods,
+                typedQueryNameGenerator,
+                customMethodsProvider,
+                generatedAnnotationConfig
+            );
+        }
+    }
+
+    /**
      * Whether to generate a top-level or a nested Java class for a node child type.
      *
      * <p>This is relevant when a node type can have itself as child. If a nested interface is
@@ -130,7 +330,8 @@ public record CodeGenConfig(
      * @param annotationType
      *      information about the annotation type, such as qualified type name and annotation element names
      * @param generationTime
-     *      fixed time when the code was generated, useful for reproducible builds; if empty the current time is used
+     *      fixed time when the code was generated, useful for reproducible builds; if empty the current time when
+     *      code generation is performed is used
      * @param additionalInformation
      *      additional information to include in the {@code @Generated} annotation, can for example be the origin / version
      *      of the {@code node-types.json} file
@@ -140,6 +341,13 @@ public record CodeGenConfig(
             Objects.requireNonNull(annotationType);
             Objects.requireNonNull(generationTime);
             Objects.requireNonNull(additionalInformation);
+
+            if (annotationType.dateElementName().isEmpty() && generationTime.isPresent()) {
+                throw new IllegalArgumentException("Cannot specify generationTime when annotation type has no date element");
+            }
+            if (annotationType.commentsElementName().isEmpty() && additionalInformation.isPresent()) {
+                throw new IllegalArgumentException("Cannot specify additionalInformation when annotation type has no comments element");
+            }
         }
 
         /**
@@ -187,9 +395,12 @@ public record CodeGenConfig(
     /**
      * Wraps a name generator in a generator which validates that the generated names are valid Java names.
      */
-    private static NameGenerator validatingNameGenerator(NameGenerator nameGenerator) {
+    // Visible for testing
+    static NameGenerator validatingNameGenerator(NameGenerator nameGenerator) {
         Objects.requireNonNull(nameGenerator);
-        return new NameGenerator() {
+
+        // Dedicated record class to have useful `toString` and `equals`
+        record ValidatingNameGenerator(NameGenerator nameGenerator) implements NameGenerator {
             @Override
             public String generateJavaTypeName(String typeName) {
                 return validateTypeName(nameGenerator.generateJavaTypeName(typeName));
@@ -260,15 +471,20 @@ public record CodeGenConfig(
                 return nameGenerator.generateNonNamedChildrenGetterName(parentTypeName, hasNamedChildren, hasFields)
                     .map(CodeGenConfig::validateMemberName);
             }
-        };
+        }
+
+        return new ValidatingNameGenerator(nameGenerator);
     }
 
     /**
      * Wraps a name generator in a generator which validates that the generated names are valid Java names.
      */
-    private static TypedQueryNameGenerator validatingTypedQueryNameGenerator(TypedQueryNameGenerator nameGenerator) {
+    // Visible for testing
+    static TypedQueryNameGenerator validatingTypedQueryNameGenerator(TypedQueryNameGenerator nameGenerator) {
         Objects.requireNonNull(nameGenerator);
-        return new TypedQueryNameGenerator() {
+
+        // Dedicated record class to have useful `toString` and `equals`
+        record ValidatingTypedQueryNameGenerator(TypedQueryNameGenerator nameGenerator) implements TypedQueryNameGenerator {
             @Override
             public String generateBuilderClassName(String typeName) {
                 return validateTypeName(nameGenerator.generateBuilderClassName(typeName));
@@ -303,6 +519,8 @@ public record CodeGenConfig(
             public String generateChildTokenMethodName(String parentTypeName, List<String> tokenChildrenTypesNames) {
                 return validateMemberName(nameGenerator.generateChildTokenMethodName(parentTypeName, tokenChildrenTypesNames));
             }
-        };
+        }
+
+        return new ValidatingTypedQueryNameGenerator(nameGenerator);
     }
 }

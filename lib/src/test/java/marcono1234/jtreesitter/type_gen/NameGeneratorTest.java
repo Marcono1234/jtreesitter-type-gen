@@ -1,6 +1,7 @@
 package marcono1234.jtreesitter.type_gen;
 
 import marcono1234.jtreesitter.type_gen.NameGenerator.TokenNameGenerator;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -186,11 +187,35 @@ class NameGeneratorTest {
             "true,false,getUnnamedChildren",
             "true,true,",
         })
-        void generateNonNamedChildrenGetterName(boolean hasNamedChildren, boolean hasFields, String expectedName) {
+        void generateNonNamedChildrenGetterName(boolean hasNamedChildren, boolean hasFields, @Nullable String expectedName) {
             assertEquals(
                 Optional.ofNullable(expectedName),
                 nameGenerator.generateNonNamedChildrenGetterName("parent", hasNamedChildren, hasFields)
             );
+        }
+
+        @SuppressWarnings("SimplifiableAssertion")  // manually tests `equals` implementation
+        @Test
+        void equalsHashCode() {
+            var tokenNameGenerator = TokenNameGenerator.AUTOMATIC;
+            var generator1 = new NameGenerator.DefaultNameGenerator(tokenNameGenerator);
+            var generator2 = new NameGenerator.DefaultNameGenerator(tokenNameGenerator);
+            assertTrue(generator1.equals(generator2));
+            assertTrue(generator2.equals(generator1));
+            assertEquals(generator1.hashCode(), generator2.hashCode());
+
+            var generatorOther = new NameGenerator.DefaultNameGenerator(TokenNameGenerator.fromMapping(Map.of("a", Map.of("b", Map.of("c", "d"))), true));
+            assertFalse(generator1.equals(generatorOther));
+            assertFalse(generatorOther.equals(generator1));
+
+            var generatorSubClass = new NameGenerator.DefaultNameGenerator(tokenNameGenerator) {
+                @Override
+                public boolean equals(Object obj) {
+                    return obj == this;
+                }
+            };
+            assertFalse(generator1.equals(generatorSubClass));
+            assertFalse(generatorSubClass.equals(generator1));
         }
     }
 

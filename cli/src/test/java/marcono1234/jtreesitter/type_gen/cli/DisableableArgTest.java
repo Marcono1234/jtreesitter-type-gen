@@ -14,6 +14,7 @@ class DisableableArgTest {
         assertFalse(arg.isDisabled());
         assertEquals("value", arg.getEnabledValue());
         assertEquals(Optional.of("value"), arg.asOptional());
+        assertEquals("value", arg.asNullable());
 
         assertThrows(NullPointerException.class, () -> DisableableArg.enabled(null));
     }
@@ -24,6 +25,9 @@ class DisableableArgTest {
         assertTrue(arg.isDisabled());
         var e = assertThrows(IllegalStateException.class, arg::getEnabledValue);
         assertEquals("Not enabled", e.getMessage());
+
+        assertEquals(Optional.empty(), arg.asOptional());
+        assertNull(arg.asNullable());
     }
 
     @Test
