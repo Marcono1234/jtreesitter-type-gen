@@ -17,18 +17,21 @@ class LanguageConfigTest {
     void testNew() {
         var config = new LanguageConfig(Optional.empty(), Map.of(), Optional.empty(), Optional.empty());
         assertEquals(Optional.empty(), config.rootNodeTypeName());
+        assertEquals(Map.of(), config.fallbackNodeTypeMapping());
         assertEquals(Optional.empty(), config.languageProviderConfig());
         assertEquals(Optional.empty(), config.expectedLanguageVersion());
 
+        var nodeTypeMapping = Map.of("a", "b");
         var languageProvider = LanguageProviderConfig.fromString("MyClass#field");
         var languageVersion = new LanguageVersion(1, 2, 3);
         config = new LanguageConfig(
             Optional.of("root"),
-            Map.of(),
+            nodeTypeMapping,
             Optional.of(languageProvider),
             Optional.of(languageVersion)
         );
         assertEquals(Optional.of("root"), config.rootNodeTypeName());
+        assertEquals(nodeTypeMapping, config.fallbackNodeTypeMapping());
         assertEquals(Optional.of(languageProvider), config.languageProviderConfig());
         assertEquals(Optional.of(languageVersion), config.expectedLanguageVersion());
 
@@ -157,6 +160,47 @@ class LanguageConfigTest {
         void testToString() {
             var version = new LanguageVersion(1, 2, 3);
             assertEquals("1.2.3", version.toString());
+        }
+    }
+
+    @Nested
+    class BuilderTest {
+        @Test
+        void defaults() {
+            var config = LanguageConfig.builder().build();
+            assertEquals(Optional.empty(), config.rootNodeTypeName());
+            assertEquals(Map.of(), config.fallbackNodeTypeMapping());
+            assertEquals(Optional.empty(), config.languageProviderConfig());
+            assertEquals(Optional.empty(), config.expectedLanguageVersion());
+        }
+
+        @Test
+        void custom() {
+            var rootNodeType = "my-node-type";
+            var nodeTypeMapping = Map.of("node-a", "node-b");
+            var languageProvider = new LanguageProviderConfig.Field(new TypeName("example", "MyClass"), "field");
+            var languageVersion = new LanguageVersion(1, 2, 3);
+
+            var config = LanguageConfig.builder()
+                .rootNodeTypeName(rootNodeType)
+                .fallbackNodeTypeMapping(nodeTypeMapping)
+                .languageProviderConfig(languageProvider)
+                .expectedLanguageVersion(languageVersion)
+                .build();
+
+            assertEquals(Optional.of(rootNodeType), config.rootNodeTypeName());
+            assertEquals(nodeTypeMapping, config.fallbackNodeTypeMapping());
+            assertEquals(Optional.of(languageProvider), config.languageProviderConfig());
+            assertEquals(Optional.of(languageVersion), config.expectedLanguageVersion());
+        }
+
+        @Test
+        void apply() {
+            var rootNodeType = "my-node-type";
+            var config = LanguageConfig.builder()
+                .apply(b -> b.rootNodeTypeName(rootNodeType))
+                .build();
+            assertEquals(Optional.of(rootNodeType), config.rootNodeTypeName());
         }
     }
 }

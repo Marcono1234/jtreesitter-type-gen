@@ -5,10 +5,15 @@ import marcono1234.jtreesitter.type_gen.internal.JavaNameValidator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
 /**
  * Configuration related to a specific {@code node-types.json} file / language.
+ *
+ * <p><b>Tip:</b> Instead of using the constructor of this config class, prefer using {@link #builder()} to only specify
+ * the data which differs from the default config, and to avoid experiencing breaking changes in case new config
+ * parameters are added in the future.
  *
  * @param rootNodeTypeName
  *      Name of the root node type. This is usually the first {@code rules} entry in the {@code grammar.js}
@@ -47,12 +52,98 @@ public record LanguageConfig(
 ) {
     public LanguageConfig {
         Objects.requireNonNull(rootNodeTypeName);
-        Objects.requireNonNull(fallbackNodeTypeMapping);
+        fallbackNodeTypeMapping = Map.copyOf(fallbackNodeTypeMapping);
         Objects.requireNonNull(languageProviderConfig);
         Objects.requireNonNull(expectedLanguageVersion);
 
         if (expectedLanguageVersion.isPresent() && languageProviderConfig.isEmpty()) {
             throw new IllegalArgumentException("Must specify language provider when using expectedLanguageVersion");
+        }
+    }
+
+    /**
+     * Creates a new builder for {@link LanguageConfig}.
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Builder for {@link LanguageConfig}. The config instance can be created using {@link #build()}.
+     *
+     * <p>All builder methods modify the builder instance; the returned builder can be ignored and only exists as
+     * convenience to allow method call chaining.
+     *
+     * <h2>Defaults</h2>
+     * <ul>
+     * <li>{@link LanguageConfig#rootNodeTypeName() rootNodeTypeName}: none
+     * <li>{@link LanguageConfig#fallbackNodeTypeMapping() fallbackNodeTypeMapping}: empty map
+     * <li>{@link LanguageConfig#languageProviderConfig() languageProviderConfig}: none
+     * <li>{@link LanguageConfig#expectedLanguageVersion() expectedLanguageVersion}: none
+     * </ul>
+     */
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    public static class Builder {
+        private Builder() {
+        }
+
+        private Optional<String> rootNodeTypeName = Optional.empty();
+
+        /**
+         * @see LanguageConfig#rootNodeTypeName()
+         */
+        public Builder rootNodeTypeName(String rootNodeTypeName) {
+            this.rootNodeTypeName = Optional.of(rootNodeTypeName);
+            return this;
+        }
+
+        private Map<String, String> fallbackNodeTypeMapping = Map.of();
+
+        /**
+         * @see LanguageConfig#fallbackNodeTypeMapping()
+         */
+        public Builder fallbackNodeTypeMapping(Map<String, String> fallbackNodeTypeMapping) {
+            this.fallbackNodeTypeMapping = Map.copyOf(fallbackNodeTypeMapping);
+            return this;
+        }
+
+        private Optional<LanguageProviderConfig> languageProviderConfig = Optional.empty();
+
+        /**
+         * @see LanguageConfig#languageProviderConfig()
+         */
+        public Builder languageProviderConfig(LanguageProviderConfig languageProviderConfig) {
+            this.languageProviderConfig = Optional.of(languageProviderConfig);
+            return this;
+        }
+
+        private Optional<LanguageVersion> expectedLanguageVersion = Optional.empty();
+
+        /**
+         * @see LanguageConfig#expectedLanguageVersion()
+         */
+        public Builder expectedLanguageVersion(LanguageVersion expectedLanguageVersion) {
+            this.expectedLanguageVersion = Optional.of(expectedLanguageVersion);
+            return this;
+        }
+
+        /**
+         * Applies the consumer to this builder and afterwards returns this builder.
+         *
+         * <p>This allows using a separate method to apply configuration, without interrupting the method call chain.
+         */
+        public Builder apply(Consumer<? super Builder> consumer) {
+            consumer.accept(this);
+            return this;
+        }
+
+        public LanguageConfig build() {
+            return new LanguageConfig(
+                rootNodeTypeName,
+                fallbackNodeTypeMapping,
+                languageProviderConfig,
+                expectedLanguageVersion
+            );
         }
     }
 

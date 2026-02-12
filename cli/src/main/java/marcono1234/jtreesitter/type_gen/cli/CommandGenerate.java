@@ -391,25 +391,35 @@ class CommandGenerate implements Callable<Void> {
         }
     }
 
-    private Optional<TypeName> getNullMarkedAnnotationType() {
+    private void applyNullableConfig(CodeGenConfig.Builder configBuilder) {
         if (nullableOptions == null) {
-            return Optional.empty();
+            configBuilder.usingOptional();
+            return;
         }
 
+        var nullableType = nullableOptions.nullableAnnotationTypeName;
+        TypeName nullMarkedType;
         var nullMarkedTypeArg = nullableOptions.nullMarkedPackageAnnotationTypeName;
         // If not specified but @Nullable is from JSpecify, use @NullMarked from JSpecify as well
         if (nullMarkedTypeArg == null) {
-            var nullableType = nullableOptions.nullableAnnotationTypeName;
             if (nullableType.equals(TypeName.JSPECIFY_NULLABLE_ANNOTATION)) {
-                return Optional.of(TypeName.JSPECIFY_NULLMARKED_ANNOTATION);
+                nullMarkedType = TypeName.JSPECIFY_NULLMARKED_ANNOTATION;
+            } else {
+                nullMarkedType = null;
             }
-            return Optional.empty();
+        } else {
+            nullMarkedType = nullMarkedTypeArg.asNullable();
         }
-        return nullMarkedTypeArg.asOptional();
+
+        if (nullMarkedType != null) {
+            configBuilder.usingNullable(nullableType, nullMarkedType);
+        } else {
+            configBuilder.usingNullable(nullableType);
+        }
     }
 
     private Optional<CodeGenConfig.GeneratedAnnotationConfig> getGeneratedAnnotationConfig() {
-        // Either not annotation options specified, or no custom annotation type specified
+        // Either no annotation options specified, or no custom annotation type specified
         if (generatedAnnotationOptions == null || generatedAnnotationOptions.generatedAnnotationTypeName == null) {
             var annotationType = CodeGenConfig.GeneratedAnnotationConfig.GeneratedAnnotationType.JAVAX_GENERATED;
             Optional<Instant> generatedTime = Optional.empty();
@@ -536,29 +546,33 @@ class CommandGenerate implements Callable<Void> {
         var commandLine = commandSpec.commandLine();
 
         var nameGenerator = createNameGenerator();
-        Optional<TypedQueryNameGenerator> typedQueryNameGenerator = Optional.empty();
+        TypedQueryNameGenerator typedQueryNameGenerator = null;
 
         if (generateTypedQuery) {
             commandSpec.commandLine().getOut()
                 .println("[WARNING] Generation of the 'typed query' code is currently experimental. Feedback is appreciated!");
-            typedQueryNameGenerator = Optional.of(TypedQueryNameGenerator.createDefault(nameGenerator));
+            typedQueryNameGenerator = TypedQueryNameGenerator.createDefault(nameGenerator);
         }
 
-        var codeGenConfig = new CodeGenConfig(
-            packageName,
-            nullableOptions == null ? Optional.empty() : Optional.of(nullableOptions.nullableAnnotationTypeName),
-            getNullMarkedAnnotationType(),
-            nonEmptyAnnotationSimpleName != null ? nonEmptyAnnotationSimpleName : "NonEmpty",
-            childTypeAsTopLevel,
-            Optional.ofNullable(typedNodeSuperinterfaceTypeName),
-            nameGenerator,
-            !noFindNodesMethods,
-            typedQueryNameGenerator,
-            createCustomMethodsProvider(),
-            getGeneratedAnnotationConfig()
-        );
+        var configBuilder = CodeGenConfig.builder(packageName)
+            .apply(this::applyNullableConfig)
+            .childTypeAsTopLevel(childTypeAsTopLevel)
+            .nameGenerator(nameGenerator)
+            .generateFindNodesMethods(!noFindNodesMethods);
 
-        var codeGenerator = new CodeGenerator(codeGenConfig);
+        if (nonEmptyAnnotationSimpleName != null) {
+            configBuilder.nonEmptyTypeName(nonEmptyAnnotationSimpleName);
+        }
+        if (typedNodeSuperinterfaceTypeName != null) {
+            configBuilder.typedNodeSuperinterface(typedNodeSuperinterfaceTypeName);
+        }
+        if (typedQueryNameGenerator != null) {
+            configBuilder.typedQueryNameGenerator(typedQueryNameGenerator);
+        }
+        createCustomMethodsProvider().ifPresent(configBuilder::customMethodsProvider);
+        getGeneratedAnnotationConfig().ifPresentOrElse(configBuilder::generatedAnnotationConfig, configBuilder::withoutGeneratedAnnotation);
+
+        var codeGenerator = new CodeGenerator(configBuilder.build());
         var languageConfig = getLanguageConfig();
         codeGenerator.generate(nodeTypesFile, languageConfig, outputDir);
 

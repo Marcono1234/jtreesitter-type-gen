@@ -266,7 +266,8 @@ public interface TypedQueryNameGenerator {
     static TypedQueryNameGenerator createDefault(NameGenerator nameGenerator) {
         Objects.requireNonNull(nameGenerator);
 
-        return new TypedQueryNameGenerator() {
+        // Dedicated record class to have useful `toString` and `equals`
+        record DefaultTypedQueryNameGenerator(NameGenerator nameGenerator) implements TypedQueryNameGenerator {
             @Override
             public String generateBuilderClassName(String typeName) {
                 // Prefix the name with a "Q" (plus the prefix (if any) of the general nameGenerator)
@@ -309,6 +310,8 @@ public interface TypedQueryNameGenerator {
             public String generateChildTokenMethodName(String parentTypeName, List<String> tokenChildrenTypesNames) {
                 return "childToken";
             }
-        };
+        }
+
+        return new DefaultTypedQueryNameGenerator(nameGenerator);
     }
 }
