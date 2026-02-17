@@ -8,6 +8,7 @@ import java.lang.foreign.Arena;
 import java.util.List;
 import java.util.function.Function;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -190,7 +191,7 @@ class PythonNullableTest extends AbstractTypedTreeTest {
                 // Should still be able to use nodes and navigate tree, despite the stream having been closed already
                 nodesList.stream().map(NodeInteger::getNode).forEach(node -> {
                     var parent = node.getParent().orElseThrow();
-                    assertTrue(parent.getChildren().contains(node));
+                    assertThat(parent.getChildren()).contains(node);
                 });
             }
         }

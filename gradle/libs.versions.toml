@@ -17,6 +17,7 @@ jtreesitter = { module = "io.github.tree-sitter:jtreesitter", version.ref = "jtr
 
 compilerTesting = { module = "io.github.ascopes.jct:java-compiler-testing", version = "6.0.0" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version = "2.0.17" }
+assertj = { module = "org.assertj:assertj-core", version = "3.27.7" }
 junitBom = { module = "org.junit:junit-bom", version.ref = "junit" }
 # No version; specified by BOM above
 junit = { module = "org.junit.jupiter:junit-jupiter" }

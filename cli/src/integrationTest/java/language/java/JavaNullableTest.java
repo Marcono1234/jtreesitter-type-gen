@@ -19,6 +19,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static java.util.Objects.requireNonNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.argumentSet;
 
@@ -207,7 +208,7 @@ class JavaNullableTest extends AbstractTypedTreeTest {
                 // Should still be able to use nodes and navigate tree, despite the stream having been closed already
                 nodesList.stream().map(NodeDecimalIntegerLiteral::getNode).forEach(node -> {
                     var parent = node.getParent().orElseThrow();
-                    assertTrue(parent.getChildren().contains(node));
+                    assertThat(parent.getChildren()).contains(node);
                 });
             }
         }
@@ -610,14 +611,14 @@ class JavaNullableTest extends AbstractTypedTreeTest {
 
         // tree-sitter probably rejects this because child anchor requires wrong order for `modifiers` child and `name` field
         var e = assertThrows(RuntimeException.class, () -> q.nodeClassDeclaration().withFieldName(q.nodeIdentifier()).withChildAnchor().withChildren(q.nodeModifiers()).buildQuery(language));
-        assertTrue(e.getMessage().startsWith("Failed creating query; verify that children and fields are specified in the right order; if you expect the query to be valid please report this to the jtreesitter-type-gen maintainers; query string:"), "Message: " + e.getMessage());
-        assertTrue(e.getMessage().contains("(class_declaration name: (identifier) . (modifiers))"), "Message: " + e.getMessage());
+        assertThat(e).message().startsWith("Failed creating query; verify that children and fields are specified in the right order; if you expect the query to be valid please report this to the jtreesitter-type-gen maintainers; query string:");
+        assertThat(e).message().contains("(class_declaration name: (identifier) . (modifiers))");
 
         // tree-sitter probably rejects this because `modifiers` child may only appear once
         // Typed query builder cannot currently validate this because `withChildren` is also used for wildcard-like node types such as MISSING nodes and 'extra' nodes
         e = assertThrows(RuntimeException.class, () -> q.nodeClassDeclaration().withChildren(q.nodeModifiers()).withChildren(q.nodeModifiers()).buildQuery(language));
-        assertTrue(e.getMessage().startsWith("Failed creating query; verify that children and fields are specified in the right order; if you expect the query to be valid please report this to the jtreesitter-type-gen maintainers; query string:"), "Message: " + e.getMessage());
-        assertTrue(e.getMessage().contains("(class_declaration (modifiers) (modifiers))"), "Message: " + e.getMessage());
+        assertThat(e).message().startsWith("Failed creating query; verify that children and fields are specified in the right order; if you expect the query to be valid please report this to the jtreesitter-type-gen maintainers; query string:");
+        assertThat(e).message().contains("(class_declaration (modifiers) (modifiers))");
     }
 
     /**
@@ -891,7 +892,7 @@ class JavaNullableTest extends AbstractTypedTreeTest {
             // Should still be able to use nodes and navigate tree, despite the matches stream having been closed already
             nodes.stream().map(NodeDecimalIntegerLiteral::getNode).forEach(node -> {
                 var parent = node.getParent().orElseThrow();
-                assertTrue(parent.getChildren().contains(node));
+                assertThat(parent.getChildren()).contains(node);
             });
         }
     }
