@@ -14,6 +14,7 @@ dependencies {
     testImplementation(platform(libs.junitBom))
     testImplementation(libs.junit)
     testRuntimeOnly(libs.junitPlatformLauncher)
+    testImplementation(libs.assertj)
 }
 
 java {
@@ -53,6 +54,7 @@ testing {
             useJUnitJupiter(libs.versions.junit)
 
             dependencies {
+                implementation(libs.assertj)
                 implementation(libs.jtreesitter)
                 // For @Nullable
                 implementation(libs.jspecify)

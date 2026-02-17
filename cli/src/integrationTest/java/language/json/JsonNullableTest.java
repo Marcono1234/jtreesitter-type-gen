@@ -10,6 +10,7 @@ import java.lang.foreign.Arena;
 import java.util.List;
 import java.util.function.Function;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -86,7 +87,7 @@ class JsonNullableTest extends AbstractTypedTreeTest {
 
             var objectNode = (NodeObject) tree.getRootNode().getChildren().getFirst();
             var e = assertThrows(IllegalStateException.class, objectNode::getChildren);
-            assertTrue(e.getMessage().startsWith("Child is error or missing node: "));
+            assertThat(e).message().startsWith("Child is error or missing node: ");
         }
     }
 
@@ -187,7 +188,7 @@ class JsonNullableTest extends AbstractTypedTreeTest {
             // Should still be able to use nodes and navigate tree, despite the stream having been closed already
             nodesList.stream().map(NodeNumber::getNode).forEach(node -> {
                 var parent = node.getParent().orElseThrow();
-                assertTrue(parent.getChildren().contains(node));
+                assertThat(parent.getChildren()).contains(node);
             });
         }
     }

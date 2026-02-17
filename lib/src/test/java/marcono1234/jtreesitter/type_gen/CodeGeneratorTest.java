@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static io.github.ascopes.jct.assertions.JctAssertions.assertThatCompilation;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class CodeGeneratorTest {
@@ -663,12 +664,12 @@ class CodeGeneratorTest {
         var versionInfo = CodeGenerator.version();
 
         String version = versionInfo.version();
-        assertTrue(version.matches("\\d+\\.\\d+\\.\\d+(-SNAPSHOT)?"), "Unexpected version: " + version);
+        assertThat(version).matches("\\d+\\.\\d+\\.\\d+(-SNAPSHOT)?");
 
         String commitId = versionInfo.gitCommitId();
-        assertTrue(commitId.matches("[0-9a-f]{40}"), "Unexpected commit ID: " + commitId);
+        assertThat(commitId).matches("[0-9a-f]{40}");
 
         String jtreesitterVersion = versionInfo.jtreesitterVersion();
-        assertTrue(jtreesitterVersion.matches("\\d+\\.\\d+\\.\\d+"), "Unexpected version: " + jtreesitterVersion);
+        assertThat(jtreesitterVersion).matches("\\d+\\.\\d+\\.\\d+");
     }
 }
