@@ -12,7 +12,7 @@ jspecify = { module = "org.jspecify:jspecify", version = "1.0.0" }
 jackson-databind = { module = "tools.jackson.core:jackson-databind", version = "3.0.3" }
 # Don't use official JavaPoet because it is not actively maintained anymore, see https://github.com/square/javapoet/discussions/866
 # Instead uses https://github.com/palantir/javapoet
-javapoet = { module = "com.palantir.javapoet:javapoet", version = "0.9.0" }
+javapoet = { module = "com.palantir.javapoet:javapoet", version = "0.10.0" }
 jtreesitter = { module = "io.github.tree-sitter:jtreesitter", version.ref = "jtreesitter" }
 
 compilerTesting = { module = "io.github.ascopes.jct:java-compiler-testing", version = "6.0.0" }
