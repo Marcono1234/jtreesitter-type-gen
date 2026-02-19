@@ -5,7 +5,7 @@ shadow = { id = "com.gradleup.shadow", version = "9.3.0" }
 
 [versions]
 jtreesitter = "0.25.6"
-junit = "6.0.1"
+junit = "6.0.2"
 
 [libraries]
 jspecify = { module = "org.jspecify:jspecify", version = "1.0.0" }
