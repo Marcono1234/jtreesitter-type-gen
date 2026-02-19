@@ -276,8 +276,15 @@ class CodeGeneratorTest {
 
         @Override
         public List<MethodData> forNodeType(String nodeType) {
+            String methodName = "nodeTypeCustom";
+            // If node type is most likely a supertype, adjust the method name to avoid conflicts for common method
+            // generation if subtypes all define a method with the same name as well
+            if (nodeType.toLowerCase(Locale.ROOT).contains("super")) {
+                methodName += "Super";
+            }
+
             return List.of(new MethodData(
-                "nodeTypeCustom",
+                methodName,
                 List.of(),
                 sequencedMap("a", JavaType.fromTypeString("int")),
                 Optional.empty(),

@@ -1,0 +1,135 @@
+[
+  {
+    "type": "super",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "sub_a",
+        "named": true
+      },
+      {
+        "type": "sub_b",
+        "named": true
+      }
+    ]
+  },
+  {
+    "type": "sub_a",
+    "named": true
+  },
+  {
+    "type": "sub_b",
+    "named": true
+  },
+  {
+    "type": "contained_a",
+    "named": true,
+    "fields": {
+      "same": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "sub_a",
+            "named": true
+          }
+        ]
+      },
+      "subtype_single_optional": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "sub_a",
+            "named": true
+          }
+        ]
+      },
+      "subtype_multiple_required": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "sub_a",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "sub_a",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "contained_b",
+    "named": true,
+    "fields": {
+      "same": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "sub_a",
+            "named": true
+          }
+        ]
+      },
+      "subtype_single_optional": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "super",
+            "named": true
+          }
+        ]
+      },
+      "subtype_multiple_required": {
+        "multiple": true,
+        "required": true,
+        "types": [
+          {
+            "type": "super",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "sub_a",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "with_children",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "contained_a",
+          "named": true
+        },
+        {
+          "type": "contained_b",
+          "named": true
+        }
+      ]
+    }
+  }
+]

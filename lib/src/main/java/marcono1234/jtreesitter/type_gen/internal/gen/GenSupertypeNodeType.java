@@ -9,8 +9,10 @@ import marcono1234.jtreesitter.type_gen.NameGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper.TypedNodeConfig.JavaFieldRef;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodData;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodsProviderImpl;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.NodeType;
+import org.jspecify.annotations.Nullable;
 
 import javax.lang.model.element.Modifier;
 import java.util.*;
@@ -22,35 +24,53 @@ import java.util.function.Consumer;
  * <p>Use {@link #create} to create instances.
  */
 public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType {
+    /**
+     * Represents Java elements (fields, methods, ...) which will be added as members to the generated
+     * Java class.
+     *
+     * <p>This record is not exhaustive; additional elements may be generated.
+     *
+     * @param typeNameConstant
+     *       Name of the Java constant field in the generated class storing the node type name.
+     * @param typeIdConstant
+     *      Name of the Java constant field in the generated class storing the numeric node type ID.
+     *
+     *      <p>Only generated if {@link CodeGenHelper#generatesNumericIdConstants()}.
+     */
+    private record GeneratedJavaClassMembers(
+        String typeNameConstant,
+        String typeIdConstant,
+        List<CustomMethodData> customMethods
+    ) {
+    }
+
     private final String typeName;
     private final boolean isExtra;
     private final String javaName;
-    /** Name of the Java constant field in the generated class storing the node type name. */
-    private final String typeNameConstant;
-    /**
-     * Name of the Java constant field in the generated class storing the numeric node type ID.
-     *
-     * <p>Only generated if {@link CodeGenHelper#generatesNumericIdConstants()}.
-     */
-    private final String typeIdConstant;
+    private final GeneratedJavaClassMembers javaClassMembers;
+
     private final List<String> subtypesNames;
     private boolean populatedSubtypes;
+    /** Populated by {@link #populateSubtypes(NodeTypeLookup)}  */
     private final List<GenNodeType> subtypes;
+    /** Populated by repeated calls to {@link #addInterfaceToImplement(GenJavaInterface)} */
     private final List<GenJavaInterface> interfacesToImplement;
+    /** Populated by {@link #setCommonMethods(Collection)} (optional) */
+    private @Nullable List<GeneratedMethod> commonMethods;
 
-    private GenSupertypeNodeType(String typeName, boolean isExtra, String javaName, String typeNameConstant, String typeIdConstant, List<String> subtypesNames) {
-        this.typeName = Objects.requireNonNull(typeName);
+    private GenSupertypeNodeType(String typeName, boolean isExtra, String javaName, GeneratedJavaClassMembers javaClassMembers, List<String> subtypesNames) {
+        this.typeName = typeName;
         this.isExtra = isExtra;
-        this.javaName = Objects.requireNonNull(javaName);
-        this.typeNameConstant = Objects.requireNonNull(typeNameConstant);
-        this.typeIdConstant = Objects.requireNonNull(typeIdConstant);
-        this.subtypesNames = Objects.requireNonNull(subtypesNames);
+        this.javaName = javaName;
+        this.javaClassMembers = javaClassMembers;
+
+        this.subtypesNames = subtypesNames;
         this.populatedSubtypes = false;
         this.subtypes = new ArrayList<>();
         this.interfacesToImplement = new ArrayList<>();
     }
 
-    public static GenSupertypeNodeType create(NodeType nodeType, NameGenerator nameGenerator) throws CodeGenException {
+    public static GenSupertypeNodeType create(NodeType nodeType, NameGenerator nameGenerator, CustomMethodsProviderImpl customMethodsProvider) throws CodeGenException {
         String typeName = nodeType.type;
 
         if (nodeType.children != null) {
@@ -81,7 +101,10 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
         String javaName = nameGenerator.generateJavaTypeName(typeName);
         String typeNameConstant = nameGenerator.generateTypeNameConstant(typeName);
         String typeIdConstant = nameGenerator.generateTypeIdConstant(typeName);
-        return new GenSupertypeNodeType(typeName, nodeType.extra, javaName, typeNameConstant, typeIdConstant, subtypesNames);
+        var customMethods = customMethodsProvider.customMethodsForNodeType(typeName);
+        var javaClassMembers = new GeneratedJavaClassMembers(typeNameConstant, typeIdConstant, customMethods);
+
+        return new GenSupertypeNodeType(typeName, nodeType.extra, javaName, javaClassMembers, subtypesNames);
     }
 
     @Override
@@ -134,33 +157,52 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
     }
 
     @Override
+    public void setCommonMethods(Collection<GeneratedMethod> commonMethods) {
+        if (this.commonMethods != null) {
+            throw new IllegalStateException("Common methods have already been set");
+        }
+        this.commonMethods = List.copyOf(commonMethods);
+    }
+
+    @Override
     public String getTypeNameConstant() {
-        return typeNameConstant;
+        return javaClassMembers.typeNameConstant();
     }
 
     // TODO: Maybe implement this in a cleaner way?
     @Override
     public List<GenSupertypeNodeType> getSupertypes() {
-        //noinspection NullableProblems; IntelliJ does not understand `nonNull` check?
+        //noinspection NullableProblems; IntelliJ does not understand `Objects::nonNull` check?
         return interfacesToImplement.stream()
             .map(i -> i instanceof GenSupertypeNodeType supertype ? supertype : null)
             .filter(Objects::nonNull)
             .toList();
     }
 
-    private void generateJavadoc(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper, List<CustomMethodData> customMethods) {
+    @Override
+    public List<GenNodeType> getSubtypes() {
+        checkPopulatedSubtypes();
+        return subtypes;
+    }
+
+    @Override
+    public List<GeneratedMethod> getGeneratedMethods(CodeGenHelper codeGenHelper) {
+        return javaClassMembers.customMethods().stream().map(CustomMethodData::asGeneratedMethod).toList();
+    }
+
+    private void generateJavadoc(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper) {
         typeBuilder.addJavadoc("Supertype $L, with subtypes:", CodeGenHelper.createJavadocCodeTag(typeName));
         codeGenHelper.addJavadocTypeMapping(typeBuilder, subtypes, null);
 
-        CustomMethodData.createCustomMethodsJavadocSection(customMethods).ifPresent(typeBuilder::addJavadoc);
+        CustomMethodData.createCustomMethodsJavadocSection(javaClassMembers.customMethods()).ifPresent(typeBuilder::addJavadoc);
     }
 
-    private static void getAllSubtypeClasses(GenSupertypeNodeType type, Consumer<GenRegularNodeType> consumer) {
-        for (var subtype : type.subtypes) {
+    private void getAllSubtypeClasses(Consumer<GenRegularNodeType> consumer) {
+        for (var subtype : subtypes) {
             switch (subtype) {
                 // Only collect regular node types, because supertypes don't exist as nodes in the parsed tree
                 // TODO ^ is this correct?
-                case GenSupertypeNodeType nestedSupertype -> getAllSubtypeClasses(nestedSupertype, consumer);
+                case GenSupertypeNodeType nestedSupertype -> nestedSupertype.getAllSubtypeClasses(consumer);
                 case GenRegularNodeType regularNodeType -> consumer.accept(regularNodeType);
             }
         }
@@ -169,7 +211,7 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
     private SequencedSet<GenRegularNodeType> getAllSubtypeClasses() {
         // Uses Set for the case that same node type appears multiple times as (transitive) subtype
         SequencedSet<GenRegularNodeType> allSubtypes = new LinkedHashSet<>();
-        getAllSubtypeClasses(this, allSubtypes::add);
+        getAllSubtypeClasses(allSubtypes::add);
         return allSubtypes;
     }
 
@@ -239,21 +281,24 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
             typeBuilder.addPermittedSubclass(subtype.createJavaTypeName(codeGenHelper));
         }
 
-        var customMethods = codeGenHelper.customMethodsForNodeType(typeName);
-        generateJavadoc(typeBuilder, codeGenHelper, customMethods);
+        generateJavadoc(typeBuilder, codeGenHelper);
 
-        typeBuilder.addField(CodeGenHelper.createTypeNameConstantField(typeName, typeNameConstant));
+        typeBuilder.addField(CodeGenHelper.createTypeNameConstantField(typeName, javaClassMembers.typeNameConstant()));
         // Note: Most likely for supertype nodes the numeric type ID is not that useful because they don't exist
         // as `Node` objects; but at least this dynamic lookup through Language verifies that the type name exists
         if (codeGenHelper.generatesNumericIdConstants()) {
-            typeBuilder.addField(codeGenHelper.createTypeIdConstantField(typeIdConstant, typeNameConstant));
+            typeBuilder.addField(codeGenHelper.createTypeIdConstantField(javaClassMembers.typeIdConstant(), javaClassMembers.typeNameConstant()));
         }
 
         typeBuilder.addMethod(generateMethodFromNode(codeGenHelper));
         typeBuilder.addMethod(generateMethodFromNodeThrowing(codeGenHelper));
 
         typeBuilder.addMethods(generateMethodsFindNodes(codeGenHelper));
-        customMethods.forEach(m -> typeBuilder.addMethod(m.generateMethod(true)));
+        javaClassMembers.customMethods().forEach(m -> typeBuilder.addMethod(m.generateMethod(true)));
+
+        if (commonMethods != null) {
+            commonMethods.forEach(m -> typeBuilder.addMethod(m.createCommonInterfaceMethodSpec()));
+        }
 
         return List.of(codeGenHelper.createOwnJavaFile(typeBuilder));
     }

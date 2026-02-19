@@ -5,13 +5,12 @@ import marcono1234.jtreesitter.type_gen.CodeGenerator;
 import marcono1234.jtreesitter.type_gen.NameGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodData;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomMethodsProviderImpl;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.NodeTypeLookup;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.ChildType;
 
 import javax.lang.model.element.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -61,6 +60,30 @@ public class GenChildren {
         return this.type.refersToTypeThroughInterface(type, seenTypes);
     }
 
+    GeneratedMethod.Kind getGetterKind() {
+        return new GeneratedMethod.KindChildren(multiple, required);
+    }
+
+    /**
+     * For the to-be-generated getter method for obtaining the node children, returns a {@link GeneratedMethod}
+     * representing that getter.
+     */
+    public GeneratedMethod getGetterGeneratedMethod(CodeGenHelper codeGenHelper) {
+        var nodeTypes = new ArrayList<GenNodeType>();
+        var nodeType = type.getRepresentedNodeType();
+        if (nodeType != null) {
+            nodeTypes.add(nodeType);
+        }
+        var supertypesResolver = GeneratedMethod.SupertypesResolver.forNodeTypes(nodeTypes, codeGenHelper);
+        var returnType = new GeneratedMethod.ReturnType(getGetterReturnType(codeGenHelper), supertypesResolver);
+
+        return new GeneratedMethod(
+            getGetterKind(),
+            new GeneratedMethod.Signature(getterName),
+            returnType
+        );
+    }
+
     /**
      * Generates code which obtains the children jtreesitter Node objects.
      *
@@ -75,6 +98,22 @@ public class GenChildren {
         methodBuilder.addStatement("var $N = $T.$N($N, true)", childrenVarName, nodeUtils.className(), nodeUtils.methodGetNonFieldChildren(), nodeJavaFieldName);
     }
 
+    private TypeName getGetterReturnType(CodeGenHelper codeGenHelper) {
+        TypeName returnType = type.createJavaTypeName(codeGenHelper);
+        if (multiple) {
+            returnType = ParameterizedTypeName.get(ClassName.get(List.class), returnType);
+            if (required) {
+                returnType = codeGenHelper.annotatedNonEmpty(returnType);
+            }
+        } else {
+            if (!required) {
+                returnType = codeGenHelper.getReturnOptionalType(returnType);
+            }
+        }
+
+        return returnType;
+    }
+
     /**
      * Generates the complete method body for obtaining the children jtreesitter Node objects and converting
      * them to TypedNode objects.
@@ -82,15 +121,7 @@ public class GenChildren {
      * @param nodeFieldName name of the Java field which stores the underlying jtreesitter Node
      */
     private void generateChildrenMethodBody(MethodSpec.Builder methodBuilder, CodeGenHelper codeGenHelper, String nodeFieldName) {
-        TypeName returnType = type.createJavaTypeName(codeGenHelper);
-        TypeName methodReturnType;
-        if (multiple) {
-            returnType = ParameterizedTypeName.get(ClassName.get(List.class), returnType);
-            methodReturnType = required ? codeGenHelper.annotatedNonEmpty(returnType): returnType;
-        } else {
-            methodReturnType = required ? returnType : codeGenHelper.getReturnOptionalType(returnType);
-        }
-        methodBuilder.returns(methodReturnType);
+        methodBuilder.returns(getGetterReturnType(codeGenHelper));
 
         String childrenVar = "children";
         addGetChildrenStatement(methodBuilder, codeGenHelper, nodeFieldName, childrenVar);
@@ -133,13 +164,15 @@ public class GenChildren {
      * @return top-level types to generate
      */
     public List<TypeSpec.Builder> generateJavaCode(TypeSpec.Builder enclosingTypeBuilder, CodeGenHelper codeGenHelper, String nodeFieldName) {
-        var methodBuilder = MethodSpec.methodBuilder(getterName)
+        var getterMethodBuilder = MethodSpec.methodBuilder(getterName)
             .addModifiers(Modifier.PUBLIC);
 
-        generateChildrenMethodBody(methodBuilder, codeGenHelper, nodeFieldName);
-        generateChildrenMethodJavadoc(methodBuilder);
+        generateChildrenMethodBody(getterMethodBuilder, codeGenHelper, nodeFieldName);
+        generateChildrenMethodJavadoc(getterMethodBuilder);
+        var getterMethod = getterMethodBuilder.build();
+        assert getGetterGeneratedMethod(codeGenHelper).matchesMethodSpec(getterMethod);
 
-        enclosingTypeBuilder.addMethod(methodBuilder.build());
+        enclosingTypeBuilder.addMethod(getterMethod);
         var childJavaTypes = type.generateJavaTypes(codeGenHelper, getterName);
         List<TypeSpec.Builder> topLevelTypes = new ArrayList<>();
         for (var childJavaType : childJavaTypes) {
@@ -153,7 +186,15 @@ public class GenChildren {
         return topLevelTypes;
     }
 
-    public static GenChildren create(String parentTypeName, GenRegularNodeType enclosingNodeType, ChildType childTypeRaw, NodeTypeLookup nodeTypeLookup, NameGenerator nameGenerator, Consumer<GenJavaType> additionalTypedNodeSubtypeCollector) {
+    public static GenChildren create(
+        String parentTypeName,
+        GenRegularNodeType enclosingNodeType,
+        ChildType childTypeRaw,
+        NodeTypeLookup nodeTypeLookup,
+        NameGenerator nameGenerator,
+        CustomMethodsProviderImpl customMethodsProvider,
+        Consumer<GenJavaType> additionalTypedNodeSubtypeCollector
+    ) {
         boolean multiple = childTypeRaw.multiple;
         boolean required = childTypeRaw.required;
 
@@ -193,13 +234,13 @@ public class GenChildren {
                 return nameGenerator.generateChildrenTokenName(parentTypeName, tokenType, index);
             }
         };
-        var customMethodsProvider = new GenChildType.ChildCustomMethodsProvider() {
+        var childCustomMethodsProvider = new GenChildType.ChildCustomMethodsProvider() {
             @Override
-            public List<CustomMethodData> createCustomMethods(CodeGenHelper codeGenHelper, List<String> allChildTypes) {
-                return codeGenHelper.customMethodsForNodeChildrenType(parentTypeName, allChildTypes);
+            public List<CustomMethodData> createCustomMethods(List<String> allChildTypes) {
+                return customMethodsProvider.customMethodsForNodeChildrenType(parentTypeName, allChildTypes);
             }
         };
-        var childType = GenChildType.create(enclosingNodeType, childTypeRaw.types, childTypeNameGenerator, nodeTypeLookup, additionalTypedNodeSubtypeCollector, customMethodsProvider);
+        var childType = GenChildType.create(enclosingNodeType, childTypeRaw.types, childTypeNameGenerator, nodeTypeLookup, additionalTypedNodeSubtypeCollector, childCustomMethodsProvider);
 
         return new GenChildren(getterName, childType, multiple, required);
     }

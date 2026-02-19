@@ -4,6 +4,7 @@ import com.palantir.javapoet.*;
 import marcono1234.jtreesitter.type_gen.CustomMethodsProvider;
 import marcono1234.jtreesitter.type_gen.JavaLiteral;
 import marcono1234.jtreesitter.type_gen.JavaType;
+import marcono1234.jtreesitter.type_gen.internal.gen.GeneratedMethod;
 import org.jspecify.annotations.Nullable;
 
 import javax.lang.model.element.Modifier;
@@ -105,6 +106,23 @@ public record CustomMethodData(
         methodBuilder.addStatement(statementBuilder.build());
 
         return methodBuilder.build();
+    }
+
+    public GeneratedMethod asGeneratedMethod() {
+        return new GeneratedMethod(
+            GeneratedMethod.SimpleKind.CUSTOM_METHOD,
+            new GeneratedMethod.Signature(
+                name,
+                typeVariables,
+                parameters.stream().map(GeneratedMethod.Signature.Parameter::fromParamSpec).toList()
+            ),
+            returnType != null
+                // Use empty resolver because cannot easily know which types are used and which supertypes they have
+                // Could maybe in the future add resolving of standard Java types (e.g. List -> Collection) but maybe not worth
+                // it at the moment
+                ? new GeneratedMethod.ReturnType(returnType, GeneratedMethod.SupertypesResolver.EMPTY)
+                : null
+        );
     }
 
     // For Javadoc can simplify the type a bit, e.g. omit type arguments of parameterized type

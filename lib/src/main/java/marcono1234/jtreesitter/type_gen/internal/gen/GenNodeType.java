@@ -3,6 +3,7 @@ package marcono1234.jtreesitter.type_gen.internal.gen;
 import com.palantir.javapoet.ClassName;
 import com.palantir.javapoet.JavaFile;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.CodeGenHelper;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.TopoSorter;
 
 import java.util.*;
 
@@ -54,6 +55,7 @@ public sealed interface GenNodeType extends GenJavaType permits GenRegularNodeTy
     /**
      * Gets all direct and transitive node supertypes of this type.
      */
+    // TODO: Delegate to getAllSupertypesTopoOrder().reversed()?
     default SequencedSet<GenSupertypeNodeType> getAllSupertypes() {
         // Use a Set to handle the case where the same supertype appears multiple times, directly or transitively
         SequencedSet<GenSupertypeNodeType> supertypes = new LinkedHashSet<>();
@@ -62,6 +64,16 @@ public sealed interface GenNodeType extends GenJavaType permits GenRegularNodeTy
             supertypes.addAll(supertype.getAllSupertypes());
         }
         return supertypes;
+    }
+
+    /**
+     * Gets all direct and transitive node supertypes of this type, starting with the direct supertypes.
+     */
+    default SequencedSet<GenSupertypeNodeType> getAllSupertypesTopoOrder() {
+        // Add unknown referenced to result set, because this just starts with direct subtypes, going to transitive
+        // ones recursively
+        var unknownReferencesStrategy = TopoSorter.UnknownReferenceStrategy.ADD;
+        return new TopoSorter<>(GenSupertypeNodeType::getSupertypes).sort(getSupertypes(), unknownReferencesStrategy);
     }
 
     List<JavaFile> generateJavaCode(CodeGenHelper codeGenHelper);

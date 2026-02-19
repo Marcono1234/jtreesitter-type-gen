@@ -12,7 +12,6 @@ import javax.lang.model.element.Modifier;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * Code generator for the {@code TypedNode} interface, the base interface for all typed node classes, the
@@ -21,13 +20,15 @@ import java.util.Objects;
 public class TypedNodeInterfaceGenerator {
     private final CodeGenHelper codeGenHelper;
     private final CodeGenHelper.TypedNodeConfig config;
+    private final List<CustomMethodData> customMethods;
 
-    public TypedNodeInterfaceGenerator(CodeGenHelper codeGenHelper) {
-        this.codeGenHelper = Objects.requireNonNull(codeGenHelper);
+    public TypedNodeInterfaceGenerator(CodeGenHelper codeGenHelper, List<CustomMethodData> customMethods) {
+        this.codeGenHelper = codeGenHelper;
         this.config = this.codeGenHelper.typedNodeConfig();
+        this.customMethods = customMethods;
     }
 
-    private void generateJavadoc(TypeSpec.Builder typeBuilder, List<GenNodeType> nodeTypes, List<CustomMethodData> customMethods) {
+    private void generateJavadoc(TypeSpec.Builder typeBuilder, List<GenNodeType> nodeTypes) {
         var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
 
         typeBuilder.addJavadoc("Base type for all 'typed nodes'.");
@@ -104,8 +105,7 @@ public class TypedNodeInterfaceGenerator {
             typeBuilder.addPermittedSubclass(subtype.createJavaTypeName(codeGenHelper));
         }
 
-        var customMethods = codeGenHelper.customMethodsForTypedNode();
-        generateJavadoc(typeBuilder, nodeTypes, customMethods);
+        generateJavadoc(typeBuilder, nodeTypes);
 
         generateInstanceMethods(typeBuilder, codeGenHelper);
 

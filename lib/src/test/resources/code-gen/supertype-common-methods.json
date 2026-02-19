@@ -1,0 +1,138 @@
+[
+  {
+    "type": "super",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "subsuper",
+        "named": true
+      },
+      {
+        "type": "contained_c",
+        "named": true
+      }
+    ]
+  },
+  {
+    "type": "subsuper",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "contained_a",
+        "named": true
+      },
+      {
+        "type": "contained_b",
+        "named": true
+      }
+    ]
+  },
+  {
+    "type": "contained_a",
+    "named": true,
+    "fields": {
+      "same": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "contained_a",
+            "named": true
+          }
+        ]
+      },
+      "subtype": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "contained_a",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "contained_a",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "contained_b",
+    "named": true,
+    "fields": {
+      "same": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "contained_a",
+            "named": true
+          }
+        ]
+      },
+      "subtype": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "subsuper",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "contained_a",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "contained_c",
+    "named": true,
+    "fields": {
+      "same": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "contained_a",
+            "named": true
+          }
+        ]
+      },
+      "subtype": {
+        "multiple": true,
+        "required": false,
+        "types": [
+          {
+            "type": "super",
+            "named": true
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": false,
+      "types": [
+        {
+          "type": "subsuper",
+          "named": true
+        }
+      ]
+    }
+  }
+]

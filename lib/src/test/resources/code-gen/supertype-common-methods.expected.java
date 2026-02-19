@@ -128,7 +128,6 @@ import io.github.treesitter.jtreesitter.Range;
 import java.lang.IllegalArgumentException;
 import java.lang.String;
 import javax.annotation.processing.Generated;
-import org.example.custom.CustomMethods;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -136,19 +135,13 @@ import org.jspecify.annotations.Nullable;
  * A jtreesitter {@link Node} can be converted to a typed node with {@link #fromNode} or {@link #fromNodeThrowing},
  * or with the corresponding methods on the specific typed node classes.
  *
- * <p>Custom methods:
- * <ul>
- * <li>{@link #typedNodeCustom(int, String)}
- * </ul>
- *
  * <h2>Node subtypes</h2>
  * <ul>
  * <li>{@link NodeContainedA contained_a}
  * <li>{@link NodeContainedB contained_b}
- * <li>{@link NodeChildrenSingle children_single}
- * <li>{@link NodeChildrenMulti children_multi}
- * <li>{@link NodeFields fields}
+ * <li>{@link NodeContainedC contained_c}
  * <li>{@link NodeSuper super}
+ * <li>{@link NodeSubsuper subsuper}
  * </ul>
  */
 @Generated(
@@ -156,7 +149,7 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public sealed interface TypedNode permits NodeContainedA, NodeContainedB, NodeChildrenSingle, NodeChildrenMulti, NodeFields, NodeSuper, NodeChildrenMulti.Child, NodeFields.FieldMultiNamed, NodeFields.FieldTokenUnnamed, NodeFields.FieldMixed {
+public sealed interface TypedNode permits NodeContainedA, NodeContainedB, NodeContainedC, NodeSuper, NodeSubsuper {
   /**
    * Returns the underlying jtreesitter node.
    */
@@ -208,9 +201,7 @@ public sealed interface TypedNode permits NodeContainedA, NodeContainedB, NodeCh
     var result = switch (node.getType()) {
       case NodeContainedA.TYPE_NAME -> new NodeContainedA(node);
       case NodeContainedB.TYPE_NAME -> new NodeContainedB(node);
-      case NodeChildrenSingle.TYPE_NAME -> new NodeChildrenSingle(node);
-      case NodeChildrenMulti.TYPE_NAME -> new NodeChildrenMulti(node);
-      case NodeFields.TYPE_NAME -> new NodeFields(node);
+      case NodeContainedC.TYPE_NAME -> new NodeContainedC(node);
       default -> null;
     }
     ;
@@ -230,14 +221,6 @@ public sealed interface TypedNode permits NodeContainedA, NodeContainedB, NodeCh
       throw new IllegalArgumentException("Unknown node type: " + node.getType());
     }
     return typedNode;
-  }
-
-  /**
-   * typed node javadoc
-   * with link {@link java.lang.String#length()}
-   */
-  default void typedNodeCustom(int a, String b) {
-    CustomMethods.typedNode(this, a, b);
   }
 }
 
@@ -283,18 +266,19 @@ import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
-import org.example.custom.CustomMethods;
 import org.jspecify.annotations.Nullable;
 
 /**
  * Type {@value #TYPE_NAME}.
- *
- * <p>Custom methods:
+ * <p>Children: {@link #getChild}
+ * <p>Fields:
  * <ul>
- * <li>{@link #nodeTypeCustom(int)}
+ * <li>{@link #getFieldSame same}
+ * <li>{@link #getFieldSubtype subtype}
  * </ul>
  */
 @Generated(
@@ -302,15 +286,25 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeContainedA implements TypedNode,
-    NodeSuper,
-    NodeChildrenMulti.Child,
-    NodeFields.FieldMultiNamed,
-    NodeFields.FieldMixed {
+public final class NodeContainedA implements TypedNode, NodeSubsuper {
   /**
    * Type name of this node, as defined in the grammar.
    */
   public static final String TYPE_NAME = "contained_a";
+
+  /**
+   * Field name {@code same}
+   *
+   * @see #getFieldSame
+   */
+  public static final String FIELD_SAME = "same";
+
+  /**
+   * Field name {@code subtype}
+   *
+   * @see #getFieldSubtype
+   */
+  public static final String FIELD_SUBTYPE = "subtype";
 
   private final Node node;
 
@@ -351,14 +345,45 @@ public final class NodeContainedA implements TypedNode,
   }
 
   /**
-   * Returns the type names of the non-named, non-extra children, if any.
-   *
-   * <p><b>Important:</b> Whether this method has any useful or even any results at all depends on the grammar.
-   * This method can be useful when the grammar defines a 'choice' of multiple keywords.
-   * In that case this method returns the keywords which appear in the parsed source code.
+   * Retrieves the children nodes.
+   * <ul>
+   * <li>multiple: false
+   * <li>required: false
+   * </ul>
    */
-  public List<String> getUnnamedChildren() {
-    return NodeUtils.getNonFieldChildren(node, false).stream().map(n -> n.getType()).toList();
+  public @Nullable NodeContainedA getChild() {
+    var children = NodeUtils.getNonFieldChildren(node, true);
+    Function<Node, NodeContainedA> namedMapper = NodeContainedA::fromNodeThrowing;
+    var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
+    return NodeUtils.optionalSingleChild(childrenMapped);
+  }
+
+  /**
+   * Retrieves the nodes of field {@value #FIELD_SAME}.
+   * <ul>
+   * <li>multiple: true
+   * <li>required: false
+   * </ul>
+   */
+  public List<NodeContainedA> getFieldSame() {
+    var children = node.getChildrenByFieldName(FIELD_SAME);
+    Function<Node, NodeContainedA> namedMapper = NodeContainedA::fromNodeThrowing;
+    var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
+    return childrenMapped;
+  }
+
+  /**
+   * Retrieves the nodes of field {@value #FIELD_SUBTYPE}.
+   * <ul>
+   * <li>multiple: true
+   * <li>required: false
+   * </ul>
+   */
+  public List<NodeContainedA> getFieldSubtype() {
+    var children = node.getChildrenByFieldName(FIELD_SUBTYPE);
+    Function<Node, NodeContainedA> namedMapper = NodeContainedA::fromNodeThrowing;
+    var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
+    return childrenMapped;
   }
 
   private static Stream<NodeContainedA> findNodesImpl(TypedNode startNode,
@@ -438,10 +463,6 @@ public final class NodeContainedA implements TypedNode,
   public String toString() {
     return "NodeContainedA" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
-
-  public void nodeTypeCustom(int a) {
-    CustomMethods.nodeType(this, a, "contained_a");
-  }
 }
 
 
@@ -460,18 +481,19 @@ import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
-import org.example.custom.CustomMethods;
 import org.jspecify.annotations.Nullable;
 
 /**
  * Type {@value #TYPE_NAME}.
- *
- * <p>Custom methods:
+ * <p>Children: {@link #getChild}
+ * <p>Fields:
  * <ul>
- * <li>{@link #nodeTypeCustom(int)}
+ * <li>{@link #getFieldSame same}
+ * <li>{@link #getFieldSubtype subtype}
  * </ul>
  */
 @Generated(
@@ -479,14 +501,25 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeContainedB implements TypedNode,
-    NodeSuper,
-    NodeChildrenMulti.Child,
-    NodeFields.FieldMultiNamed {
+public final class NodeContainedB implements TypedNode, NodeSubsuper {
   /**
    * Type name of this node, as defined in the grammar.
    */
   public static final String TYPE_NAME = "contained_b";
+
+  /**
+   * Field name {@code same}
+   *
+   * @see #getFieldSame
+   */
+  public static final String FIELD_SAME = "same";
+
+  /**
+   * Field name {@code subtype}
+   *
+   * @see #getFieldSubtype
+   */
+  public static final String FIELD_SUBTYPE = "subtype";
 
   private final Node node;
 
@@ -527,14 +560,45 @@ public final class NodeContainedB implements TypedNode,
   }
 
   /**
-   * Returns the type names of the non-named, non-extra children, if any.
-   *
-   * <p><b>Important:</b> Whether this method has any useful or even any results at all depends on the grammar.
-   * This method can be useful when the grammar defines a 'choice' of multiple keywords.
-   * In that case this method returns the keywords which appear in the parsed source code.
+   * Retrieves the children nodes.
+   * <ul>
+   * <li>multiple: false
+   * <li>required: false
+   * </ul>
    */
-  public List<String> getUnnamedChildren() {
-    return NodeUtils.getNonFieldChildren(node, false).stream().map(n -> n.getType()).toList();
+  public @Nullable NodeContainedA getChild() {
+    var children = NodeUtils.getNonFieldChildren(node, true);
+    Function<Node, NodeContainedA> namedMapper = NodeContainedA::fromNodeThrowing;
+    var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
+    return NodeUtils.optionalSingleChild(childrenMapped);
+  }
+
+  /**
+   * Retrieves the nodes of field {@value #FIELD_SAME}.
+   * <ul>
+   * <li>multiple: true
+   * <li>required: false
+   * </ul>
+   */
+  public List<NodeContainedA> getFieldSame() {
+    var children = node.getChildrenByFieldName(FIELD_SAME);
+    Function<Node, NodeContainedA> namedMapper = NodeContainedA::fromNodeThrowing;
+    var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
+    return childrenMapped;
+  }
+
+  /**
+   * Retrieves the nodes of field {@value #FIELD_SUBTYPE}.
+   * <ul>
+   * <li>multiple: true
+   * <li>required: false
+   * </ul>
+   */
+  public List<NodeSubsuper> getFieldSubtype() {
+    var children = node.getChildrenByFieldName(FIELD_SUBTYPE);
+    Function<Node, NodeSubsuper> namedMapper = NodeSubsuper::fromNodeThrowing;
+    var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
+    return childrenMapped;
   }
 
   private static Stream<NodeContainedB> findNodesImpl(TypedNode startNode,
@@ -614,10 +678,6 @@ public final class NodeContainedB implements TypedNode,
   public String toString() {
     return "NodeContainedB" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
-
-  public void nodeTypeCustom(int a) {
-    CustomMethods.nodeType(this, a, "contained_b");
-  }
 }
 
 
@@ -640,427 +700,15 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
-import org.example.custom.CustomMethods;
 import org.jspecify.annotations.Nullable;
 
 /**
  * Type {@value #TYPE_NAME}.
  * <p>Children: {@link #getChild}
- *
- * <p>Custom methods:
- * <ul>
- * <li>{@link #nodeTypeCustom(int)}
- * </ul>
- */
-@Generated(
-    value = "marcono1234.jtreesitter.type_gen.CodeGenerator",
-    date = "1970-01-01T00:00:00Z",
-    comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
-)
-public final class NodeChildrenSingle implements TypedNode {
-  /**
-   * Type name of this node, as defined in the grammar.
-   */
-  public static final String TYPE_NAME = "children_single";
-
-  private final Node node;
-
-  NodeChildrenSingle(Node node) {
-    this.node = node;
-  }
-
-  @Override
-  public Node getNode() {
-    return node;
-  }
-
-  /**
-   * Wraps a jtreesitter node as this node type, returning {@code null} if the node has the wrong type.
-   *
-   * @see #fromNodeThrowing
-   */
-  public static @Nullable NodeChildrenSingle fromNode(Node node) {
-    NodeChildrenSingle result = null;
-    if (TYPE_NAME.equals(node.getType())) {
-      result = new NodeChildrenSingle(node);
-    }
-    return result;
-  }
-
-  /**
-   * Wraps a jtreesitter node as this node type, throwing an {@link IllegalArgumentException} if the node has the wrong type.
-   *
-   * @see #fromNode
-   */
-  public static NodeChildrenSingle fromNodeThrowing(Node node) {
-    var typedNodeOptional = fromNode(node);
-    var typedNode = typedNodeOptional;
-    if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type: " + node.getType());
-    }
-    return typedNode;
-  }
-
-  /**
-   * Retrieves the children nodes.
-   * <ul>
-   * <li>multiple: false
-   * <li>required: false
-   * </ul>
-   */
-  public @Nullable NodeContainedA getChild() {
-    var children = NodeUtils.getNonFieldChildren(node, true);
-    Function<Node, NodeContainedA> namedMapper = NodeContainedA::fromNodeThrowing;
-    var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
-    return NodeUtils.optionalSingleChild(childrenMapped);
-  }
-
-  /**
-   * Returns the type names of the non-named, non-extra children, if any.
-   *
-   * <p><b>Important:</b> Whether this method has any useful or even any results at all depends on the grammar.
-   * This method can be useful when the grammar defines a 'choice' of multiple keywords.
-   * In that case this method returns the keywords which appear in the parsed source code.
-   */
-  public List<String> getUnnamedChildren() {
-    return NodeUtils.getNonFieldChildren(node, false).stream().map(n -> n.getType()).toList();
-  }
-
-  private static Stream<NodeChildrenSingle> findNodesImpl(TypedNode startNode,
-      SegmentAllocator allocator) {
-    var startNodeUnwrapped = startNode.getNode();
-    var language = startNodeUnwrapped.getTree().getLanguage();
-    // tree-sitter query which matches the nodes of this type, and captures them
-    var captureName = "node";
-    var queryString = "(" + NodeChildrenSingle.TYPE_NAME + ") @" + captureName;
-    var query = new Query(language, queryString);
-    var queryCursor = new QueryCursor(query);
-    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
-        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeChildrenSingle::fromNodeThrowing).onClose(() -> {
-          queryCursor.close();
-          query.close();
-        });
-  }
-
-  /**
-   * Gets all nodes of this type, starting at the given node.
-   *
-   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
-   * It is recommended to use a try-with-resources statement.
-   *
-   * <h4>Example</h4>
-   * {@snippet lang=java :
-   * try (var nodes = NodeChildrenSingle.findNodes(start, allocator)) {
-   *   List<String> texts = nodes.map(n -> n.getText()).toList();
-   *   ...
-   * }
-   * }
-   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
-   */
-  public static Stream<NodeChildrenSingle> findNodes(TypedNode startNode,
-      SegmentAllocator allocator) {
-    Objects.requireNonNull(startNode);
-    Objects.requireNonNull(allocator);
-    return findNodesImpl(startNode, allocator);
-  }
-
-  /**
-   * Gets all nodes of this type, starting at the given node.
-   *
-   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
-   * It is recommended to use a try-with-resources statement.
-   * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
-   * including exceptions being thrown or possibly even a JVM crash.
-   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
-   *
-   * <h4>Example</h4>
-   * {@snippet lang=java :
-   * try (var nodes = NodeChildrenSingle.findNodes(start)) {
-   *   List<String> texts = nodes.map(n -> n.getText()).toList();
-   *   ...
-   * }
-   * }
-   */
-  public static Stream<NodeChildrenSingle> findNodes(TypedNode startNode) {
-    Objects.requireNonNull(startNode);
-    return findNodesImpl(startNode, null);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj instanceof NodeChildrenSingle other) {
-      return node.equals(other.node);
-    }
-    return false;
-  }
-
-  @Override
-  public int hashCode() {
-    return node.hashCode();
-  }
-
-  @Override
-  public String toString() {
-    return "NodeChildrenSingle" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
-  }
-
-  public void nodeTypeCustom(int a) {
-    CustomMethods.nodeType(this, a, "children_single");
-  }
-}
-
-
-/* ==================== */ 
-
-package org.example;
-
-import io.github.treesitter.jtreesitter.Node;
-import io.github.treesitter.jtreesitter.Query;
-import io.github.treesitter.jtreesitter.QueryCursor;
-import java.lang.IllegalArgumentException;
-import java.lang.Long;
-import java.lang.Object;
-import java.lang.Override;
-import java.lang.String;
-import java.lang.foreign.SegmentAllocator;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
-import javax.annotation.processing.Generated;
-import org.example.custom.CustomMethods;
-import org.jspecify.annotations.Nullable;
-
-/**
- * Type {@value #TYPE_NAME}.
- * <p>Children: {@link #getChild}
- *
- * <p>Custom methods:
- * <ul>
- * <li>{@link #nodeTypeCustom(int)}
- * </ul>
- */
-@Generated(
-    value = "marcono1234.jtreesitter.type_gen.CodeGenerator",
-    date = "1970-01-01T00:00:00Z",
-    comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
-)
-public final class NodeChildrenMulti implements TypedNode {
-  /**
-   * Type name of this node, as defined in the grammar.
-   */
-  public static final String TYPE_NAME = "children_multi";
-
-  private final Node node;
-
-  NodeChildrenMulti(Node node) {
-    this.node = node;
-  }
-
-  @Override
-  public Node getNode() {
-    return node;
-  }
-
-  /**
-   * Wraps a jtreesitter node as this node type, returning {@code null} if the node has the wrong type.
-   *
-   * @see #fromNodeThrowing
-   */
-  public static @Nullable NodeChildrenMulti fromNode(Node node) {
-    NodeChildrenMulti result = null;
-    if (TYPE_NAME.equals(node.getType())) {
-      result = new NodeChildrenMulti(node);
-    }
-    return result;
-  }
-
-  /**
-   * Wraps a jtreesitter node as this node type, throwing an {@link IllegalArgumentException} if the node has the wrong type.
-   *
-   * @see #fromNode
-   */
-  public static NodeChildrenMulti fromNodeThrowing(Node node) {
-    var typedNodeOptional = fromNode(node);
-    var typedNode = typedNodeOptional;
-    if (typedNode == null) {
-      throw new IllegalArgumentException("Wrong node type: " + node.getType());
-    }
-    return typedNode;
-  }
-
-  /**
-   * Retrieves the children nodes.
-   * <ul>
-   * <li>multiple: false
-   * <li>required: false
-   * </ul>
-   */
-  public @Nullable Child getChild() {
-    var children = NodeUtils.getNonFieldChildren(node, true);
-    var namedMapper = Child.class;
-    var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
-    return NodeUtils.optionalSingleChild(childrenMapped);
-  }
-
-  /**
-   * Returns the type names of the non-named, non-extra children, if any.
-   *
-   * <p><b>Important:</b> Whether this method has any useful or even any results at all depends on the grammar.
-   * This method can be useful when the grammar defines a 'choice' of multiple keywords.
-   * In that case this method returns the keywords which appear in the parsed source code.
-   */
-  public List<String> getUnnamedChildren() {
-    return NodeUtils.getNonFieldChildren(node, false).stream().map(n -> n.getType()).toList();
-  }
-
-  private static Stream<NodeChildrenMulti> findNodesImpl(TypedNode startNode,
-      SegmentAllocator allocator) {
-    var startNodeUnwrapped = startNode.getNode();
-    var language = startNodeUnwrapped.getTree().getLanguage();
-    // tree-sitter query which matches the nodes of this type, and captures them
-    var captureName = "node";
-    var queryString = "(" + NodeChildrenMulti.TYPE_NAME + ") @" + captureName;
-    var query = new Query(language, queryString);
-    var queryCursor = new QueryCursor(query);
-    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
-        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeChildrenMulti::fromNodeThrowing).onClose(() -> {
-          queryCursor.close();
-          query.close();
-        });
-  }
-
-  /**
-   * Gets all nodes of this type, starting at the given node.
-   *
-   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
-   * It is recommended to use a try-with-resources statement.
-   *
-   * <h4>Example</h4>
-   * {@snippet lang=java :
-   * try (var nodes = NodeChildrenMulti.findNodes(start, allocator)) {
-   *   List<String> texts = nodes.map(n -> n.getText()).toList();
-   *   ...
-   * }
-   * }
-   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
-   */
-  public static Stream<NodeChildrenMulti> findNodes(TypedNode startNode,
-      SegmentAllocator allocator) {
-    Objects.requireNonNull(startNode);
-    Objects.requireNonNull(allocator);
-    return findNodesImpl(startNode, allocator);
-  }
-
-  /**
-   * Gets all nodes of this type, starting at the given node.
-   *
-   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
-   * It is recommended to use a try-with-resources statement.
-   * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
-   * including exceptions being thrown or possibly even a JVM crash.
-   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
-   *
-   * <h4>Example</h4>
-   * {@snippet lang=java :
-   * try (var nodes = NodeChildrenMulti.findNodes(start)) {
-   *   List<String> texts = nodes.map(n -> n.getText()).toList();
-   *   ...
-   * }
-   * }
-   */
-  public static Stream<NodeChildrenMulti> findNodes(TypedNode startNode) {
-    Objects.requireNonNull(startNode);
-    return findNodesImpl(startNode, null);
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj instanceof NodeChildrenMulti other) {
-      return node.equals(other.node);
-    }
-    return false;
-  }
-
-  @Override
-  public int hashCode() {
-    return node.hashCode();
-  }
-
-  @Override
-  public String toString() {
-    return "NodeChildrenMulti" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
-  }
-
-  public void nodeTypeCustom(int a) {
-    CustomMethods.nodeType(this, a, "children_multi");
-  }
-
-  /**
-   * Child type returned by {@link NodeChildrenMulti#getChild}.
-   * <p>Possible types:
-   * <ul>
-   * <li>{@link NodeContainedA contained_a}
-   * <li>{@link NodeContainedB contained_b}
-   * </ul>
-   *
-   * <p>Custom methods:
-   * <ul>
-   * <li>{@link #childrenTypeCustom(int)}
-   * </ul>
-   */
-  public sealed interface Child extends TypedNode permits NodeContainedA, NodeContainedB {
-    default void childrenTypeCustom(int a) {
-      CustomMethods.childrenType(this, a, "children_multi", "contained_a");
-    }
-
-    /**
-     * Custom method.
-     *
-     * <p>This is a method common to all subtypes; see their implementations for details.
-     */
-    void nodeTypeCustom(int a);
-  }
-}
-
-
-/* ==================== */ 
-
-package org.example;
-
-import io.github.treesitter.jtreesitter.Node;
-import io.github.treesitter.jtreesitter.Query;
-import io.github.treesitter.jtreesitter.QueryCursor;
-import java.lang.Class;
-import java.lang.IllegalArgumentException;
-import java.lang.Long;
-import java.lang.Object;
-import java.lang.Override;
-import java.lang.String;
-import java.lang.foreign.SegmentAllocator;
-import java.util.Objects;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
-import javax.annotation.processing.Generated;
-import org.example.custom.CustomMethods;
-import org.jspecify.annotations.Nullable;
-
-/**
- * Type {@value #TYPE_NAME}.
  * <p>Fields:
  * <ul>
- * <li>{@link #getFieldSingleNamed single_named}
- * <li>{@link #getFieldMultiNamed multi_named}
- * <li>{@link #getFieldUnnamed unnamed}
- * <li>{@link #getFieldMixed mixed}
- * </ul>
- *
- * <p>Custom methods:
- * <ul>
- * <li>{@link #nodeTypeCustom(int)}
+ * <li>{@link #getFieldSame same}
+ * <li>{@link #getFieldSubtype subtype}
  * </ul>
  */
 @Generated(
@@ -1068,43 +716,29 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public final class NodeFields implements TypedNode {
+public final class NodeContainedC implements TypedNode, NodeSuper {
   /**
    * Type name of this node, as defined in the grammar.
    */
-  public static final String TYPE_NAME = "fields";
+  public static final String TYPE_NAME = "contained_c";
 
   /**
-   * Field name {@code single_named}
+   * Field name {@code same}
    *
-   * @see #getFieldSingleNamed
+   * @see #getFieldSame
    */
-  public static final String FIELD_SINGLE_NAMED = "single_named";
+  public static final String FIELD_SAME = "same";
 
   /**
-   * Field name {@code multi_named}
+   * Field name {@code subtype}
    *
-   * @see #getFieldMultiNamed
+   * @see #getFieldSubtype
    */
-  public static final String FIELD_MULTI_NAMED = "multi_named";
-
-  /**
-   * Field name {@code unnamed}
-   *
-   * @see #getFieldUnnamed
-   */
-  public static final String FIELD_UNNAMED = "unnamed";
-
-  /**
-   * Field name {@code mixed}
-   *
-   * @see #getFieldMixed
-   */
-  public static final String FIELD_MIXED = "mixed";
+  public static final String FIELD_SUBTYPE = "subtype";
 
   private final Node node;
 
-  NodeFields(Node node) {
+  NodeContainedC(Node node) {
     this.node = node;
   }
 
@@ -1118,10 +752,10 @@ public final class NodeFields implements TypedNode {
    *
    * @see #fromNodeThrowing
    */
-  public static @Nullable NodeFields fromNode(Node node) {
-    NodeFields result = null;
+  public static @Nullable NodeContainedC fromNode(Node node) {
+    NodeContainedC result = null;
     if (TYPE_NAME.equals(node.getType())) {
-      result = new NodeFields(node);
+      result = new NodeContainedC(node);
     }
     return result;
   }
@@ -1131,7 +765,7 @@ public final class NodeFields implements TypedNode {
    *
    * @see #fromNode
    */
-  public static NodeFields fromNodeThrowing(Node node) {
+  public static NodeContainedC fromNodeThrowing(Node node) {
     var typedNodeOptional = fromNode(node);
     var typedNode = typedNodeOptional;
     if (typedNode == null) {
@@ -1141,73 +775,59 @@ public final class NodeFields implements TypedNode {
   }
 
   /**
-   * Retrieves the nodes of field {@value #FIELD_SINGLE_NAMED}.
+   * Retrieves the children nodes.
    * <ul>
    * <li>multiple: false
    * <li>required: false
    * </ul>
    */
-  public @Nullable NodeContainedA getFieldSingleNamed() {
-    var children = node.getChildrenByFieldName(FIELD_SINGLE_NAMED);
-    Function<Node, NodeContainedA> namedMapper = NodeContainedA::fromNodeThrowing;
+  public @Nullable NodeSubsuper getChild() {
+    var children = NodeUtils.getNonFieldChildren(node, true);
+    Function<Node, NodeSubsuper> namedMapper = NodeSubsuper::fromNodeThrowing;
     var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
     return NodeUtils.optionalSingleChild(childrenMapped);
   }
 
   /**
-   * Retrieves the nodes of field {@value #FIELD_MULTI_NAMED}.
+   * Retrieves the nodes of field {@value #FIELD_SAME}.
    * <ul>
-   * <li>multiple: false
+   * <li>multiple: true
    * <li>required: false
    * </ul>
    */
-  public @Nullable FieldMultiNamed getFieldMultiNamed() {
-    var children = node.getChildrenByFieldName(FIELD_MULTI_NAMED);
-    var namedMapper = FieldMultiNamed.class;
-    var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
-    return NodeUtils.optionalSingleChild(childrenMapped);
-  }
-
-  /**
-   * Retrieves the nodes of field {@value #FIELD_UNNAMED}.
-   * <ul>
-   * <li>multiple: false
-   * <li>required: false
-   * </ul>
-   */
-  public @Nullable FieldTokenUnnamed getFieldUnnamed() {
-    var children = node.getChildrenByFieldName(FIELD_UNNAMED);
-    Function<Node, FieldTokenUnnamed> mapper = n -> new FieldTokenUnnamed(n, FieldTokenUnnamed.TokenType.fromNode(n));
-    var childrenMapped = NodeUtils.mapChildren(children, (Class<FieldTokenUnnamed>) null, mapper);
-    return NodeUtils.optionalSingleChild(childrenMapped);
-  }
-
-  /**
-   * Retrieves the nodes of field {@value #FIELD_MIXED}.
-   * <ul>
-   * <li>multiple: false
-   * <li>required: false
-   * </ul>
-   */
-  public @Nullable FieldMixed getFieldMixed() {
-    var children = node.getChildrenByFieldName(FIELD_MIXED);
+  public List<NodeContainedA> getFieldSame() {
+    var children = node.getChildrenByFieldName(FIELD_SAME);
     Function<Node, NodeContainedA> namedMapper = NodeContainedA::fromNodeThrowing;
-    Function<Node, FieldTokenMixed> tokenMapper = n -> new FieldTokenMixed(n, FieldTokenMixed.TokenType.fromNode(n));
-    var childrenMapped = NodeUtils.mapChildren(children, namedMapper, tokenMapper);
-    return NodeUtils.optionalSingleChild(childrenMapped);
+    var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
+    return childrenMapped;
   }
 
-  private static Stream<NodeFields> findNodesImpl(TypedNode startNode, SegmentAllocator allocator) {
+  /**
+   * Retrieves the nodes of field {@value #FIELD_SUBTYPE}.
+   * <ul>
+   * <li>multiple: true
+   * <li>required: false
+   * </ul>
+   */
+  public List<NodeSuper> getFieldSubtype() {
+    var children = node.getChildrenByFieldName(FIELD_SUBTYPE);
+    Function<Node, NodeSuper> namedMapper = NodeSuper::fromNodeThrowing;
+    var childrenMapped = NodeUtils.mapChildren(children, namedMapper, null);
+    return childrenMapped;
+  }
+
+  private static Stream<NodeContainedC> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
     var startNodeUnwrapped = startNode.getNode();
     var language = startNodeUnwrapped.getTree().getLanguage();
     // tree-sitter query which matches the nodes of this type, and captures them
     var captureName = "node";
-    var queryString = "(" + NodeFields.TYPE_NAME + ") @" + captureName;
+    var queryString = "(" + NodeContainedC.TYPE_NAME + ") @" + captureName;
     var query = new Query(language, queryString);
     var queryCursor = new QueryCursor(query);
     var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
         : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
-    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeFields::fromNodeThrowing).onClose(() -> {
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContainedC::fromNodeThrowing).onClose(() -> {
           queryCursor.close();
           query.close();
         });
@@ -1221,14 +841,14 @@ public final class NodeFields implements TypedNode {
    *
    * <h4>Example</h4>
    * {@snippet lang=java :
-   * try (var nodes = NodeFields.findNodes(start, allocator)) {
+   * try (var nodes = NodeContainedC.findNodes(start, allocator)) {
    *   List<String> texts = nodes.map(n -> n.getText()).toList();
    *   ...
    * }
    * }
    * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
    */
-  public static Stream<NodeFields> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+  public static Stream<NodeContainedC> findNodes(TypedNode startNode, SegmentAllocator allocator) {
     Objects.requireNonNull(startNode);
     Objects.requireNonNull(allocator);
     return findNodesImpl(startNode, allocator);
@@ -1245,20 +865,20 @@ public final class NodeFields implements TypedNode {
    *
    * <h4>Example</h4>
    * {@snippet lang=java :
-   * try (var nodes = NodeFields.findNodes(start)) {
+   * try (var nodes = NodeContainedC.findNodes(start)) {
    *   List<String> texts = nodes.map(n -> n.getText()).toList();
    *   ...
    * }
    * }
    */
-  public static Stream<NodeFields> findNodes(TypedNode startNode) {
+  public static Stream<NodeContainedC> findNodes(TypedNode startNode) {
     Objects.requireNonNull(startNode);
     return findNodesImpl(startNode, null);
   }
 
   @Override
   public boolean equals(Object obj) {
-    if (obj instanceof NodeFields other) {
+    if (obj instanceof NodeContainedC other) {
       return node.equals(other.node);
     }
     return false;
@@ -1271,226 +891,7 @@ public final class NodeFields implements TypedNode {
 
   @Override
   public String toString() {
-    return "NodeFields" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
-  }
-
-  public void nodeTypeCustom(int a) {
-    CustomMethods.nodeType(this, a, "fields");
-  }
-
-  /**
-   * Child type returned by {@link NodeFields#getFieldMultiNamed}.
-   * <p>Possible types:
-   * <ul>
-   * <li>{@link NodeContainedA contained_a}
-   * <li>{@link NodeContainedB contained_b}
-   * </ul>
-   *
-   * <p>Custom methods:
-   * <ul>
-   * <li>{@link #fieldTypeCustom_multi_named(int)}
-   * </ul>
-   */
-  public sealed interface FieldMultiNamed extends TypedNode permits NodeContainedA, NodeContainedB {
-    default void fieldTypeCustom_multi_named(int a) {
-      CustomMethods.fieldType(this, a, "fields", "multi_named");
-    }
-
-    /**
-     * Custom method.
-     *
-     * <p>This is a method common to all subtypes; see their implementations for details.
-     */
-    void nodeTypeCustom(int a);
-  }
-
-  /**
-   * Child node type without name, returned by {@link NodeFields#getFieldUnnamed}.
-   * <p>The type of the node can be obtained using {@link #getToken}.
-   */
-  public static final class FieldTokenUnnamed implements TypedNode {
-    private final Node node;
-
-    private final TokenType token;
-
-    FieldTokenUnnamed(Node node, TokenType token) {
-      this.node = node;
-      this.token = token;
-    }
-
-    @Override
-    public Node getNode() {
-      return node;
-    }
-
-    /**
-     * Returns the token type.
-     */
-    public TokenType getToken() {
-      return token;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if (obj instanceof FieldTokenUnnamed other) {
-        return node.equals(other.node);
-      }
-      return false;
-    }
-
-    @Override
-    public int hashCode() {
-      return node.hashCode();
-    }
-
-    @Override
-    public String toString() {
-      return "FieldTokenUnnamed" + "[id=" + Long.toUnsignedString(node.getId()) + ",token=" + token + "]";
-    }
-
-    /**
-     * Token types:
-     * <ul>
-     * <li>{@link #PLUS_SIGN '+'}
-     * <li>{@link #HYPHEN_MINUS '-'}
-     * </ul>
-     */
-    public enum TokenType {
-      /**
-       * {@code +}
-       */
-      PLUS_SIGN("+"),
-
-      /**
-       * {@code -}
-       */
-      HYPHEN_MINUS("-");
-
-      private final String type;
-
-      TokenType(String type) {
-        this.type = type;
-      }
-
-      /**
-       * Returns the grammar type of this token.
-       */
-      public String getType() {
-        return type;
-      }
-
-      static TokenType fromNode(Node node) {
-        var type = node.getType();
-        for (var token : values()) {
-          if (token.type.equals(type)) {
-            return token;
-          }
-        }
-        // Should not happen since all non-named child types are covered
-        throw new IllegalArgumentException("Unknown token type: " + type);
-      }
-    }
-  }
-
-  /**
-   * Child node type without name, returned by {@link NodeFields#getFieldMixed}.
-   * <p>The type of the node can be obtained using {@link #getToken}.
-   */
-  public static final class FieldTokenMixed implements FieldMixed {
-    private final Node node;
-
-    private final TokenType token;
-
-    FieldTokenMixed(Node node, TokenType token) {
-      this.node = node;
-      this.token = token;
-    }
-
-    @Override
-    public Node getNode() {
-      return node;
-    }
-
-    /**
-     * Returns the token type.
-     */
-    public TokenType getToken() {
-      return token;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if (obj instanceof FieldTokenMixed other) {
-        return node.equals(other.node);
-      }
-      return false;
-    }
-
-    @Override
-    public int hashCode() {
-      return node.hashCode();
-    }
-
-    @Override
-    public String toString() {
-      return "FieldTokenMixed" + "[id=" + Long.toUnsignedString(node.getId()) + ",token=" + token + "]";
-    }
-
-    /**
-     * Token types:
-     * <ul>
-     * <li>{@link #PLUS_SIGN '+'}
-     * </ul>
-     */
-    public enum TokenType {
-      /**
-       * {@code +}
-       */
-      PLUS_SIGN("+");
-
-      private final String type;
-
-      TokenType(String type) {
-        this.type = type;
-      }
-
-      /**
-       * Returns the grammar type of this token.
-       */
-      public String getType() {
-        return type;
-      }
-
-      static TokenType fromNode(Node node) {
-        var type = node.getType();
-        for (var token : values()) {
-          if (token.type.equals(type)) {
-            return token;
-          }
-        }
-        // Should not happen since all non-named child types are covered
-        throw new IllegalArgumentException("Unknown token type: " + type);
-      }
-    }
-  }
-
-  /**
-   * Child type returned by {@link NodeFields#getFieldMixed}.
-   * <p>Possible types:
-   * <ul>
-   * <li>{@link NodeContainedA contained_a}
-   * <li>{@linkplain FieldTokenMixed <i>tokens</i>}
-   * </ul>
-   *
-   * <p>Custom methods:
-   * <ul>
-   * <li>{@link #fieldTypeCustom_mixed(int)}
-   * </ul>
-   */
-  public sealed interface FieldMixed extends TypedNode permits NodeContainedA, FieldTokenMixed {
-    default void fieldTypeCustom_mixed(int a) {
-      CustomMethods.fieldType(this, a, "fields", "mixed");
-    }
+    return "NodeContainedC" + "[id=" + Long.toUnsignedString(node.getId()) + "]";
   }
 }
 
@@ -1505,23 +906,18 @@ import io.github.treesitter.jtreesitter.QueryCursor;
 import java.lang.IllegalArgumentException;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
-import org.example.custom.CustomMethods;
 import org.jspecify.annotations.Nullable;
 
 /**
  * Supertype {@code super}, with subtypes:
  * <ul>
- * <li>{@link NodeContainedA contained_a}
- * <li>{@link NodeContainedB contained_b}
- * </ul>
- *
- * <p>Custom methods:
- * <ul>
- * <li>{@link #nodeTypeCustomSuper(int)}
+ * <li>{@link NodeSubsuper subsuper}
+ * <li>{@link NodeContainedC contained_c}
  * </ul>
  */
 @Generated(
@@ -1529,7 +925,7 @@ import org.jspecify.annotations.Nullable;
     date = "1970-01-01T00:00:00Z",
     comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
 )
-public sealed interface NodeSuper extends TypedNode permits NodeContainedA, NodeContainedB {
+public sealed interface NodeSuper extends TypedNode permits NodeSubsuper, NodeContainedC {
   /**
    * Type name of this node, as defined in the grammar.
    */
@@ -1544,6 +940,7 @@ public sealed interface NodeSuper extends TypedNode permits NodeContainedA, Node
     var result = switch (node.getType()) {
       case NodeContainedA.TYPE_NAME -> new NodeContainedA(node);
       case NodeContainedB.TYPE_NAME -> new NodeContainedB(node);
+      case NodeContainedC.TYPE_NAME -> new NodeContainedC(node);
       default -> null;
     }
     ;
@@ -1572,6 +969,7 @@ public sealed interface NodeSuper extends TypedNode permits NodeContainedA, Node
     var queryString = "["
         + "(" + NodeContainedA.TYPE_NAME + ")"
         + "(" + NodeContainedB.TYPE_NAME + ")"
+        + "(" + NodeContainedC.TYPE_NAME + ")"
         + "] @" + captureName;
     var query = new Query(language, queryString);
     var queryCursor = new QueryCursor(query);
@@ -1626,16 +1024,176 @@ public sealed interface NodeSuper extends TypedNode permits NodeContainedA, Node
     return findNodesImpl(startNode, null);
   }
 
-  default void nodeTypeCustomSuper(int a) {
-    CustomMethods.nodeType(this, a, "super");
-  }
-
   /**
-   * Custom method.
+   * Retrieves the children nodes.
    *
    * <p>This is a method common to all subtypes; see their implementations for details.
    */
-  void nodeTypeCustom(int a);
+  @Nullable NodeSubsuper getChild();
+
+  /**
+   * Retrieves the nodes of field {@code same}.
+   *
+   * <p>This is a method common to all subtypes; see their implementations for details.
+   */
+  List<NodeContainedA> getFieldSame();
+
+  /**
+   * Retrieves the nodes of field {@code subtype}.
+   *
+   * <p>This is a method common to all subtypes; see their implementations for details.
+   */
+  List<? extends NodeSuper> getFieldSubtype();
+}
+
+
+/* ==================== */ 
+
+package org.example;
+
+import io.github.treesitter.jtreesitter.Node;
+import io.github.treesitter.jtreesitter.Query;
+import io.github.treesitter.jtreesitter.QueryCursor;
+import java.lang.IllegalArgumentException;
+import java.lang.String;
+import java.lang.foreign.SegmentAllocator;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+import javax.annotation.processing.Generated;
+import org.jspecify.annotations.Nullable;
+
+/**
+ * Supertype {@code subsuper}, with subtypes:
+ * <ul>
+ * <li>{@link NodeContainedA contained_a}
+ * <li>{@link NodeContainedB contained_b}
+ * </ul>
+ */
+@Generated(
+    value = "marcono1234.jtreesitter.type_gen.CodeGenerator",
+    date = "1970-01-01T00:00:00Z",
+    comments = "code-generator-version=0.0.0 (0000000000000000000000000000000000000000); custom comment"
+)
+public sealed interface NodeSubsuper extends TypedNode, NodeSuper permits NodeContainedA, NodeContainedB {
+  /**
+   * Type name of this node, as defined in the grammar.
+   */
+  String TYPE_NAME = "subsuper";
+
+  /**
+   * Wraps a jtreesitter node as this node type, returning {@code null} if the node has the wrong type.
+   *
+   * @see #fromNodeThrowing
+   */
+  static @Nullable NodeSubsuper fromNode(Node node) {
+    var result = switch (node.getType()) {
+      case NodeContainedA.TYPE_NAME -> new NodeContainedA(node);
+      case NodeContainedB.TYPE_NAME -> new NodeContainedB(node);
+      default -> null;
+    }
+    ;
+    return result;
+  }
+
+  /**
+   * Wraps a jtreesitter node as this node type, throwing an {@link IllegalArgumentException} if the node has the wrong type.
+   *
+   * @see #fromNode
+   */
+  static NodeSubsuper fromNodeThrowing(Node node) {
+    var typedNodeOptional = fromNode(node);
+    var typedNode = typedNodeOptional;
+    if (typedNode == null) {
+      throw new IllegalArgumentException("Wrong node type: " + node.getType());
+    }
+    return typedNode;
+  }
+
+  private static Stream<NodeSubsuper> findNodesImpl(TypedNode startNode,
+      SegmentAllocator allocator) {
+    var startNodeUnwrapped = startNode.getNode();
+    var language = startNodeUnwrapped.getTree().getLanguage();
+    // tree-sitter query which matches the nodes of this type, and captures them
+    var captureName = "node";
+    var queryString = "["
+        + "(" + NodeContainedA.TYPE_NAME + ")"
+        + "(" + NodeContainedB.TYPE_NAME + ")"
+        + "] @" + captureName;
+    var query = new Query(language, queryString);
+    var queryCursor = new QueryCursor(query);
+    var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+    return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSubsuper::fromNodeThrowing).onClose(() -> {
+          queryCursor.close();
+          query.close();
+        });
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeSubsuper.findNodes(start, allocator)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   * @param allocator allocator to use for the found node objects; allows interacting with the nodes after the stream has been closed
+   */
+  static Stream<NodeSubsuper> findNodes(TypedNode startNode, SegmentAllocator allocator) {
+    Objects.requireNonNull(startNode);
+    Objects.requireNonNull(allocator);
+    return findNodesImpl(startNode, allocator);
+  }
+
+  /**
+   * Gets all nodes of this type, starting at the given node.
+   *
+   * <p><b>Important:</b> The {@code Stream} must be closed to release resources.
+   * It is recommended to use a try-with-resources statement.
+   * After the stream was closed the resulting nodes should not be used anymore, otherwise the behavior is undefined,
+   * including exceptions being thrown or possibly even a JVM crash.
+   * Use {@link #findNodes(TypedNode, SegmentAllocator)} to be able to access the nodes after the stream was closed.
+   *
+   * <h4>Example</h4>
+   * {@snippet lang=java :
+   * try (var nodes = NodeSubsuper.findNodes(start)) {
+   *   List<String> texts = nodes.map(n -> n.getText()).toList();
+   *   ...
+   * }
+   * }
+   */
+  static Stream<NodeSubsuper> findNodes(TypedNode startNode) {
+    Objects.requireNonNull(startNode);
+    return findNodesImpl(startNode, null);
+  }
+
+  /**
+   * Retrieves the children nodes.
+   *
+   * <p>This is a method common to all subtypes; see their implementations for details.
+   */
+  @Nullable NodeContainedA getChild();
+
+  /**
+   * Retrieves the nodes of field {@code same}.
+   *
+   * <p>This is a method common to all subtypes; see their implementations for details.
+   */
+  List<NodeContainedA> getFieldSame();
+
+  /**
+   * Retrieves the nodes of field {@code subtype}.
+   *
+   * <p>This is a method common to all subtypes; see their implementations for details.
+   */
+  List<? extends NodeSubsuper> getFieldSubtype();
 }
 
 
