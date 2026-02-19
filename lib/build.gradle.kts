@@ -1,5 +1,3 @@
-import java.io.ByteArrayOutputStream
-
 plugins {
     id("jtreesitter-type-gen.java-conventions")
     `java-library`
@@ -27,18 +25,7 @@ java {
     withJavadocJar()
 }
 
-val COMMIT_PROPERTY = "git-commit"
-// TODO: Use https://github.com/palantir/gradle-git-version; check how it is implemented
-// Could consider using plugin such as https://github.com/n0mer/gradle-git-properties in the future; however that plugin
-// provides too much (not needed) functionality, always creating a `git.properties` file
-val getGitCommit by tasks.registering(Exec::class) {
-    commandLine("git", "rev-parse", "--verify", "HEAD")
-    standardOutput = ByteArrayOutputStream()
-    doLast {
-        val gitCommit = standardOutput.toString().trim()
-        extra.set(COMMIT_PROPERTY, gitCommit)
-    }
-}
+val gitCommitProvider = providers.of(GitCommitValueSource::class) {}
 
 val generatedResourcesDir = layout.buildDirectory.dir("generated-resources/main")
 sourceSets.main {
@@ -47,15 +34,12 @@ sourceSets.main {
 // Note: Including the Git commit ref in a resource file defeats the build cache to some extent; though at least during
 //   development when not committing changes yet the build cache helps
 val createVersionProperties by tasks.registering(WriteProperties::class) {
-    dependsOn(getGitCommit)
-
-    val gitCommit = getGitCommit.map { task -> task.extra.get(COMMIT_PROPERTY).toString() }
     // Place property file under own package to avoid clashes or issues when library is packaged as JAR with dependencies
     destinationFile = generatedResourcesDir.map { it.file("marcono1234/jtreesitter/type_gen/version.properties") }
 
     property("version", project.version.toString())
     property("repository", "https://github.com/Marcono1234/jtreesitter-type-gen")
-    property("commit", gitCommit)
+    property("commit", gitCommitProvider)
     property("jtreesitter", libs.versions.jtreesitter)
 }
 tasks.classes {
