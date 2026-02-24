@@ -11,6 +11,7 @@ import org.jspecify.annotations.Nullable;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.StreamReadFeature;
 import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.io.*;
@@ -27,6 +28,9 @@ public class CodeGenerator {
         // Enhance exceptions for easier troubleshooting; the JSON files are not expected to contain sensitive information
         // which must not be leaked
         .enable(StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION)
+        // Don't fail on unknown JSON properties, to account for new Tree-sitter properties added in the future
+        // (FAIL_ON_UNKNOWN_PROPERTIES = false is the default anyway, but make this explicit here)
+        .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         .build();
 
     private final CodeGenConfig config;
