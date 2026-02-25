@@ -412,7 +412,6 @@ public final class NodeDocument implements TypedNode {
 
 package org.example;
 
-import io.github.treesitter.jtreesitter.Node;
 import io.github.treesitter.jtreesitter.Tree;
 import java.lang.AutoCloseable;
 import java.lang.IllegalArgumentException;
@@ -423,7 +422,7 @@ import javax.annotation.processing.Generated;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A 'typed parse-tree', with expected root node {@link NodeDocument document}. jtreesitter {@link Node} can be converted to a typed tree with {@link #fromTree}.
+ * A 'typed parse-tree', with expected root node {@link NodeDocument document}. A jtreesitter {@link Tree} can be converted to a typed tree with {@link #fromTree}.
  *
  * <p>Individual jtreesitter nodes can be converted to a typed node with {@link TypedNode#fromNode}, or the {@code fromNode} method of the specific typed node classes.
  */

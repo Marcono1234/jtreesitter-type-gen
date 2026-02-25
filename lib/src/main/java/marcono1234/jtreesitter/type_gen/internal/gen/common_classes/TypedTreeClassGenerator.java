@@ -52,11 +52,11 @@ public class TypedTreeClassGenerator {
     }
 
     private void generateJavadoc(TypeSpec.Builder typeBuilder, GenNodeType rootNodeType) {
-        var jtreesitterNode = codeGenHelper.jtreesitterConfig().node();
+        var jtreesitterTree = codeGenHelper.jtreesitterConfig().tree();
         var typedNode = codeGenHelper.typedNodeConfig();
 
         typeBuilder.addJavadoc("A 'typed parse-tree', with expected root node {@link $T $L}.", rootNodeType.getJavaTypeName(), CodeGenHelper.escapeJavadocText(rootNodeType.getTypeName()));
-        typeBuilder.addJavadoc(" jtreesitter {@link $T} can be converted to a typed tree with {@link #$N}.", jtreesitterNode.className(), config.methodFromTree());
+        typeBuilder.addJavadoc(" A jtreesitter {@link $T} can be converted to a typed tree with {@link #$N}.", jtreesitterTree.className(), config.methodFromTree());
 
         typeBuilder.addJavadoc("\n\n<p>Individual jtreesitter nodes can be converted to a typed node with {@link $T#$N},", typedNode.className(), typedNode.methodFromNode());
         typeBuilder.addJavadoc(" or the {@code $N} method of the specific typed node classes.", typedNode.methodFromNode());
