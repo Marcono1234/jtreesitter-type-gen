@@ -4,6 +4,7 @@ import com.palantir.javapoet.*;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.NodeUtilsGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.common_classes.TypedNodeInterfaceGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.*;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomJavadocProviderImpl.SpecificCustomJavadocProvider;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.Type;
 import org.jspecify.annotations.Nullable;
 
@@ -72,20 +73,25 @@ public sealed interface GenChildType {
      */
     List<TypeBuilderWithName> generateJavaTypes(CodeGenHelper codeGenHelper, String childGetterName);
 
-    interface ChildTypeNameGenerator {
-        String generateInterfaceName(List<String> allChildTypes);
+    interface ChildTypeConfigProvider {
+        String generateInterfaceName();
+        Optional<String> getInterfaceCustomJavadoc(CustomJavadocProviderImpl customJavadocProvider);
+
         String generateTokenClassName(List<String> tokenTypesNames);
+        Optional<String> getTokenClassCustomJavadoc(CustomJavadocProviderImpl customJavadocProvider, List<String> tokenTypesNames);
+
         String generateTokenTypeConstantName(String tokenType, int index);
+        Optional<String> getTokenTypeCustomJavadoc(CustomJavadocProviderImpl customJavadocProvider, String tokenType);
     }
 
     interface ChildCustomMethodsProvider {
-        List<CustomMethodData> createCustomMethods(List<String> allChildTypes);
+        List<CustomMethodData> createCustomMethods();
     }
 
     static GenChildType create(
         GenRegularNodeType enclosingNodeType,
         List<Type> types,
-        ChildTypeNameGenerator nameGenerator,
+        ChildTypeConfigProvider configProvider,
         TypeNameCreator typeNameCreator,
         NodeTypeLookup nodeTypeLookup,
         Consumer<GenJavaType> additionalTypedNodeSubtypeCollector,
@@ -125,20 +131,22 @@ public sealed interface GenChildType {
             // This is generated as Java class and not as interface, so there is no need to implement it as top-level
             // because there won't be cyclic inheritance
             BooleanSupplier mustBeTopLevel = () -> false;
-            String javaName = nameGenerator.generateTokenClassName(nonNamedTypes);
+            String javaName = configProvider.generateTokenClassName(nonNamedTypes);
             ClassName javaTypeName = typeNameCreator.createChildClassName(enclosingNodeType.getJavaTypeName(), javaName, mustBeTopLevel);
 
-            SequencedMap<String, String> tokensToJavaConstants = new LinkedHashMap<>();
+            SequencedMap<String, UnnamedTokensChildType.TokenConstant> tokensToJavaConstants = new LinkedHashMap<>();
             for (int i = 0; i < nonNamedTypes.size(); i++) {
                 String tokenType = nonNamedTypes.get(i);
-                String constantName = nameGenerator.generateTokenTypeConstantName(tokenType, i);
-                var existing = tokensToJavaConstants.put(tokenType, constantName);
+                String constantName = configProvider.generateTokenTypeConstantName(tokenType, i);
+                SpecificCustomJavadocProvider customJavadocProvider = javadocProvider -> configProvider.getTokenTypeCustomJavadoc(javadocProvider, tokenType);
+                var existing = tokensToJavaConstants.put(tokenType, new UnnamedTokensChildType.TokenConstant(constantName, customJavadocProvider));
                 if (existing != null) {
                     throw new IllegalArgumentException("Duplicate non-named type '%s' for enclosing type '%s'".formatted(tokenType, enclosingNodeType.getTypeName()));
                 }
             }
 
-            tokensChildType = new UnnamedTokensChildType(enclosingNodeType, javaTypeName, tokensToJavaConstants);
+            SpecificCustomJavadocProvider customJavadocProvider = javadocProvider -> configProvider.getTokenClassCustomJavadoc(javadocProvider, nonNamedTypes);
+            tokensChildType = new UnnamedTokensChildType(enclosingNodeType, javaTypeName, tokensToJavaConstants, customJavadocProvider);
 
             if (namedTypes.isEmpty()) {
                 // Only add tokensChildType at this place, if `namedTypes.isEmpty()`; otherwise if it is part of MultiChildType,
@@ -160,9 +168,7 @@ public sealed interface GenChildType {
             // permit this either when Child is a nested class
             || genTypes.stream().anyMatch(t -> t.refersToType(enclosingNodeType, new HashSet<>()));
 
-        // Note: Uses `types` here (instead of `namedTypes`), which includes non-named types (if any) as well
-        List<String> allTypesNames = types.stream().map(t -> t.type).toList();
-        String javaName = nameGenerator.generateInterfaceName(allTypesNames);
+        String javaName = configProvider.generateInterfaceName();
         /*
          * Must use a Supplier here to delay creation of the type name, because `mustBeTopLevel` can only be evaluated once
          * children of referenced types have been populated
@@ -175,9 +181,10 @@ public sealed interface GenChildType {
         Supplier<ClassName> javaTypeNameSupplier = () -> typeNameCreator.createChildClassName(enclosingNodeType.getJavaTypeName(), javaName, mustBeTopLevel);
         javaTypeNameSupplier = new MemoizedSupplier<>(javaTypeNameSupplier);
 
-        var customMethods = customMethodsProvider.createCustomMethods(allTypesNames);
+        var customMethods = customMethodsProvider.createCustomMethods();
 
-        MultiChildType childType = new MultiChildType(genTypes, tokensChildType, enclosingNodeType, javaTypeNameSupplier, customMethods, new ArrayList<>());
+        SpecificCustomJavadocProvider customJavadocProvider = configProvider::getInterfaceCustomJavadoc;
+        MultiChildType childType = new MultiChildType(genTypes, tokensChildType, enclosingNodeType, javaTypeNameSupplier, customMethods, new ArrayList<>(), customJavadocProvider);
         additionalTypedNodeSubtypeCollector.accept(childType);
         genTypes.forEach(t -> t.addInterfaceToImplement(childType));
         return childType;
@@ -247,20 +254,30 @@ public sealed interface GenChildType {
      * and then an enclosing {@code ChildType{Node, TokenType}}.
      */
     final class UnnamedTokensChildType implements GenChildType, GenJavaType {
+        record TokenConstant(String constantName, SpecificCustomJavadocProvider customJavadocProvider) {
+        }
+        
         private final GenRegularNodeType enclosingNodeType;
         private final ClassName javaTypeName;
-        /** Map from token type name to Java constant name */
+        /** Map from token type name to Java constant config */
         // SequencedMap for deterministic order
-        private final SequencedMap<String, String> tokensToJavaConstants;
+        private final SequencedMap<String, TokenConstant> tokensToJavaConstants;
         /** Initialized after construction */
         @Nullable
         private GenJavaInterface interfaceToImplement;
+        private final SpecificCustomJavadocProvider customJavadocProvider;
 
-        public UnnamedTokensChildType(GenRegularNodeType enclosingNodeType, ClassName javaTypeName, SequencedMap<String, String> tokensToJavaConstants) {
+        UnnamedTokensChildType(
+            GenRegularNodeType enclosingNodeType,
+            ClassName javaTypeName,
+            SequencedMap<String, TokenConstant> tokensToJavaConstants,
+            SpecificCustomJavadocProvider customJavadocProvider
+        ) {
             this.enclosingNodeType = enclosingNodeType;
             this.javaTypeName = javaTypeName;
             this.tokensToJavaConstants = tokensToJavaConstants;
             this.interfaceToImplement = null;
+            this.customJavadocProvider = customJavadocProvider;
         }
 
         /**
@@ -339,15 +356,17 @@ public sealed interface GenChildType {
             typeBuilder.addJavadoc("\n<ul>");
             for (var token : tokensToJavaConstants.entrySet()) {
                 String typeName = token.getKey();
-                String constantName = token.getValue();
+                var tokenConstant = token.getValue();
+                String constantName = tokenConstant.constantName();
+                var tokenJavadoc = tokenConstant.customJavadocProvider().getJavadoc(codeGenHelper.customJavadocProvider());
 
                 // Add to enum Javadoc
                 typeBuilder.addJavadoc("\n<li>{@link #$N '$L'}", constantName, CodeGenHelper.escapeJavadocText(typeName));
 
-                var enumConstant = TypeSpec.anonymousClassBuilder("$S", typeName)
-                    .addJavadoc(CodeGenHelper.createJavadocCodeTag(typeName))
-                    .build();
-                typeBuilder.addEnumConstant(constantName, enumConstant);
+                var enumConstantBuilder = TypeSpec.anonymousClassBuilder("$S", typeName)
+                    .addJavadoc(CodeGenHelper.createJavadocCodeTag(typeName));
+                tokenJavadoc.ifPresent(enumConstantBuilder::addJavadoc);
+                typeBuilder.addEnumConstant(constantName, enumConstantBuilder.build());
             }
             typeBuilder.addJavadoc("\n</ul>");
 
@@ -390,9 +409,11 @@ public sealed interface GenChildType {
             typeBuilder.addMethod(toStringMethod);
         }
 
-        private void generateJavadoc(TypeSpec.Builder typeBuilder, String childGetterName, String tokenGetterName) {
+        private void generateJavadoc(TypeSpec.Builder typeBuilder, String childGetterName, String tokenGetterName, CustomJavadocProviderImpl customJavadocProvider) {
             typeBuilder.addJavadoc("Child node type without name, returned by {@link $T#$N}.\n", enclosingNodeType.getJavaTypeName(), childGetterName);
             typeBuilder.addJavadoc("<p>The type of the node can be obtained using {@link #$N}.", tokenGetterName);
+            
+            this.customJavadocProvider.getJavadoc(customJavadocProvider).ifPresent(typeBuilder::addJavadoc);
         }
 
         @Override
@@ -406,7 +427,7 @@ public sealed interface GenChildType {
             }
 
             String tokenGetterName = codeGenHelper.tokenEnumConfig().enclosingMethodGetToken();
-            generateJavadoc(typeBuilder, childGetterName, tokenGetterName);
+            generateJavadoc(typeBuilder, childGetterName, tokenGetterName, codeGenHelper.customJavadocProvider());
 
             if (interfaceToImplement == null) {
                 typeBuilder.addSuperinterface(codeGenHelper.typedNodeConfig().className());
@@ -471,7 +492,8 @@ public sealed interface GenChildType {
         Supplier<ClassName> javaTypeNameSupplier,
         List<CustomMethodData> customMethods,
         // commonMethods are populated after construction
-        List<GeneratedMethod> commonMethods
+        List<GeneratedMethod> commonMethods,
+        SpecificCustomJavadocProvider customJavadocProvider
     ) implements GenChildType, GenJavaInterface {
         public MultiChildType {
             if (tokensChildType != null) {
@@ -531,6 +553,8 @@ public sealed interface GenChildType {
             codeGenHelper.addJavadocTypeMapping(typeBuilder, types, tokensChildType);
 
             CustomMethodData.createCustomMethodsJavadocSection(customMethods).ifPresent(typeBuilder::addJavadoc);
+
+            customJavadocProvider.getJavadoc(codeGenHelper.customJavadocProvider()).ifPresent(typeBuilder::addJavadoc);
         }
 
         @Override

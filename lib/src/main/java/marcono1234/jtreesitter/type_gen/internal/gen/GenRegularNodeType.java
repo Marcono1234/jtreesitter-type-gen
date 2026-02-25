@@ -41,6 +41,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
     ) {
     }
 
+    /** Node type name, as defined in the Tree-sitter grammar */
     private final String typeName;
     private final boolean isExtra;
     private final ClassName javaTypeName;
@@ -276,7 +277,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
         );
     }
 
-    private void generateJavadoc(TypeSpec.Builder typeBuilder) {
+    private void generateJavadoc(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper) {
         typeBuilder.addJavadoc("Type {@value #$N}.", javaClassMembers.typeNameConstant());
 
         if (children != null) {
@@ -294,6 +295,8 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
         }
 
         CustomMethodData.createCustomMethodsJavadocSection(javaClassMembers.customMethods()).ifPresent(typeBuilder::addJavadoc);
+
+        codeGenHelper.customJavadocProvider().forNodeType(typeName).ifPresent(typeBuilder::addJavadoc);
     }
 
     @Override
@@ -310,7 +313,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
             typeBuilder.addSuperinterface(superInterface.getJavaTypeName());
         }
 
-        generateJavadoc(typeBuilder);
+        generateJavadoc(typeBuilder, codeGenHelper);
 
         typeBuilder.addField(CodeGenHelper.createTypeNameConstantField(typeName, javaClassMembers.typeNameConstant()));
         if (codeGenHelper.generatesNumericIdConstants()) {

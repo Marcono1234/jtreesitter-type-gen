@@ -53,4 +53,12 @@ class TypeNameTest {
         e = assertThrows(IllegalArgumentException.class, () -> TypeName.fromClass(String[].class));
         assertEquals("Array classes are not supported", e.getMessage());
     }
+
+    @Test
+    void qualifiedSourceName() {
+        assertEquals("MyClass", TypeName.fromQualifiedName("MyClass").qualifiedSourceName());
+        assertEquals("MyClass.Nested", TypeName.fromQualifiedName("MyClass$Nested").qualifiedSourceName());
+        assertEquals("mypackage.MyClass.Nested.Inner", TypeName.fromQualifiedName("mypackage.MyClass$Nested$Inner").qualifiedSourceName());
+        assertEquals("java.util.Map.Entry", TypeName.fromClass(Map.Entry.class).qualifiedSourceName());
+    }
 }

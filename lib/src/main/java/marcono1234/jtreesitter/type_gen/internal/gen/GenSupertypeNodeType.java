@@ -41,6 +41,7 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
     ) {
     }
 
+    /** Node type name, as defined in the Tree-sitter grammar */
     private final String typeName;
     private final boolean isExtra;
     private final ClassName javaTypeName;
@@ -192,6 +193,8 @@ public final class GenSupertypeNodeType implements GenJavaInterface, GenNodeType
         codeGenHelper.addJavadocTypeMapping(typeBuilder, subtypes, null);
 
         CustomMethodData.createCustomMethodsJavadocSection(javaClassMembers.customMethods()).ifPresent(typeBuilder::addJavadoc);
+
+        codeGenHelper.customJavadocProvider().forNodeType(typeName).ifPresent(typeBuilder::addJavadoc);
     }
 
     private void getAllSubtypeClasses(Consumer<GenRegularNodeType> consumer) {

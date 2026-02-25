@@ -42,15 +42,19 @@ public class CodeGenHelper {
     private final LanguageUtilsConfigData languageUtilsConfigData;
     private final TypeNameCreator typeNameCreator;
 
+    private final CustomJavadocProviderImpl customJavadocProvider;
+
     @Nullable
     private final AnnotationSpec nullableAnnotation;
     private final Instant generationTime;
 
-    public CodeGenHelper(CodeGenConfig config, CodeGenerator.Version versionInfo, @Nullable LanguageUtilsConfigData languageUtilsConfigData, TypeNameCreator typeNameCreator) {
+    public CodeGenHelper(CodeGenConfig config, CodeGenerator.Version versionInfo, @Nullable LanguageUtilsConfigData languageUtilsConfigData, TypeNameCreator typeNameCreator, NodeTypeLookup nodeTypeLookup) {
         this.config = config;
         this.versionInfo = versionInfo;
         this.languageUtilsConfigData = languageUtilsConfigData;
         this.typeNameCreator = typeNameCreator;
+
+        this.customJavadocProvider = new CustomJavadocProviderImpl(config.customJavadocProvider().orElse(null), nodeTypeLookup);
 
         nullableAnnotation = this.typeNameCreator.getNullableAnnotation();
         generationTime = this.config.generatedAnnotationConfig().flatMap(c -> c.generationTime()).orElseGet(Instant::now);
@@ -257,6 +261,10 @@ public class CodeGenHelper {
             builder.addJavadoc("\n<li>{@linkplain $T <i>tokens</i>}", tokensType.getJavaTypeName());
         }
         builder.addJavadoc("\n</ul>");
+    }
+
+    public CustomJavadocProviderImpl customJavadocProvider() {
+        return customJavadocProvider;
     }
 
     /**

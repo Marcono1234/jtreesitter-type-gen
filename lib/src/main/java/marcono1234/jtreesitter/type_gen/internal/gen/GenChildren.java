@@ -4,6 +4,7 @@ import com.palantir.javapoet.*;
 import marcono1234.jtreesitter.type_gen.CodeGenerator;
 import marcono1234.jtreesitter.type_gen.NameGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.*;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomJavadocProviderImpl.SpecificCustomJavadocProvider;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.ChildType;
 
 import javax.lang.model.element.Modifier;
@@ -20,8 +21,8 @@ public class GenChildren {
     /**
      * Information about the getter method for retrieving the children, generated in the parent.
      */
-    private record Getter(String methodName, Supplier<TypeName> returnType) {
-        public static Getter create(String methodName, TypeNameCreator typeNameCreator, Supplier<? extends TypeName> baseReturnType, boolean multiple, boolean required) {
+    private record Getter(String methodName, Supplier<TypeName> returnType, SpecificCustomJavadocProvider customJavadocProvider) {
+        public static Getter create(String methodName, TypeNameCreator typeNameCreator, Supplier<? extends TypeName> baseReturnType, boolean multiple, boolean required, SpecificCustomJavadocProvider customJavadocProvider) {
             // Must delay creation of the return type because it is not available until the children of all node types have been populated
             Supplier<TypeName> returnTypeSupplier = () -> {
                 TypeName returnType = baseReturnType.get();
@@ -38,7 +39,7 @@ public class GenChildren {
                 return returnType;
             };
             returnTypeSupplier = new MemoizedSupplier<>(returnTypeSupplier);
-            return new Getter(methodName, returnTypeSupplier);
+            return new Getter(methodName, returnTypeSupplier, customJavadocProvider);
         }
     }
 
@@ -54,9 +55,9 @@ public class GenChildren {
         this.required = required;
     }
 
-    protected GenChildren(String getterName, TypeNameCreator typeNameCreator, GenChildType type, boolean multiple, boolean required) {
+    protected GenChildren(String getterName, TypeNameCreator typeNameCreator, GenChildType type, boolean multiple, boolean required, SpecificCustomJavadocProvider getterCustomJavadocProvider) {
         this(
-            Getter.create(getterName, typeNameCreator, type.getJavaTypeNameSupplier(), multiple, required),
+            Getter.create(getterName, typeNameCreator, type.getJavaTypeNameSupplier(), multiple, required, getterCustomJavadocProvider),
             type,
             multiple,
             required
@@ -164,12 +165,15 @@ public class GenChildren {
         }
     }
 
-    protected void generateChildrenMethodJavadoc(MethodSpec.Builder methodBuilder) {
+    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+    protected void generateChildrenMethodJavadoc(MethodSpec.Builder methodBuilder, Optional<String> customJavadoc) {
         methodBuilder.addJavadoc("Retrieves the children nodes.");
         methodBuilder.addJavadoc("\n<ul>");
         methodBuilder.addJavadoc("\n<li>multiple: $L", multiple);
         methodBuilder.addJavadoc("\n<li>required: $L", required);
         methodBuilder.addJavadoc("\n</ul>");
+
+        customJavadoc.ifPresent(methodBuilder::addJavadoc);
     }
 
     /**
@@ -184,7 +188,8 @@ public class GenChildren {
             .addModifiers(Modifier.PUBLIC);
 
         generateChildrenMethodBody(getterMethodBuilder, codeGenHelper, nodeFieldName);
-        generateChildrenMethodJavadoc(getterMethodBuilder);
+        var getterCustomJavadoc = getter.customJavadocProvider().getJavadoc(codeGenHelper.customJavadocProvider());
+        generateChildrenMethodJavadoc(getterMethodBuilder, getterCustomJavadoc);
         var getterMethod = getterMethodBuilder.build();
         assert getGetterGeneratedMethod().matchesMethodSpec(getterMethod);
 
@@ -233,32 +238,53 @@ public class GenChildren {
         List<String> childrenTypesNames = childTypeRaw.types.stream().map(t -> t.type).toList();
         String getterName = nameGenerator.generateChildrenGetterName(parentTypeName, childrenTypesNames, multiple, required);
 
-        var childTypeNameGenerator = new GenChildType.ChildTypeNameGenerator() {
+        var childTypeConfigProvider = new GenChildType.ChildTypeConfigProvider() {
             @Override
-            public String generateInterfaceName(List<String> allChildTypes) {
-                return nameGenerator.generateChildrenTypesName(parentTypeName, allChildTypes);
+            public String generateInterfaceName() {
+                return nameGenerator.generateChildrenTypesName(parentTypeName, childrenTypesNames);
             }
 
-            // Note: Currently effectively unused, see `!t.named` check and comment at beginning of method above
+            @Override
+            public Optional<String> getInterfaceCustomJavadoc(CustomJavadocProviderImpl customJavadocProvider) {
+                return customJavadocProvider.forNodeChildrenInterface(parentTypeName, childrenTypesNames);
+            }
+
+            /*
+             * Note: The following methods for token types are effectively unused, see `!t.named` check and
+             * comment at beginning of method above
+             */
+
             @Override
             public String generateTokenClassName(List<String> tokenTypesNames) {
                 return nameGenerator.generateChildrenTokenTypeName(parentTypeName, tokenTypesNames);
             }
 
-            // Note: Currently effectively unused, see `!t.named` check and comment at beginning of method above
+            @Override
+            public Optional<String> getTokenClassCustomJavadoc(CustomJavadocProviderImpl customJavadocProvider, List<String> tokenTypesNames) {
+                return customJavadocProvider.forNodeChildrenTokenClass(parentTypeName, tokenTypesNames);
+            }
+
             @Override
             public String generateTokenTypeConstantName(String tokenType, int index) {
                 return nameGenerator.generateChildrenTokenName(parentTypeName, tokenType, index);
             }
-        };
-        var childCustomMethodsProvider = new GenChildType.ChildCustomMethodsProvider() {
+
             @Override
-            public List<CustomMethodData> createCustomMethods(List<String> allChildTypes) {
-                return customMethodsProvider.customMethodsForNodeChildrenType(parentTypeName, allChildTypes);
+            public Optional<String> getTokenTypeCustomJavadoc(CustomJavadocProviderImpl customJavadocProvider, String tokenType) {
+                return customJavadocProvider.forNodeChildrenToken(parentTypeName, tokenType);
             }
         };
-        var childType = GenChildType.create(enclosingNodeType, childTypeRaw.types, childTypeNameGenerator, typeNameCreator, nodeTypeLookup, additionalTypedNodeSubtypeCollector, childCustomMethodsProvider);
 
-        return new GenChildren(getterName, typeNameCreator, childType, multiple, required);
+        var childCustomMethodsProvider = new GenChildType.ChildCustomMethodsProvider() {
+            @Override
+            public List<CustomMethodData> createCustomMethods() {
+                return customMethodsProvider.customMethodsForNodeChildrenInterface(parentTypeName, childrenTypesNames);
+            }
+        };
+
+        var childType = GenChildType.create(enclosingNodeType, childTypeRaw.types, childTypeConfigProvider, typeNameCreator, nodeTypeLookup, additionalTypedNodeSubtypeCollector, childCustomMethodsProvider);
+        SpecificCustomJavadocProvider getterCustomJavadocProvider = javadocProvider -> javadocProvider.forNodeChildrenGetter(parentTypeName, childrenTypesNames);
+
+        return new GenChildren(getterName, typeNameCreator, childType, multiple, required, getterCustomJavadocProvider);
     }
 }

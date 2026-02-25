@@ -53,6 +53,9 @@ import java.util.function.Consumer;
  *      Determines the names for the generated 'typed query' code. The generated code allows building a Tree-sitter
  *      query and consuming captures, both in a type-safe way.<br>
  *      If an empty {@link Optional} is given, no 'typed query' code will be generated.
+ * @param customJavadocProvider
+ *      Provides custom Javadoc text for the elements in the generated code.<br>
+ *      If an empty {@link Optional} is given, no custom Javadoc will be added.
  * @param customMethodsProvider
  *      Provides the configuration for custom methods to be added to the generated classes.<br>
  *      If an empty {@link Optional} is given, no custom methods will be added.
@@ -76,6 +79,7 @@ public record CodeGenConfig(
     // This config for `findNodes()` mainly exists at the request of users (see https://github.com/Marcono1234/jtreesitter-type-gen/issues/4)
     boolean generateFindNodesMethods,
     Optional<TypedQueryNameGenerator> typedQueryNameGenerator,
+    Optional<CustomJavadocProvider> customJavadocProvider,
     Optional<CustomMethodsProvider> customMethodsProvider,
     Optional<GeneratedAnnotationConfig> generatedAnnotationConfig
 ) {
@@ -90,8 +94,11 @@ public record CodeGenConfig(
 
         JavaNameValidator.checkTypeName(nonEmptyTypeName, false);
         Objects.requireNonNull(childTypeAsTopLevel);
+        Objects.requireNonNull(typedNodeSuperinterface);
         nameGenerator = validatingNameGenerator(nameGenerator);
         typedQueryNameGenerator = typedQueryNameGenerator.map(CodeGenConfig::validatingTypedQueryNameGenerator);
+        Objects.requireNonNull(customJavadocProvider);
+        Objects.requireNonNull(customMethodsProvider);
         Objects.requireNonNull(generatedAnnotationConfig);
     }
 
@@ -121,6 +128,7 @@ public record CodeGenConfig(
      * <li>{@link CodeGenConfig#nameGenerator() nameGenerator}: {@link NameGenerator.DefaultNameGenerator}
      * <li>{@link CodeGenConfig#generateFindNodesMethods() generateFindNodesMethods}: true
      * <li>{@link CodeGenConfig#typedQueryNameGenerator() typedQueryNameGenerator}: none (that means no 'typed query' code is generated)
+     * <li>{@link CodeGenConfig#customJavadocProvider() customJavadocProvider}: none
      * <li>{@link CodeGenConfig#customMethodsProvider() customMethodsProvider}: none
      * <li>{@link CodeGenConfig#generatedAnnotationConfig() generatedAnnotationConfig}: Javax {@link Generated @Generated}, using the current time (when code generation is performed) as 'generation time'
      * </ul>
@@ -229,6 +237,16 @@ public record CodeGenConfig(
             return this;
         }
 
+        private Optional<CustomJavadocProvider> customJavadocProvider = Optional.empty();
+
+        /**
+         * @see CodeGenConfig#customJavadocProvider()
+         */
+        public Builder customJavadocProvider(CustomJavadocProvider customJavadocProvider) {
+            this.customJavadocProvider = Optional.of(customJavadocProvider);
+            return this;
+        }
+
         private Optional<CustomMethodsProvider> customMethodsProvider = Optional.empty();
 
         /**
@@ -284,6 +302,7 @@ public record CodeGenConfig(
                 nameGenerator,
                 generateFindNodesMethods,
                 typedQueryNameGenerator,
+                customJavadocProvider,
                 customMethodsProvider,
                 generatedAnnotationConfig
             );

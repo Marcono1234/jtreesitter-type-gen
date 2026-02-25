@@ -6,11 +6,13 @@ import com.palantir.javapoet.MethodSpec;
 import com.palantir.javapoet.TypeSpec;
 import marcono1234.jtreesitter.type_gen.NameGenerator;
 import marcono1234.jtreesitter.type_gen.internal.gen.utils.*;
+import marcono1234.jtreesitter.type_gen.internal.gen.utils.CustomJavadocProviderImpl.SpecificCustomJavadocProvider;
 import marcono1234.jtreesitter.type_gen.internal.node_types_json.ChildType;
 
 import javax.lang.model.element.Modifier;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 /**
@@ -34,8 +36,18 @@ public class GenField extends GenChildren {
      */
     private final String fieldIdConstant;
 
-    private GenField(String fieldName, String fieldNameConstant, String fieldIdConstant, String getterName, TypeNameCreator typeNameCreator, GenChildType type, boolean multiple, boolean required) {
-        super(getterName, typeNameCreator, type, multiple, required);
+    private GenField(
+        String fieldName,
+        String fieldNameConstant,
+        String fieldIdConstant,
+        String getterName,
+        TypeNameCreator typeNameCreator,
+        GenChildType type,
+        boolean multiple,
+        boolean required,
+        SpecificCustomJavadocProvider getterCustomJavadocProvider
+    ) {
+        super(getterName, typeNameCreator, type, multiple, required, getterCustomJavadocProvider);
         this.fieldName = fieldName;
         this.fieldNameConstant = fieldNameConstant;
         this.fieldIdConstant = fieldIdConstant;
@@ -57,12 +69,14 @@ public class GenField extends GenChildren {
     }
 
     @Override
-    protected void generateChildrenMethodJavadoc(MethodSpec.Builder methodBuilder) {
+    protected void generateChildrenMethodJavadoc(MethodSpec.Builder methodBuilder, Optional<String> customJavadoc) {
         methodBuilder.addJavadoc("Retrieves the nodes of field {@value #$N}.", fieldNameConstant);
         methodBuilder.addJavadoc("\n<ul>");
         methodBuilder.addJavadoc("\n<li>multiple: $L", multiple);
         methodBuilder.addJavadoc("\n<li>required: $L", required);
         methodBuilder.addJavadoc("\n</ul>");
+
+        customJavadoc.ifPresent(methodBuilder::addJavadoc);
     }
 
     @Override
@@ -125,11 +139,15 @@ public class GenField extends GenChildren {
         String idConstant = nameGenerator.generateFieldIdConstant(parentTypeName, fieldName);
         String getterName = nameGenerator.generateFieldGetterName(parentTypeName, fieldName, multiple, required);
 
-        var fieldTypeNameGenerator = new GenChildType.ChildTypeNameGenerator() {
+        var fieldTypeConfigProvider = new GenChildType.ChildTypeConfigProvider() {
             @Override
-            public String generateInterfaceName(List<String> allChildTypes) {
-                // For now ignore `allChildTypes` for name generation since field name probably suffices
+            public String generateInterfaceName() {
                 return nameGenerator.generateFieldTypesName(parentTypeName, fieldName);
+            }
+
+            @Override
+            public Optional<String> getInterfaceCustomJavadoc(CustomJavadocProviderImpl customJavadocProvider) {
+                return customJavadocProvider.forNodeFieldInterface(parentTypeName, fieldName);
             }
 
             @Override
@@ -138,19 +156,30 @@ public class GenField extends GenChildren {
             }
 
             @Override
+            public Optional<String> getTokenClassCustomJavadoc(CustomJavadocProviderImpl customJavadocProvider, List<String> tokenTypesNames) {
+                return customJavadocProvider.forNodeFieldTokenClass(parentTypeName, fieldName, tokenTypesNames);
+            }
+
+            @Override
             public String generateTokenTypeConstantName(String tokenType, int index) {
                 return nameGenerator.generateFieldTokenName(parentTypeName, fieldName, tokenType, index);
+            }
+
+            @Override
+            public Optional<String> getTokenTypeCustomJavadoc(CustomJavadocProviderImpl customJavadocProvider, String tokenType) {
+                return customJavadocProvider.forNodeFieldToken(parentTypeName, fieldName, tokenType);
             }
         };
         var childCustomMethodsProvider = new GenChildType.ChildCustomMethodsProvider() {
             @Override
-            public List<CustomMethodData> createCustomMethods(List<String> allChildTypes) {
-                // For now ignore `allChildTypes` for obtaining custom methods since field name probably suffices
-                return customMethodsProvider.customMethodsForNodeFieldType(parentTypeName, fieldName);
+            public List<CustomMethodData> createCustomMethods() {
+                return customMethodsProvider.customMethodsForNodeFieldInterface(parentTypeName, fieldName);
             }
         };
-        var fieldType = GenChildType.create(enclosingNodeType, fieldTypeRaw.types, fieldTypeNameGenerator, typeNameCreator, nodeTypeLookup, additionalTypedNodeSubtypeCollector, childCustomMethodsProvider);
+        var fieldType = GenChildType.create(enclosingNodeType, fieldTypeRaw.types, fieldTypeConfigProvider, typeNameCreator, nodeTypeLookup, additionalTypedNodeSubtypeCollector, childCustomMethodsProvider);
 
-        return new GenField(fieldName, nameConstant, idConstant, getterName, typeNameCreator, fieldType, multiple, required);
+        SpecificCustomJavadocProvider getterCustomJavadocProvider = javadocProvider -> javadocProvider.forNodeFieldGetter(parentTypeName, fieldName);
+
+        return new GenField(fieldName, nameConstant, idConstant, getterName, typeNameCreator, fieldType, multiple, required, getterCustomJavadocProvider);
     }
 }

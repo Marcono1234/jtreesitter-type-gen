@@ -1,0 +1,108 @@
+[
+  {
+    "type": "super",
+    "named": true,
+    "subtypes": [
+      {
+        "type": "my_node_a",
+        "named": true
+      },
+      {
+        "type": "my_node_b",
+        "named": true
+      }
+    ]
+  },
+  {
+    "type": "my_node_a",
+    "named": true,
+    "root": true,
+    "fields": {
+      "single": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "my_node_a",
+            "named": true
+          }
+        ]
+      },
+      "multi": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "my_node_a",
+            "named": true
+          },
+          {
+            "type": "my_node_b",
+            "named": true
+          }
+        ]
+      },
+      "tokens": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "+",
+            "named": false
+          },
+          {
+            "type": "-",
+            "named": false
+          }
+        ]
+      },
+      "mixed": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "my_node_a",
+            "named": true
+          },
+          {
+            "type": "+",
+            "named": false
+          },
+          {
+            "type": "-",
+            "named": false
+          }
+        ]
+      }
+    },
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "my_node_a",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "my_node_b",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": false,
+      "required": true,
+      "types": [
+        {
+          "type": "my_node_a",
+          "named": true
+        },
+        {
+          "type": "my_node_b",
+          "named": true
+        }
+      ]
+    }
+  }
+]

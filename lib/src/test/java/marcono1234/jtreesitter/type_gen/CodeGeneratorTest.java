@@ -122,6 +122,8 @@ class CodeGeneratorTest {
         var typedQueryNameGenerator = baseFileName.contains("(typed-query)") ? TypedQueryNameGenerator.createDefault(nameGenerator)
             : null;
 
+        var customJavadocProvider = baseFileName.contains("(custom-javadoc)") ? new DummyCustomJavadocProvider() : null;
+
         var customMethodsProvider = baseFileName.contains("(custom-methods)") ? new DummyCustomMethodsProvider() : null;
 
         var config = new CodeGenConfig(
@@ -134,6 +136,7 @@ class CodeGeneratorTest {
             nameGenerator,
             findNodesMethods,
             Optional.ofNullable(typedQueryNameGenerator),
+            Optional.ofNullable(customJavadocProvider),
             Optional.ofNullable(customMethodsProvider),
             Optional.of(GENERATED_ANNOTATION_CONFIG)
         );
@@ -229,6 +232,67 @@ class CodeGeneratorTest {
     private static final String DUMMY_LANGUAGE_PROVIDER_NAME = "org.example.lang.LangProvider";
     private static final String DUMMY_CUSTOM_METHODS_IMPL = "org.example.custom.CustomMethods";
 
+    private static class DummyCustomJavadocProvider implements CustomJavadocProvider {
+        private static String typeName(TypeNameLookup typeNameLookup, String nodeType) {
+            return nodeType + ": " + typeNameLookup.getTypeName(nodeType).map(TypeName::qualifiedSourceName).orElse("'unknown'");
+        }
+
+        @Override
+        public Optional<String> forTypedTree(TypeNameLookup typeNameLookup) {
+            return Optional.of("typed tree");
+        }
+
+        @Override
+        public Optional<String> forTypedNode(TypeNameLookup typeNameLookup) {
+            return Optional.of("typed node\n" + typeName(typeNameLookup, "my_node_a") + "\n" + typeName(typeNameLookup, "unknown_node"));
+        }
+
+        @Override
+        public Optional<String> forNodeType(String nodeType, TypeNameLookup typeNameLookup) {
+            return Optional.of("own node type: " + nodeType + "\n" + typeName(typeNameLookup, nodeType));
+        }
+
+        @Override
+        public Optional<String> forNodeChildrenGetter(String parentNodeType, List<String> childrenNodeTypes, TypeNameLookup typeNameLookup) {
+            return Optional.of("children getter\n" + parentNodeType + "\n" + String.join(" ", childrenNodeTypes));
+        }
+
+        @Override
+        public Optional<String> forNodeChildrenInterface(String parentNodeType, List<String> childrenNodeTypes, TypeNameLookup typeNameLookup) {
+            return Optional.of("children interface\n" +  parentNodeType + "\n" + String.join(" ", childrenNodeTypes));
+        }
+
+        @Override
+        public Optional<String> forNodeChildrenTokenClass(String parentNodeType, List<String> tokenTypesNames, TypeNameLookup typeNameLookup) {
+            return Optional.of("children token class\n" +  parentNodeType + "\n" + String.join(" ", tokenTypesNames));
+        }
+
+        @Override
+        public Optional<String> forNodeChildrenToken(String parentNodeType, String tokenType, TypeNameLookup typeNameLookup) {
+            return Optional.of("children token\n" + parentNodeType + "\n" + tokenType);
+        }
+
+        @Override
+        public Optional<String> forNodeFieldGetter(String parentNodeType, String fieldName, TypeNameLookup typeNameLookup) {
+            return Optional.of("field getter\n" + parentNodeType + "\n" + fieldName);
+        }
+
+        @Override
+        public Optional<String> forNodeFieldInterface(String parentNodeType, String fieldName, TypeNameLookup typeNameLookup) {
+            return Optional.of("field interface\n" +  parentNodeType + "\n" + fieldName);
+        }
+
+        @Override
+        public Optional<String> forNodeFieldTokenClass(String parentNodeType, String fieldName, List<String> tokenTypesNames, TypeNameLookup typeNameLookup) {
+            return Optional.of("field token class\n" +  parentNodeType + "\n" + fieldName + "\n" + String.join(" ", tokenTypesNames));
+        }
+
+        @Override
+        public Optional<String> forNodeFieldToken(String parentNodeType, String fieldName, String tokenType, TypeNameLookup typeNameLookup) {
+            return Optional.of("field token\n" + parentNodeType + "\n" + fieldName + "\n" + tokenType);
+        }
+    }
+
     private static class DummyCustomMethodsProvider implements CustomMethodsProvider {
         private static <K, V> SequencedMap<K, V> sequencedMap(Object... keysAndValues) {
             var map = new LinkedHashMap<>();
@@ -294,7 +358,7 @@ class CodeGeneratorTest {
         }
 
         @Override
-        public List<MethodData> forNodeChildrenType(String parentNodeType, List<String> childrenNodeTypes) {
+        public List<MethodData> forNodeChildrenInterface(String parentNodeType, List<String> childrenNodeTypes) {
             return List.of(new MethodData(
                 "childrenTypeCustom",
                 List.of(),
@@ -308,7 +372,7 @@ class CodeGeneratorTest {
         }
 
         @Override
-        public List<MethodData> forNodeFieldType(String parentNodeType, String fieldName) {
+        public List<MethodData> forNodeFieldInterface(String parentNodeType, String fieldName) {
             return List.of(new MethodData(
                 "fieldTypeCustom_" + fieldName,
                 List.of(),

@@ -99,7 +99,7 @@ public class CustomMethodsConfig {
     @Nullable
     public Map<String, List<MethodConfig>> nodeTypes;
 
-    // Note: For now don't support custom methods for children and field types from the CLI since that
+    // Note: For now don't support custom methods for children and field interfaces from the CLI since that
     // is probably not that often used
 
 

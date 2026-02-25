@@ -30,6 +30,7 @@ class CodeGenConfigTest {
             DEFAULT_GENERATE_FIND_NODES_METHODS,
             Optional.empty(),
             Optional.empty(),
+            Optional.empty(),
             Optional.empty()
         ));
         assertEquals("Not a valid package name: -invalid", e.getMessage());
@@ -46,6 +47,7 @@ class CodeGenConfigTest {
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
             DEFAULT_GENERATE_FIND_NODES_METHODS,
+            Optional.empty(),
             Optional.empty(),
             Optional.empty(),
             Optional.empty()
@@ -66,6 +68,7 @@ class CodeGenConfigTest {
             DEFAULT_GENERATE_FIND_NODES_METHODS,
             Optional.empty(),
             Optional.empty(),
+            Optional.empty(),
             Optional.empty()
         ));
         assertEquals("Not a valid type name: -invalid", e.getMessage());
@@ -80,6 +83,7 @@ class CodeGenConfigTest {
             Optional.empty(),
             DEFAULT_NAME_GENERATOR,
             DEFAULT_GENERATE_FIND_NODES_METHODS,
+            Optional.empty(),
             Optional.empty(),
             Optional.empty(),
             Optional.empty()
@@ -176,6 +180,7 @@ class CodeGenConfigTest {
             assertEquals(CodeGenConfig.validatingNameGenerator(CodeGenConfig.Builder.DEFAULT_NAME_GENERATOR), config.nameGenerator());
             assertTrue(config.generateFindNodesMethods());
             assertEquals(Optional.empty(), config.typedQueryNameGenerator());
+            assertEquals(Optional.empty(), config.customJavadocProvider());
             assertEquals(Optional.empty(), config.customMethodsProvider());
 
             var defaultGeneratedAnnotation = new GeneratedAnnotationConfig(GeneratedAnnotationConfig.GeneratedAnnotationType.JAVAX_GENERATED, Optional.empty(), Optional.empty());
@@ -197,6 +202,7 @@ class CodeGenConfigTest {
             };
             var generateFindNodesMethods = false;
             var typedQueryNameGenerator = TypedQueryNameGenerator.createDefault(nameGenerator);
+            var customJavadocProvider = new CustomJavadocProvider() { };
             var customMethodsProvider = new CustomMethodsProvider() { };
             var generatedAnnotationConfig = new GeneratedAnnotationConfig(GeneratedAnnotationConfig.GeneratedAnnotationType.JAVAX_GENERATED, Optional.of(Instant.EPOCH), Optional.of("some text"));
 
@@ -208,6 +214,7 @@ class CodeGenConfigTest {
                 .nameGenerator(nameGenerator)
                 .generateFindNodesMethods(generateFindNodesMethods)
                 .typedQueryNameGenerator(typedQueryNameGenerator)
+                .customJavadocProvider(customJavadocProvider)
                 .customMethodsProvider(customMethodsProvider)
                 .generatedAnnotationConfig(generatedAnnotationConfig)
                 .build();
@@ -221,6 +228,7 @@ class CodeGenConfigTest {
             assertEquals(CodeGenConfig.validatingNameGenerator(nameGenerator), config.nameGenerator());
             assertEquals(generateFindNodesMethods, config.generateFindNodesMethods());
             assertEquals(CodeGenConfig.validatingTypedQueryNameGenerator(typedQueryNameGenerator), config.typedQueryNameGenerator().orElseThrow());
+            assertSame(customJavadocProvider, config.customJavadocProvider().orElseThrow());
             assertSame(customMethodsProvider, config.customMethodsProvider().orElseThrow());
             assertEquals(Optional.of(generatedAnnotationConfig), config.generatedAnnotationConfig());
         }

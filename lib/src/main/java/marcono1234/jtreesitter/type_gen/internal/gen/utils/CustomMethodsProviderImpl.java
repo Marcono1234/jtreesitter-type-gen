@@ -46,22 +46,22 @@ public class CustomMethodsProviderImpl {
             .toList();
     }
 
-    public List<CustomMethodData> customMethodsForNodeChildrenType(String parentNodeType, List<String> childrenNodeTypes) {
+    public List<CustomMethodData> customMethodsForNodeChildrenInterface(String parentNodeType, List<String> childrenNodeTypes) {
         if (customMethodsProvider == null) {
             return List.of();
         }
 
-        return customMethodsProvider.forNodeChildrenType(parentNodeType, childrenNodeTypes).stream()
+        return customMethodsProvider.forNodeChildrenInterface(parentNodeType, childrenNodeTypes).stream()
             .map(CustomMethodData::fromUserConfig)
             .toList();
     }
 
-    public List<CustomMethodData> customMethodsForNodeFieldType(String parentNodeType, String fieldName) {
+    public List<CustomMethodData> customMethodsForNodeFieldInterface(String parentNodeType, String fieldName) {
         if (customMethodsProvider == null) {
             return List.of();
         }
 
-        return customMethodsProvider.forNodeFieldType(parentNodeType, fieldName).stream()
+        return customMethodsProvider.forNodeFieldInterface(parentNodeType, fieldName).stream()
             .map(CustomMethodData::fromUserConfig)
             .toList();
     }

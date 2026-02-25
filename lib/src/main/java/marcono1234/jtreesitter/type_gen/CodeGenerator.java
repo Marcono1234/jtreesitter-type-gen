@@ -164,14 +164,14 @@ public class CodeGenerator {
         /*
          * Phase 1.1: Determine common methods
          */
-        var allGenInterfaces = nodeGens.typedNodeSubtypes().stream().map(t -> t instanceof GenJavaInterface i ? i : null).filter(Objects::nonNull).toList();
+        var allGenInterfaces = nodeGens.typedNodeSubtypes.stream().map(t -> t instanceof GenJavaInterface i ? i : null).filter(Objects::nonNull).toList();
         //noinspection NullableProblems; IntelliJ does not understand `Objects::nonNull` check?
         CommonMethodsGenerator.addCommonMethods(allGenInterfaces);
 
         /*
          * Phase 2: Generate code
          */
-        CodeGenHelper codeGenHelper = new CodeGenHelper(config, versionInfo, languageUtilsConfigData, typeNameCreator);
+        CodeGenHelper codeGenHelper = new CodeGenHelper(config, versionInfo, languageUtilsConfigData, typeNameCreator, nodeGens.nodeTypeLookup);
 
         var nullMarkedAnnotation = config.nullMarkedPackageAnnotationTypeName().map(CodeGenHelper::createClassName).orElse(null);
         if (nullMarkedAnnotation != null) {
@@ -187,12 +187,12 @@ public class CodeGenerator {
         codeWriter.write(new NodeUtilsGenerator(codeGenHelper).generateCode());
         codeWriter.write(new TypedNodeInterfaceGenerator(codeGenHelper, customMethodsProvider.customMethodsForTypedNode()).generateCode(
             config.typedNodeSuperinterface().map(CodeGenHelper::createClassName).orElse(null),
-            nodeGens.nodeTypes(),
-            nodeGens.typedNodeSubtypes()
+            nodeGens.nodeTypes,
+            nodeGens.typedNodeSubtypes
         ));
         codeWriter.write(new NonEmptyAnnotationGenerator(typeNameCreator).generateCode(codeGenHelper));
 
-        for (var nodeGen : nodeGens.nodeTypes()) {
+        for (var nodeGen : nodeGens.nodeTypes) {
             for (var javaCode : nodeGen.generateJavaCode(codeGenHelper)) {
                 codeWriter.write(javaCode);
             }
@@ -235,7 +235,7 @@ public class CodeGenerator {
      * @param rootNode
      *      Root node in the parse tree; one of {@code nodeTypes}; {@code null} if root node is not specified
      */
-    private record GenElements(List<GenNodeType> nodeTypes, List<GenJavaType> typedNodeSubtypes, @Nullable GenNodeType rootNode) {
+    private record GenElements(List<GenNodeType> nodeTypes, List<GenJavaType> typedNodeSubtypes, @Nullable GenNodeType rootNode, NodeTypeLookup nodeTypeLookup) {
     }
 
     private GenElements determineGenElements(
@@ -300,7 +300,7 @@ public class CodeGenerator {
         var supertypeGens = createSupertypeGens(supertypes, nameGenerator, typeNameCreator, customMethodsProvider);
 
         NodeTypeLookup nodeTypeLookup = new NodeTypeLookup() {
-            private GenNodeType getNodeType(String typeName, boolean canUseFallbackTypeName) {
+            private @Nullable GenNodeType getNodeType(String typeName, boolean canUseFallbackTypeName) {
                 var nodeGen = regularNodeGens.get(typeName);
                 if (nodeGen != null) {
                     return nodeGen;
@@ -322,11 +322,11 @@ public class CodeGenerator {
 
                     return getNodeType(fallbackTypeName, false);
                 }
-                throw new NoSuchElementException("Unknown type name: " + typeName + "\nPotential tree-sitter bug https://github.com/tree-sitter/tree-sitter/issues/1654");
+                return null;
             }
 
             @Override
-            public GenNodeType getNodeType(String typeName) throws NoSuchElementException {
+            public @Nullable GenNodeType getNodeTypeNullable(String typeName) {
                 return getNodeType(typeName, true);
             }
         };
@@ -360,7 +360,7 @@ public class CodeGenerator {
             }
         }
 
-        return new GenElements(allNodeTypeGens, typedNodeSubtypes, rootNode);
+        return new GenElements(allNodeTypeGens, typedNodeSubtypes, rootNode, nodeTypeLookup);
     }
 
     @SafeVarargs

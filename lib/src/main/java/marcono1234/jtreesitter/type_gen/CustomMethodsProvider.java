@@ -35,7 +35,7 @@ import java.util.SequencedMap;
  * }
  * }
  *
- * <p>The default implementations of the provider methods return empty lists, therefore not
+ * <p>The default implementation of the provider methods returns empty lists, therefore not
  * generating any custom methods.
  *
  * <p><b>Important:</b> In some cases custom methods will be inherited, for example the custom methods
@@ -56,10 +56,17 @@ public interface CustomMethodsProvider {
      * @param returnType
      *      return type of the custom method; empty {@code Optional} for {@code void}
      * @param javadoc
-     *      Javadoc text of the custom method<br>
-     *      Note that the Javadoc will be added as is and no additional processing will be performed.
-     *      It should therefore use line breaks to wrap long lines, and for Javadoc references such as
-     *      in {@code {@link ...}} tags qualified type names should be used.
+     *      Javadoc text of the custom method
+     *
+     *      <p>The text should use the traditional Javadoc syntax, that is the syntax inside a <code>/** ... &ast;/</code>
+     *      comment; Markdown syntax is not supported. The Javadoc text will be added as is and no additional
+     *      processing will be performed. It should therefore use line breaks to wrap long lines, and use qualified
+     *      type names when referring to Java types in {@code {@link ...}} tags and similar.
+     *
+     *      <p><b>Important:</b> Do not include untrusted content in the Javadoc text; in the worst case it could
+     *      allow an attacker to inject arbitrary Java code in the generated code. Trying to prevent this by
+     *      checking for a closing <code>&ast;/</code> is error-prone because there are ways to circumvent such
+     *      checks, for example by using Unicode escapes.
      * @param receiverType
      *      type declaring the {@code receiverMethod}
      * @param receiverMethod
@@ -123,7 +130,7 @@ public interface CustomMethodsProvider {
      * @param childrenNodeTypes
      *      names of the children node types
      */
-    default List<MethodData> forNodeChildrenType(String parentNodeType, List<String> childrenNodeTypes) {
+    default List<MethodData> forNodeChildrenInterface(String parentNodeType, List<String> childrenNodeTypes) {
         return List.of();
     }
     // TODO Also for children token type? (currently unused, see also `NameGenerator#generateChildrenTokenTypeName`)
@@ -139,7 +146,7 @@ public interface CustomMethodsProvider {
      * @param fieldName
      *      name of the field
      */
-    default List<MethodData> forNodeFieldType(String parentNodeType, String fieldName) {
+    default List<MethodData> forNodeFieldInterface(String parentNodeType, String fieldName) {
         return List.of();
     }
     // TODO Also for field token type? (see also `NameGenerator#generateFieldTokenTypeName`)

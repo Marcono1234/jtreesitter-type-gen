@@ -62,6 +62,8 @@ public class TypedTreeClassGenerator {
         typeBuilder.addJavadoc(" or the {@code $N} method of the specific typed node classes.", typedNode.methodFromNode());
 
         CustomMethodData.createCustomMethodsJavadocSection(customMethods).ifPresent(typeBuilder::addJavadoc);
+
+        codeGenHelper.customJavadocProvider().forTypedTree().ifPresent(typeBuilder::addJavadoc);
     }
 
     /** Generates {@code Object} methods such as {@code equals}, {@code hashCode} and {@code toString}. */

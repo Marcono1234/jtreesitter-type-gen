@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
  *      Expected version number the loaded language should have ({@link LanguageVersion#patch() patch} version
  *      deviations are permitted). Specifying the expected version ensures that the loaded language is compatible
  *      with the generated code by generating additional validation code. Incompatibilities could otherwise cause
- *      exceptions or incorrect behavior.<br/>
+ *      exceptions or incorrect behavior.<br>
  *      The language / grammar version is specified as {@code metadata.version} in the {@code tree-sitter.json}
  *      file of a grammar. See also the <a href="https://tree-sitter.github.io/tree-sitter/cli/version.html">Tree-sitter documentation</a>
  *      for how to set the version.

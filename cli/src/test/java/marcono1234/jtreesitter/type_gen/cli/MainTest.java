@@ -894,6 +894,182 @@ class MainTest {
     }
 
     @Test
+    void generateCommand_CustomJavadoc(@TempDir Path tempDir) throws IOException {
+        Path nodeTypesFile = tempDir.resolve("node-types.json");
+        Files.writeString(nodeTypesFile, """
+            [
+              {
+                "type": "first",
+                "named": true,
+                "root": true
+              },
+              {
+                "type": "second",
+                "named": true,
+                "children": {
+                  "multiple": false,
+                  "required": true,
+                  "types": [
+                    {
+                      "type": "first",
+                      "named": true
+                    }
+                  ]
+                },
+                "fields": {
+                  "f1": {
+                    "multiple": false,
+                    "required": true,
+                    "types": [
+                      {
+                        "type": "first",
+                        "named": true
+                      },
+                      {
+                        "type": "+",
+                        "named": false
+                      },
+                      {
+                        "type": "-",
+                        "named": false
+                      }
+                    ]
+                  },
+                  "f2": {
+                    "multiple": false,
+                    "required": true,
+                    "types": [
+                      {
+                        "type": "first",
+                        "named": true
+                      },
+                      {
+                        "type": "+",
+                        "named": false
+                      },
+                      {
+                        "type": "-",
+                        "named": false
+                      }
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "third",
+                "named": true,
+                "children": {
+                  "multiple": false,
+                  "required": true,
+                  "types": [
+                    {
+                      "type": "first",
+                      "named": true
+                    },
+                    {
+                      "type": "second",
+                      "named": true
+                    }
+                  ]
+                },
+                "fields": {
+                  "my_field": {
+                    "multiple": false,
+                    "required": true,
+                    "types": [
+                      {
+                        "type": "first",
+                        "named": true
+                      },
+                      {
+                        "type": "+",
+                        "named": false
+                      },
+                      {
+                        "type": "-",
+                        "named": false
+                      }
+                    ]
+                  }
+                }
+              }
+            ]
+            """);
+
+        Path customJavadocConfigFile = tempDir.resolve("custom-javadoc-config.json");
+        // For node type 'second' this intentionally specifies no / little config, to verify that this does not
+        // cause any exceptions
+        Files.writeString(customJavadocConfigFile, """
+            {
+              "typed-tree-javadoc": "custom javadoc typed-tree",
+              "typed-node-javadoc": "custom javadoc typed-node",
+              "node-types": {
+                "second": {
+                  "fields": {
+                    "f2": {
+                    }
+                  }
+                },
+                "third": {
+                  "javadoc": "custom javadoc node type",
+                  "children": {
+                    "getter-javadoc": "custom javadoc children getter",
+                    "interface-javadoc": "custom javadoc children type"
+                  },
+                  "fields": {
+                    "my_field": {
+                      "getter-javadoc": "custom javadoc field getter",
+                      "interface-javadoc": "custom javadoc field type",
+                      "token-class-javadoc": "custom javadoc field token class",
+                      "tokens-javadoc": {
+                        "+": "custom javadoc field token type"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            """);
+
+        Path outputDir = tempDir.resolve("output");
+
+        assertMainResult(
+            List.of(
+                "--node-types", nodeTypesFile.toString(),
+                "--package", "com.example",
+                "--output-dir", outputDir.toString(),
+                "--custom-javadoc-config", customJavadocConfigFile.toString()
+            ),
+            CommandLine.ExitCode.OK,
+            stdOut -> assertEquals(
+                "[SUCCESS] Successfully generated code in directory: " + outputDir,
+                stdOut
+            ),
+            stdErr -> assertEquals("", stdErr)
+        );
+
+        assertFiles(outputDir, List.of("com/example/NodeFirst.java", "com/example/NodeSecond.java", "com/example/NodeThird.java", "com/example/NodeUtils.java", "com/example/NonEmpty.java", "com/example/TypedNode.java", "com/example/TypedTree.java"));
+
+        assertThat(outputDir.resolve("com/example/TypedTree.java")).content(UTF_8)
+            .contains("custom javadoc typed-tree");
+        assertThat(outputDir.resolve("com/example/TypedNode.java")).content(UTF_8)
+            .contains("custom javadoc typed-node");
+        assertThat(outputDir.resolve("com/example/NodeThird.java")).content(UTF_8)
+            .contains("custom javadoc node type")
+            .contains("custom javadoc children getter")
+            .contains("custom javadoc children type")
+            .contains("custom javadoc field getter")
+            .contains("custom javadoc field type")
+            .contains("custom javadoc field token class")
+            .contains("custom javadoc field token type");
+
+        assertThat(outputDir.resolve("com/example/NodeFirst.java")).content(UTF_8)
+            .doesNotContain("custom javadoc");
+        assertThat(outputDir.resolve("com/example/NodeSecond.java")).content(UTF_8)
+            .doesNotContain("custom javadoc");
+    }
+
+    @Test
     void generateCommand_CustomMethods(@TempDir Path tempDir) throws IOException {
         Path nodeTypesFile = tempDir.resolve("node-types.json");
         Files.writeString(nodeTypesFile, """

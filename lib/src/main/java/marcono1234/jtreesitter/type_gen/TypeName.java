@@ -28,6 +28,14 @@ public record TypeName(String packageName, String name) {
     }
 
     /**
+     * Returns the qualified name, with {@code '$'} replaced with {@code '.'} in the name.
+     * This matches how a qualified reference to this type name would look like in source code.
+     */
+    public String qualifiedSourceName() {
+        return (packageName.isEmpty() ? "" : packageName + ".") + name.replace('$', '.');
+    }
+
+    /**
      * Creates a type name from a qualified name. For example {@code org.example.MyClass$Nested}.
      */
     public static TypeName fromQualifiedName(String name) {

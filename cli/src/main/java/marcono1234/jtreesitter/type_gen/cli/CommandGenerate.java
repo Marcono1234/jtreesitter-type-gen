@@ -4,6 +4,7 @@ import marcono1234.jtreesitter.type_gen.*;
 import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageProviderConfig;
 import marcono1234.jtreesitter.type_gen.LanguageConfig.LanguageVersion;
 import marcono1234.jtreesitter.type_gen.cli.converter.*;
+import marcono1234.jtreesitter.type_gen.cli.json_configs.CustomJavadocConfig;
 import marcono1234.jtreesitter.type_gen.cli.json_configs.CustomMethodsConfig;
 import marcono1234.jtreesitter.type_gen.cli.json_configs.CustomMethodsConfig.MethodConfig;
 import marcono1234.jtreesitter.type_gen.cli.json_configs.ObjectMappers;
@@ -297,6 +298,41 @@ class CommandGenerate implements Callable<Void> {
     private boolean generateTypedQuery = false;
 
     @CommandLine.Option(
+        names = {"--custom-javadoc-config"},
+        paramLabel = "<config-file>",
+            // Maybe this description is a bit too verbose for CLI help?
+            description = {
+                "Configuration for custom Javadoc text to be added to the generated code",
+                "JSON file which provides the configuration for custom user-defined Javadoc which should be added to"
+                + " the generated code. All JSON properties of the config file are optional and can be omitted.",
+                "WARNING: Do not include untrusted content in Javadoc; it could lead to arbitrary code injection.",
+                "JSON format for custom Javadoc for node children / fields:",
+                "- getter-javadoc: Javadoc for the getter method retrieving the children / field nodes",
+                "- interface-javadoc: Javadoc for the interface which groups together multiple children / field types",
+                "- token-class-javadoc: Javadoc for the class representing all 'token' (= non-named) children / field types",
+                "- tokens-javadoc (object): Javadoc for the individual 'token' types",
+                "  - <key>: token type, for example '+'",
+                "  - <value> (string): Javadoc for that token",
+                "JSON format for custom Javadoc for a node type:",
+                "- javadoc: Javadoc for the node type",
+                "- children (children-javadoc): Javadoc config for the children types",
+                "- fields (object):",
+                "  - <key>: field name",
+                "  - <value> (field-javadoc): Javadoc config for that field",
+                "JSON config file format:",
+                "- typed-tree-javadoc: Javadoc for the 'TypedTree' class (only generated if 'root node' is specified)",
+                "- typed-node-javadoc: Javadoc for the 'TypedNode' interface which is the base type for all typed node classes",
+                "- node-types (object):",
+                "  - <key>: node type, as defined in the grammar",
+                "  - <value> (array[node-type-javadoc]): Javadoc for the node type class",
+                "Example:",
+                "'{\"node-types\": {\"my_node\": {\"javadoc\": \"custom Javadoc for node type\", \"fields\": {\"my_field\": {\"getter-javadoc\": \"custom Javadoc for getter\"}}}}}'",
+            }
+    )
+    @Nullable
+    private Path customJavadocConfigFile;
+
+    @CommandLine.Option(
         names = {"--custom-methods-config"},
         paramLabel = "<config-file>",
         // Maybe this description is a bit too verbose for CLI help?
@@ -308,18 +344,20 @@ class CommandGenerate implements Callable<Void> {
             + " That receiver method is implemented by the user and contains the actual implementation.",
             "The main advantage of these custom methods is that they can directly be called on the typed tree or node"
             + " instances, making them easier to discover and use than calling separate utility methods.",
+            "All JSON properties of the config file are optional and can be omitted, unless explicitly mentioned otherwise.",
             "JSON format for a custom method:",
-            "- name (string): name of the custom method",
-            "- type-variables (array): type variables for the custom method (optional)",
-            "  - name (string): name of the type variable",
-            "  - bounds (array[string]): bounds of the type variable as qualified Java types (optional)",
-            "- parameters (object): parameters of the custom method (optional)",
+            "- name (string)(required): name of the custom method",
+            "- type-variables (array): type variables for the custom method",
+            "  - name (string)(required): name of the type variable",
+            "  - bounds (array[string]): bounds of the type variable as qualified Java types",
+            "- parameters (object): parameters of the custom method",
             "  - <key>: parameter name",
             "  - <value> (string): parameter type as qualified Java type",
-            "- return-type (string): return type of the custom method as qualified Java type (optional; if not specified 'void')",
-            "- javadoc (string): Javadoc text of the custom method (optional)",
-            "- receiver (string): method to which the custom method delegates to, in the format '<qualified-type>#<method-name>'",
-            "- additional-args (array[boolean|int|double|string]): additional literal arguments to pass to the receiver (optional)",
+            "- return-type (string): return type of the custom method as qualified Java type (if not specified 'void')",
+            "- javadoc (string): Javadoc text of the custom method",
+            "  WARNING: Do not include untrusted content in Javadoc; it could lead to arbitrary code injection.",
+            "- receiver (string)(required): method to which the custom method delegates to, in the format '<qualified-type>#<method-name>'",
+            "- additional-args (array[boolean|int|double|string]): additional literal arguments to pass to the receiver",
             "JSON config file format:",
             "- typed-tree (array[custom-method]): custom methods for the 'TypedTree' class (only generated if 'root node' is specified)",
             "- typed-node (array[custom-method]): custom methods for the 'TypedNode' interface which is the base type for all typed node classes",
@@ -505,6 +543,21 @@ class CommandGenerate implements Callable<Void> {
         }
     }
 
+    private Optional<CustomJavadocProvider> createCustomJavadocProvider() {
+        if (customJavadocConfigFile == null) {
+            return Optional.empty();
+        }
+
+        CustomJavadocConfig config;
+        try {
+            config = CustomJavadocConfig.readFromFile(customJavadocConfigFile);
+        } catch (JacksonException e) {
+            throw new IllegalArgumentException("Failed reading customJavadocConfigFile: " + customJavadocConfigFile, e);
+        }
+
+        return Optional.of(config.asJavadocProvider());
+    }
+
     private Optional<CustomMethodsProvider> createCustomMethodsProvider() {
         if (customMethodsConfigFile == null) {
             return Optional.empty();
@@ -569,6 +622,7 @@ class CommandGenerate implements Callable<Void> {
         if (typedQueryNameGenerator != null) {
             configBuilder.typedQueryNameGenerator(typedQueryNameGenerator);
         }
+        createCustomJavadocProvider().ifPresent(configBuilder::customJavadocProvider);
         createCustomMethodsProvider().ifPresent(configBuilder::customMethodsProvider);
         getGeneratedAnnotationConfig().ifPresentOrElse(configBuilder::generatedAnnotationConfig, configBuilder::withoutGeneratedAnnotation);
 
