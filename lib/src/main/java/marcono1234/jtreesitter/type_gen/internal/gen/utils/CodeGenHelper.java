@@ -973,22 +973,37 @@ public class CodeGenHelper {
         return WildcardTypeName.subtypeOf(Object.class);
     }
 
+    private static final Map<String, String> JAVADOC_ESCAPE_MAPPINGS = Map.of(
+        // Chars which might accidentally start / end a Javadoc tag
+        "{", "&lbrace;",
+        "}", "&rbrace;",
+        "@", "&commat;",
+        // Unicode escapes, which are processed before actual parsing / compilation
+        // Check for leading '\' only instead of '\' + 'u' to be on the safe side in case the chars are added separately
+        "\\", "&bsol;",
+        // '*/' which would end the Javadoc comment
+        // Check for leading '*' only instead of '*' + '/' to be on the safe side in case the chars are added separately
+        "*", "&ast;"
+    );
+
     /**
      * HTML-escapes {@code text} for usage in Javadoc.
      */
     public static String escapeJavadocText(String text) {
-        return text
-            // HTML
-            .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-            // Javadoc-specific
-            .replace("{", "&lbrace;").replace("}", "&rbrace;").replace("@", "&commat;");
+        // HTML
+        text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+
+        for (var escapeEntry : JAVADOC_ESCAPE_MAPPINGS.entrySet()) {
+            text = text.replace(escapeEntry.getKey(), escapeEntry.getValue());
+        }
+        return text;
     }
 
     /**
      * Creates a Javadoc 'code' tag, escaping the content if necessary.
      */
     public static String createJavadocCodeTag(String content) {
-        if (content.chars().anyMatch(c -> c == '{' || c == '}' || c == '@')) {
+        if (JAVADOC_ESCAPE_MAPPINGS.keySet().stream().anyMatch(content::contains)) {
             return "<code>%s</code>".formatted(escapeJavadocText(content));
         } else {
             return "{@code %s}".formatted(content);
