@@ -536,8 +536,8 @@ class CommandGenerate implements Callable<Void> {
         } else {
             return new NameGenerator.DefaultNameGenerator(tokenNameGenerator) {
                 @Override
-                public String generateJavaTypeName(String typeName) {
-                    return typedNodeNamePattern.createName(new TypedNodeNamePatternParser.Data(typeName));
+                public String generateJavaTypeName(String nodeType) {
+                    return typedNodeNamePattern.createName(new TypedNodeNamePatternParser.Data(nodeType));
                 }
             };
         }

@@ -32,34 +32,34 @@ class NameGeneratorTest {
             "first_second,NodeFirstSecond",
             "__first__second__,NodeFirst_second_",
         })
-        void generateJavaTypeName(String typeName, String expectedName) {
-            assertEquals(expectedName, nameGenerator.generateJavaTypeName(typeName));
+        void generateJavaTypeName(String nodeType, String expectedName) {
+            assertEquals(expectedName, nameGenerator.generateJavaTypeName(nodeType));
         }
 
         @ParameterizedTest
         @CsvSource({
             "my_node,TYPE_NAME",
         })
-        void generateTypeNameConstant(String typeName, String expectedName) {
-            assertEquals(expectedName, nameGenerator.generateTypeNameConstant(typeName));
+        void generateTypeNameConstant(String nodeType, String expectedName) {
+            assertEquals(expectedName, nameGenerator.generateTypeNameConstant(nodeType));
         }
 
         @ParameterizedTest
         @CsvSource({
             "my_node,TYPE_ID",
         })
-        void generateTypeIdConstant(String typeName, String expectedName) {
-            assertEquals(expectedName, nameGenerator.generateTypeIdConstant(typeName));
+        void generateTypeIdConstant(String nodeType, String expectedName) {
+            assertEquals(expectedName, nameGenerator.generateTypeIdConstant(nodeType));
         }
 
         @ParameterizedTest
         @CsvSource({
             "my_parent,'node_a,node_b',Child",
         })
-        void generateChildrenTypesName(String parentTypeName, String childrenTypesNames, String expectedName) {
+        void generateChildrenTypesName(String parentNodeType, String childrenNodeTypes, String expectedName) {
             assertEquals(
                 expectedName,
-                nameGenerator.generateChildrenTypesName(parentTypeName, Arrays.asList(childrenTypesNames.split(",")))
+                nameGenerator.generateChildrenTypesName(parentNodeType, Arrays.asList(childrenNodeTypes.split(",")))
             );
         }
 
@@ -67,10 +67,10 @@ class NameGeneratorTest {
         @CsvSource({
             "my_parent,'+,-',ChildTokenType",
         })
-        void generateChildrenTokenTypeName(String parentTypeName, String tokenChildrenTypesNames, String expectedName) {
+        void generateChildrenTokenTypeName(String parentNodeType, String tokenChildrenTypesNames, String expectedName) {
             assertEquals(
                 expectedName,
-                nameGenerator.generateChildrenTokenTypeName(parentTypeName, Arrays.asList(tokenChildrenTypesNames.split(",")))
+                nameGenerator.generateChildrenTokenTypeName(parentNodeType, Arrays.asList(tokenChildrenTypesNames.split(",")))
             );
         }
 
@@ -87,10 +87,10 @@ class NameGeneratorTest {
             "my_parent,'node_a,node_b',true,false,getChildren",
             "my_parent,'node_a,node_b',true,true,getChildren",
         })
-        void generateChildrenGetterName(String parentTypeName, String childrenTypesNames, boolean multiple, boolean required, String     expectedName) {
+        void generateChildrenGetterName(String parentNodeType, String childrenNodeTypes, boolean multiple, boolean required, String expectedName) {
             assertEquals(
                 expectedName,
-                nameGenerator.generateChildrenGetterName(parentTypeName, Arrays.asList(childrenTypesNames.split(",")), multiple, required)
+                nameGenerator.generateChildrenGetterName(parentNodeType, Arrays.asList(childrenNodeTypes.split(",")), multiple, required)
             );
         }
 

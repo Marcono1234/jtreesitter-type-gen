@@ -41,10 +41,10 @@ public interface TypedQueryNameGenerator {
      * }
      * }
      *
-     * @param typeName node type name
+     * @param nodeType node type name
      * @return Java class name
      */
-    String generateBuilderClassName(String typeName);
+    String generateBuilderClassName(String nodeType);
 
     /**
      * For a node type generates the name of the Java builder method representing that node type in the
@@ -70,11 +70,11 @@ public interface TypedQueryNameGenerator {
      * }
      * }
      *
-     * @param typeName node type name
+     * @param nodeType node type name
      * @return Java method name
      * @see #generateBuilderClassName(String)
      */
-    String generateBuilderMethodName(String typeName);
+    String generateBuilderMethodName(String nodeType);
 
     /**
      * For a node type which has a supertype generates the name of the Java method which allows obtaining
@@ -106,11 +106,11 @@ public interface TypedQueryNameGenerator {
      * }
      * }
      *
-     * @param typeName node type name
-     * @param supertypeName node supertype name
+     * @param nodeType node type name
+     * @param nodeSupertype node supertype name
      * @return Java method name
      */
-    String generateAsSubtypeMethodName(String typeName, String supertypeName);
+    String generateAsSubtypeMethodName(String nodeType, String nodeSupertype);
 
     /**
      * For the field of a node type generates the name of a Java method for specifying additional match requirements
@@ -148,12 +148,12 @@ public interface TypedQueryNameGenerator {
      * }
      * }
      *
-     * @param parentTypeName name of the parent node type
+     * @param parentNodeType name of the parent node type
      * @param fieldName name of the field
      * @return Java method name
      * @see #generateWithoutFieldMethodName(String, String)
      */
-    String generateWithFieldMethodName(String parentTypeName, String fieldName);
+    String generateWithFieldMethodName(String parentNodeType, String fieldName);
 
     /**
      * For the field of a node type generates the name of a Java method for specifying for the 'typed query' that
@@ -191,12 +191,12 @@ public interface TypedQueryNameGenerator {
      * }
      * }
      *
-     * @param parentTypeName name of the parent node type
+     * @param parentNodeType name of the parent node type
      * @param fieldName name of the field
      * @return Java method name
      * @see #generateWithFieldMethodName(String, String)
      */
-    String generateWithoutFieldMethodName(String parentTypeName, String fieldName);
+    String generateWithoutFieldMethodName(String parentNodeType, String fieldName);
 
     /**
      * For the non-named field types of a node type generates the name of a Java method which converts the
@@ -239,7 +239,7 @@ public interface TypedQueryNameGenerator {
      * }
      * }
      *
-     * @param parentTypeName name of the parent node type declaring the field
+     * @param parentNodeType name of the parent node type declaring the field
      * @param fieldName name of the field
      * @param tokenFieldTypesNames
      *      names of all token node types for the field; depending on the use case they can potentially be used to
@@ -247,7 +247,7 @@ public interface TypedQueryNameGenerator {
      * @return Java method name
      * @see NameGenerator#generateFieldTokenTypeName(String, String, List)
      */
-    String generateFieldTokenMethodName(String parentTypeName, String fieldName, List<String> tokenFieldTypesNames);
+    String generateFieldTokenMethodName(String parentNodeType, String fieldName, List<String> tokenFieldTypesNames);
 
     /**
      * Same as {@link #generateFieldTokenMethodName(String, String, List)}, except for non-field children.
@@ -255,7 +255,7 @@ public interface TypedQueryNameGenerator {
      * <p><b>Note:</b> Currently this method is effectively unused. tree-sitter does not list non-named
      * children in the {@code node-types.json} file at the moment.
      */
-    default String generateChildTokenMethodName(String parentTypeName, List<String> tokenChildrenTypesNames) {
+    default String generateChildTokenMethodName(String parentNodeType, List<String> tokenChildrenTypesNames) {
         throw new AssertionError("currently unused");
     }
 
@@ -269,22 +269,22 @@ public interface TypedQueryNameGenerator {
         // Dedicated record class to have useful `toString` and `equals`
         record DefaultTypedQueryNameGenerator(NameGenerator nameGenerator) implements TypedQueryNameGenerator {
             @Override
-            public String generateBuilderClassName(String typeName) {
+            public String generateBuilderClassName(String nodeType) {
                 // Prefix the name with a "Q" (plus the prefix (if any) of the general nameGenerator)
                 // for conciseness and to tell them apart from non-query classes
-                return "Q" + nameGenerator.generateJavaTypeName(typeName);
+                return "Q" + nameGenerator.generateJavaTypeName(nodeType);
             }
 
             @Override
-            public String generateBuilderMethodName(String typeName) {
+            public String generateBuilderMethodName(String nodeType) {
                 // Just lowercase the first char so that the type name is suitable as method name;
                 // this assumes that the Java type name starts with a unique prefix
-                return lowerFirstChar(nameGenerator.generateJavaTypeName(typeName));
+                return lowerFirstChar(nameGenerator.generateJavaTypeName(nodeType));
             }
 
             @Override
-            public String generateAsSubtypeMethodName(String typeName, String supertypeName) {
-                return "asSubtypeOf" + nameGenerator.generateJavaTypeName(supertypeName);
+            public String generateAsSubtypeMethodName(String nodeType, String nodeSupertype) {
+                return "asSubtypeOf" + nameGenerator.generateJavaTypeName(nodeSupertype);
             }
 
             private static String fieldNameAsSuffix(String fieldName) {
@@ -292,22 +292,22 @@ public interface TypedQueryNameGenerator {
             }
 
             @Override
-            public String generateWithFieldMethodName(String parentTypeName, String fieldName) {
+            public String generateWithFieldMethodName(String parentNodeType, String fieldName) {
                 return "withField" + fieldNameAsSuffix(fieldName);
             }
 
             @Override
-            public String generateWithoutFieldMethodName(String parentTypeName, String fieldName) {
+            public String generateWithoutFieldMethodName(String parentNodeType, String fieldName) {
                 return "withoutField" + fieldNameAsSuffix(fieldName);
             }
 
             @Override
-            public String generateFieldTokenMethodName(String parentTypeName, String fieldName, List<String> tokenFieldTypesNames) {
+            public String generateFieldTokenMethodName(String parentNodeType, String fieldName, List<String> tokenFieldTypesNames) {
                 return "fieldToken" + fieldNameAsSuffix(fieldName);
             }
 
             @Override
-            public String generateChildTokenMethodName(String parentTypeName, List<String> tokenChildrenTypesNames) {
+            public String generateChildTokenMethodName(String parentNodeType, List<String> tokenChildrenTypesNames) {
                 return "childToken";
             }
         }

@@ -40,10 +40,10 @@ public interface NameGenerator {
      * }
      * }
      *
-     * @param typeName node type name
+     * @param nodeType node type name
      * @return Java class name
      */
-    String generateJavaTypeName(String typeName);
+    String generateJavaTypeName(String nodeType);
 
     /**
      * For a node type generates the name of the Java constant field storing the type name.
@@ -66,12 +66,13 @@ public interface NameGenerator {
      * }
      * }
      *
-     * @param typeName
+     * @param nodeType
      *      node type name; can be ignored since the constant name does not have to be unique
      *      across different node types
      * @return Java constant field name
      */
-    String generateTypeNameConstant(String typeName);
+    // Note: Can be customized by the user to allow them to have meaningful / non-conflicting names when using `import static`
+    String generateTypeNameConstant(String nodeType);
 
     /**
      * For a node type generates the name of the Java constant field storing the numeric type ID.
@@ -94,13 +95,14 @@ public interface NameGenerator {
      * }
      * }
      *
-     * @param typeName
+     * @param nodeType
      *      node type name; can be ignored since the constant name does not have to be unique
      *      across different node types
      * @return Java constant field name
      * @see #generateTypeNameConstant(String)
      */
-    String generateTypeIdConstant(String typeName);
+    // Note: Can be customized by the user to allow them to have meaningful / non-conflicting names when using `import static`
+    String generateTypeIdConstant(String nodeType);
 
     /**
      * For the children of a node type generates the name of the Java children interface.
@@ -144,14 +146,14 @@ public interface NameGenerator {
      * }
      * }
      *
-     * @param parentTypeName name of the parent node type
-     * @param childrenTypesNames
-     *      names of the children types; can be ignored because the class name does not have to be
+     * @param parentNodeType name of the parent node type
+     * @param childrenNodeTypes
+     *      names of the children node types; can be ignored because the class name does not have to be
      *      unique across different node types
      * @return Java interface name
      * @see #generateChildrenGetterName(String, List, boolean, boolean)
      */
-    String generateChildrenTypesName(String parentTypeName, List<String> childrenTypesNames);
+    String generateChildrenTypesName(String parentNodeType, List<String> childrenNodeTypes);
 
     /**
      * Same as {@link #generateFieldTokenTypeName(String, String, List)}, except for non-field children.
@@ -160,7 +162,7 @@ public interface NameGenerator {
      * children in the {@code node-types.json} file at the moment. As workaround an unspecific method for obtaining
      * non-named children is generated, see {@link #generateNonNamedChildrenGetterName(String, boolean, boolean)}.
      */
-    default String generateChildrenTokenTypeName(String parentTypeName, List<String> tokenChildrenTypesNames) {
+    default String generateChildrenTokenTypeName(String parentNodeType, List<String> tokenChildrenTypesNames) {
         throw new AssertionError("currently unused");
     }
 
@@ -171,7 +173,7 @@ public interface NameGenerator {
      * children in the {@code node-types.json} file at the moment. As workaround an unspecific method for obtaining
      * non-named children is generated, see {@link #generateNonNamedChildrenGetterName(String, boolean, boolean)}.
      */
-    default String generateChildrenTokenName(String parentTypeName, String tokenType, int index) {
+    default String generateChildrenTokenName(String parentNodeType, String tokenType, int index) {
         throw new AssertionError("currently unused");
     }
 
@@ -217,16 +219,16 @@ public interface NameGenerator {
      * }
      * }
      *
-     * @param parentTypeName name of the parent node type
-     * @param childrenTypesNames
-     *      names of the children types; can be ignored because a node has only one group of children, so at
+     * @param parentNodeType name of the parent node type
+     * @param childrenNodeTypes
+     *      names of the children node types; can be ignored because a node has only one group of children, so at
      *      most one getter method is generated
      * @param multiple whether the getter method may return more than one child
      * @param required whether the getter method returns at least one child
      * @return Java method name
      * @see #generateChildrenTypesName(String, List)
      */
-    String generateChildrenGetterName(String parentTypeName, List<String> childrenTypesNames, boolean multiple, boolean required);
+    String generateChildrenGetterName(String parentNodeType, List<String> childrenNodeTypes, boolean multiple, boolean required);
 
     /**
      * For the field of a node type generates the name of the Java constant field storing the name of the field.
@@ -261,11 +263,12 @@ public interface NameGenerator {
      * }
      * }
      *
-     * @param parentTypeName name of the parent node type
+     * @param parentNodeType name of the parent node type
      * @param fieldName name of the field
      * @return Java constant field name
      */
-    String generateFieldNameConstant(String parentTypeName, String fieldName);
+    // Note: Can be customized by the user to allow them to have meaningful / non-conflicting names when using `import static`
+    String generateFieldNameConstant(String parentNodeType, String fieldName);
 
     /**
      * For the field of a node type generates the name of the Java constant field storing the numeric ID of the field.
@@ -300,12 +303,13 @@ public interface NameGenerator {
      * }
      * }
      *
-     * @param parentTypeName name of the parent node type
+     * @param parentNodeType name of the parent node type
      * @param fieldName name of the field
      * @return Java constant field name
      * @see #generateFieldNameConstant(String, String)
      */
-    String generateFieldIdConstant(String parentTypeName, String fieldName);
+    // Note: Can be customized by the user to allow them to have meaningful / non-conflicting names when using `import static`
+    String generateFieldIdConstant(String parentNodeType, String fieldName);
 
     /**
      * For the fields of a node type generates the name of the Java fields interface.
@@ -351,12 +355,12 @@ public interface NameGenerator {
      * }
      * }
      *
-     * @param parentTypeName name of the parent node type
+     * @param parentNodeType name of the parent node type
      * @param fieldName name of the field
      * @return Java interface name
      * @see #generateFieldGetterName(String, String, boolean, boolean)
      */
-    String generateFieldTypesName(String parentTypeName, String fieldName);
+    String generateFieldTypesName(String parentNodeType, String fieldName);
 
     /**
      * For the non-named field types of a node type generates the name of the Java class representing those field types.
@@ -412,14 +416,14 @@ public interface NameGenerator {
      * }
      * }
      *
-     * @param parentTypeName name of the parent node type declaring the field
+     * @param parentNodeType name of the parent node type declaring the field
      * @param fieldName name of the field
      * @param tokenFieldTypesNames
      *      names of all token node types for the field; depending on the use case they can potentially be used to
      *      deduce a name
      * @return Java class name
      */
-    String generateFieldTokenTypeName(String parentTypeName, String fieldName, List<String> tokenFieldTypesNames);
+    String generateFieldTokenTypeName(String parentNodeType, String fieldName, List<String> tokenFieldTypesNames);
 
     /**
      * For a non-named node type which is the potential value of a field, generates the token enum constant name.
@@ -473,7 +477,7 @@ public interface NameGenerator {
      * }
      * }
      *
-     * @param parentTypeName name of the parent node type declaring the field
+     * @param parentNodeType name of the parent node type declaring the field
      * @param fieldName name of the field
      * @param tokenType name of the token node type
      * @param index
@@ -481,7 +485,7 @@ public interface NameGenerator {
      *      case this is not possible based on the other information
      * @return Java enum constant name
      */
-    String generateFieldTokenName(String parentTypeName, String fieldName, String tokenType, int index);
+    String generateFieldTokenName(String parentNodeType, String fieldName, String tokenType, int index);
 
     /**
      * For the field of a node type generates the name of the getter method for obtaining the field nodes from
@@ -527,14 +531,14 @@ public interface NameGenerator {
      * }
      * }
      *
-     * @param parentTypeName name of the parent node type
+     * @param parentNodeType name of the parent node type
      * @param fieldName name of the field
      * @param multiple whether the getter method may return more than one field node
      * @param required whether the getter method returns at least one field node
      * @return Java method name
      * @see #generateFieldTypesName(String, String)
      */
-    String generateFieldGetterName(String parentTypeName, String fieldName, boolean multiple, boolean required);
+    String generateFieldGetterName(String parentNodeType, String fieldName, boolean multiple, boolean required);
 
     /**
      * For the non-named children of a node type generates the name of the getter method for obtaining the children
@@ -543,7 +547,7 @@ public interface NameGenerator {
      * <p><b>Note:</b> Whether a node has any useful or even any non-named children at all depends on the node type
      * specified in the grammar. This information is currently not available in the {@code node-types.json} file.
      *
-     * @param parentTypeName name of the parent node type
+     * @param parentNodeType name of the parent node type
      * @param hasNamedChildren
      *      whether the parent also has named node type children; can be used to determine if this getter should be
      *      generated or not (by returning an empty {@code Optional})
@@ -553,7 +557,7 @@ public interface NameGenerator {
      * @return Java method name, or empty {@code Optional} if no getter should be generated
      */
     // TODO: Should this also allow customizing the Javadoc of the generated method? Currently it is quite generic
-    Optional<String> generateNonNamedChildrenGetterName(String parentTypeName, boolean hasNamedChildren, boolean hasFields);
+    Optional<String> generateNonNamedChildrenGetterName(String parentNodeType, boolean hasNamedChildren, boolean hasFields);
 
     /**
      * Generates for a non-named node type a "token" name, see {@link NameGenerator#generateFieldTokenName(String, String, String, int)}
@@ -574,7 +578,7 @@ public interface NameGenerator {
          * Generates the token name for a non-named node type of non-field children.
          * See {@link NameGenerator#generateChildrenTokenName(String, String, int)} for a detailed description.
          */
-        default String generateChildrenTokenName(String parentTypeName, String tokenType, int index) {
+        default String generateChildrenTokenName(String parentNodeType, String tokenType, int index) {
             // See `NameGenerator#generateChildrenTokenName`
             throw new AssertionError("currently unused");
         }
@@ -583,7 +587,7 @@ public interface NameGenerator {
          * Generates the token name for a non-named node type of a field child.
          * See {@link NameGenerator#generateFieldTokenName(String, String, String, int)} for a detailed description.
          */
-        String generateFieldTokenName(String parentTypeName, String fieldName, String tokenType, int index);
+        String generateFieldTokenName(String parentNodeType, String fieldName, String tokenType, int index);
 
         /**
          * Creates a token name generator based on the given mapping.
@@ -636,7 +640,7 @@ public interface NameGenerator {
                 }
 
                 @Override
-                public String generateFieldTokenName(String parentTypeName, String fieldName, String tokenType, int index) {
+                public String generateFieldTokenName(String parentNodeType, String fieldName, String tokenType, int index) {
                     // Fast path for automatically generating all token names
                     if (!exhaustive && tokenNameMapping.isEmpty()) {
                         return generateDefaultTokenName(tokenType, index);
@@ -647,13 +651,13 @@ public interface NameGenerator {
                     String fallbackKey = "";
                     /*
                      * Order of preference:
-                     * 1. typeName, fieldName
-                     * 2. typeName, ""
+                     * 1. parentNodeType, fieldName
+                     * 2. parentNodeType, ""
                      * 3. "", fieldName  (not sure how useful this combination is, but support it for simplicity and consistency)
                      * 4. "", ""
                      */
                     // Uses Stream to lazily check fallbacks
-                    var tokenName = Stream.of(parentTypeName, fallbackKey)
+                    var tokenName = Stream.of(parentNodeType, fallbackKey)
                         .flatMap(parent -> Stream.of(fieldName, fallbackKey)
                             .map(field -> tokenNameMapping.getOrDefault(parent, Map.of()).getOrDefault(field, Map.of()).get(tokenType))
                         )
@@ -662,7 +666,7 @@ public interface NameGenerator {
                     if (tokenName.isPresent()) {
                         return tokenName.get();
                     } else if (exhaustive) {
-                        throw new IllegalArgumentException("Token type not mapped: type = " + parentTypeName + ", field = " + fieldName + ", token = " + tokenType);
+                        throw new IllegalArgumentException("Token type not mapped: type = " + parentNodeType + ", field = " + fieldName + ", token = " + tokenType);
                     } else {
                         return generateDefaultTokenName(tokenType, index);
                     }
@@ -688,48 +692,48 @@ public interface NameGenerator {
         }
 
         @Override
-        public String generateJavaTypeName(String typeName) {
+        public String generateJavaTypeName(String nodeType) {
             // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
-            return "Node" + typeNameToUpperCamel(typeName);
+            return "Node" + typeNameToUpperCamel(nodeType);
         }
 
         @Override
-        public String generateTypeNameConstant(String typeName) {
+        public String generateTypeNameConstant(String nodeType) {
             return "TYPE_NAME";
         }
 
         @Override
-        public String generateTypeIdConstant(String typeName) {
+        public String generateTypeIdConstant(String nodeType) {
             return "TYPE_ID";
         }
 
         @Override
-        public String generateChildrenTypesName(String parentTypeName, List<String> childrenTypesNames) {
+        public String generateChildrenTypesName(String parentNodeType, List<String> childrenNodeTypes) {
             return "Child";
         }
 
         @Override
-        public String generateChildrenTokenTypeName(String parentTypeName, List<String> tokenChildrenTypesNames) {
-            return generateChildrenTypesName(parentTypeName, tokenChildrenTypesNames) + "TokenType";
+        public String generateChildrenTokenTypeName(String parentNodeType, List<String> tokenChildrenTypesNames) {
+            return generateChildrenTypesName(parentNodeType, tokenChildrenTypesNames) + "TokenType";
         }
 
         @Override
-        public String generateChildrenTokenName(String parentTypeName, String tokenType, int index) {
-            return tokenNameGenerator.generateChildrenTokenName(parentTypeName, tokenType, index);
+        public String generateChildrenTokenName(String parentNodeType, String tokenType, int index) {
+            return tokenNameGenerator.generateChildrenTokenName(parentNodeType, tokenType, index);
         }
 
         @Override
-        public String generateChildrenGetterName(String parentTypeName, List<String> childrenTypesNames, boolean multiple, boolean required) {
+        public String generateChildrenGetterName(String parentNodeType, List<String> childrenNodeTypes, boolean multiple, boolean required) {
             return multiple ? "getChildren" : "getChild";
         }
 
         @Override
-        public String generateFieldNameConstant(String parentTypeName, String fieldName) {
+        public String generateFieldNameConstant(String parentNodeType, String fieldName) {
             return "FIELD_" + convertToConstantName(fieldName);
         }
 
         @Override
-        public String generateFieldIdConstant(String parentTypeName, String fieldName) {
+        public String generateFieldIdConstant(String parentNodeType, String fieldName) {
             return "FIELD_" + convertToConstantName(fieldName) + "_ID";
         }
 
@@ -738,30 +742,30 @@ public interface NameGenerator {
         }
 
         @Override
-        public String generateFieldTypesName(String parentTypeName, String fieldName) {
+        public String generateFieldTypesName(String parentNodeType, String fieldName) {
             // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
             return "Field" + fieldNameAsSuffix(fieldName);
         }
 
         @Override
-        public String generateFieldTokenTypeName(String parentTypeName, String fieldName, List<String> tokenFieldTypesNames) {
+        public String generateFieldTokenTypeName(String parentNodeType, String fieldName, List<String> tokenFieldTypesNames) {
             // Prefix makes names consistent and prevents clashes with JDK names, e.g. `String`
             return "FieldToken" + fieldNameAsSuffix(fieldName);
         }
 
         @Override
-        public String generateFieldTokenName(String parentTypeName, String fieldName, String tokenType, int index) {
-            return tokenNameGenerator.generateFieldTokenName(parentTypeName, fieldName, tokenType, index);
+        public String generateFieldTokenName(String parentNodeType, String fieldName, String tokenType, int index) {
+            return tokenNameGenerator.generateFieldTokenName(parentNodeType, fieldName, tokenType, index);
         }
 
         @Override
-        public String generateFieldGetterName(String parentTypeName, String fieldName, boolean multiple, boolean required) {
+        public String generateFieldGetterName(String parentNodeType, String fieldName, boolean multiple, boolean required) {
             // Prefix makes names consistent and prevents clashes with Object method names or other generated method names
             return "getField" + fieldNameAsSuffix(fieldName);
         }
 
         @Override
-        public Optional<String> generateNonNamedChildrenGetterName(String parentTypeName, boolean hasNamedChildren, boolean hasFields) {
+        public Optional<String> generateNonNamedChildrenGetterName(String parentNodeType, boolean hasNamedChildren, boolean hasFields) {
             // For now only generate if type has no fields, otherwise user likely included non-named children as fields
             // in their grammar in case they are relevant
             return hasFields ? Optional.empty() : Optional.of("getUnnamedChildren");

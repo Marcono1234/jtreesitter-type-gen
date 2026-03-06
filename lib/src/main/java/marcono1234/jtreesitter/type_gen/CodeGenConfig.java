@@ -421,73 +421,73 @@ public record CodeGenConfig(
         // Dedicated record class to have useful `toString` and `equals`
         record ValidatingNameGenerator(NameGenerator nameGenerator) implements NameGenerator {
             @Override
-            public String generateJavaTypeName(String typeName) {
-                return validateTypeName(nameGenerator.generateJavaTypeName(typeName));
+            public String generateJavaTypeName(String nodeType) {
+                return validateTypeName(nameGenerator.generateJavaTypeName(nodeType));
             }
 
             @Override
-            public String generateTypeNameConstant(String typeName) {
-                return validateMemberName(nameGenerator.generateTypeNameConstant(typeName));
+            public String generateTypeNameConstant(String nodeType) {
+                return validateMemberName(nameGenerator.generateTypeNameConstant(nodeType));
             }
 
             @Override
-            public String generateTypeIdConstant(String typeName) {
-                return validateMemberName(nameGenerator.generateTypeIdConstant(typeName));
+            public String generateTypeIdConstant(String nodeType) {
+                return validateMemberName(nameGenerator.generateTypeIdConstant(nodeType));
             }
 
             @Override
-            public String generateChildrenTypesName(String parentTypeName, List<String> childrenTypesNames) {
-                return validateTypeName(nameGenerator.generateChildrenTypesName(parentTypeName, childrenTypesNames));
+            public String generateChildrenTypesName(String parentNodeType, List<String> childrenNodeTypes) {
+                return validateTypeName(nameGenerator.generateChildrenTypesName(parentNodeType, childrenNodeTypes));
             }
 
             @Override
-            public String generateChildrenTokenTypeName(String parentTypeName, List<String> tokenChildrenTypesNames) {
-                return validateTypeName(nameGenerator.generateChildrenTokenTypeName(parentTypeName, tokenChildrenTypesNames));
+            public String generateChildrenTokenTypeName(String parentNodeType, List<String> tokenChildrenTypesNames) {
+                return validateTypeName(nameGenerator.generateChildrenTokenTypeName(parentNodeType, tokenChildrenTypesNames));
             }
 
             @Override
-            public String generateChildrenTokenName(String parentTypeName, String tokenType, int index) {
-                return validateMemberName(nameGenerator.generateChildrenTokenName(parentTypeName, tokenType, index));
+            public String generateChildrenTokenName(String parentNodeType, String tokenType, int index) {
+                return validateMemberName(nameGenerator.generateChildrenTokenName(parentNodeType, tokenType, index));
             }
 
             @Override
-            public String generateChildrenGetterName(String parentTypeName, List<String> childrenTypesNames, boolean multiple, boolean required) {
-                return validateMemberName(nameGenerator.generateChildrenGetterName(parentTypeName, childrenTypesNames, multiple, required));
+            public String generateChildrenGetterName(String parentNodeType, List<String> childrenNodeTypes, boolean multiple, boolean required) {
+                return validateMemberName(nameGenerator.generateChildrenGetterName(parentNodeType, childrenNodeTypes, multiple, required));
             }
 
             @Override
-            public String generateFieldNameConstant(String parentTypeName, String fieldName) {
-                return validateMemberName(nameGenerator.generateFieldNameConstant(parentTypeName, fieldName));
+            public String generateFieldNameConstant(String parentNodeType, String fieldName) {
+                return validateMemberName(nameGenerator.generateFieldNameConstant(parentNodeType, fieldName));
             }
 
             @Override
-            public String generateFieldIdConstant(String parentTypeName, String fieldName) {
-                return validateMemberName(nameGenerator.generateFieldIdConstant(parentTypeName, fieldName));
+            public String generateFieldIdConstant(String parentNodeType, String fieldName) {
+                return validateMemberName(nameGenerator.generateFieldIdConstant(parentNodeType, fieldName));
             }
 
             @Override
-            public String generateFieldTypesName(String parentTypeName, String fieldName) {
-                return validateTypeName(nameGenerator.generateFieldTypesName(parentTypeName, fieldName));
+            public String generateFieldTypesName(String parentNodeType, String fieldName) {
+                return validateTypeName(nameGenerator.generateFieldTypesName(parentNodeType, fieldName));
             }
 
             @Override
-            public String generateFieldTokenTypeName(String parentTypeName, String fieldName, List<String> tokenFieldTypesNames) {
-                return validateTypeName(nameGenerator.generateFieldTokenTypeName(parentTypeName, fieldName, tokenFieldTypesNames));
+            public String generateFieldTokenTypeName(String parentNodeType, String fieldName, List<String> tokenFieldTypesNames) {
+                return validateTypeName(nameGenerator.generateFieldTokenTypeName(parentNodeType, fieldName, tokenFieldTypesNames));
             }
 
             @Override
-            public String generateFieldTokenName(String parentTypeName, String fieldName, String tokenType, int index) {
-                return validateMemberName(nameGenerator.generateFieldTokenName(parentTypeName, fieldName, tokenType, index));
+            public String generateFieldTokenName(String parentNodeType, String fieldName, String tokenType, int index) {
+                return validateMemberName(nameGenerator.generateFieldTokenName(parentNodeType, fieldName, tokenType, index));
             }
 
             @Override
-            public String generateFieldGetterName(String parentTypeName, String fieldName, boolean multiple, boolean required) {
-                return validateMemberName(nameGenerator.generateFieldGetterName(parentTypeName, fieldName, multiple, required));
+            public String generateFieldGetterName(String parentNodeType, String fieldName, boolean multiple, boolean required) {
+                return validateMemberName(nameGenerator.generateFieldGetterName(parentNodeType, fieldName, multiple, required));
             }
 
             @Override
-            public Optional<String> generateNonNamedChildrenGetterName(String parentTypeName, boolean hasNamedChildren, boolean hasFields) {
-                return nameGenerator.generateNonNamedChildrenGetterName(parentTypeName, hasNamedChildren, hasFields)
+            public Optional<String> generateNonNamedChildrenGetterName(String parentNodeType, boolean hasNamedChildren, boolean hasFields) {
+                return nameGenerator.generateNonNamedChildrenGetterName(parentNodeType, hasNamedChildren, hasFields)
                     .map(CodeGenConfig::validateMemberName);
             }
         }
@@ -505,38 +505,38 @@ public record CodeGenConfig(
         // Dedicated record class to have useful `toString` and `equals`
         record ValidatingTypedQueryNameGenerator(TypedQueryNameGenerator nameGenerator) implements TypedQueryNameGenerator {
             @Override
-            public String generateBuilderClassName(String typeName) {
-                return validateTypeName(nameGenerator.generateBuilderClassName(typeName));
+            public String generateBuilderClassName(String nodeType) {
+                return validateTypeName(nameGenerator.generateBuilderClassName(nodeType));
             }
 
             @Override
-            public String generateBuilderMethodName(String typeName) {
-                return validateMemberName(nameGenerator.generateBuilderMethodName(typeName));
+            public String generateBuilderMethodName(String nodeType) {
+                return validateMemberName(nameGenerator.generateBuilderMethodName(nodeType));
             }
 
             @Override
-            public String generateAsSubtypeMethodName(String typeName, String supertypeName) {
-                return validateMemberName(nameGenerator.generateAsSubtypeMethodName(typeName, supertypeName));
+            public String generateAsSubtypeMethodName(String nodeType, String nodeSupertype) {
+                return validateMemberName(nameGenerator.generateAsSubtypeMethodName(nodeType, nodeSupertype));
             }
 
             @Override
-            public String generateWithFieldMethodName(String parentTypeName, String fieldName) {
-                return validateMemberName(nameGenerator.generateWithFieldMethodName(parentTypeName, fieldName));
+            public String generateWithFieldMethodName(String parentNodeType, String fieldName) {
+                return validateMemberName(nameGenerator.generateWithFieldMethodName(parentNodeType, fieldName));
             }
 
             @Override
-            public String generateWithoutFieldMethodName(String parentTypeName, String fieldName) {
-                return validateMemberName(nameGenerator.generateWithoutFieldMethodName(parentTypeName, fieldName));
+            public String generateWithoutFieldMethodName(String parentNodeType, String fieldName) {
+                return validateMemberName(nameGenerator.generateWithoutFieldMethodName(parentNodeType, fieldName));
             }
 
             @Override
-            public String generateFieldTokenMethodName(String parentTypeName, String fieldName, List<String> tokenFieldTypesNames) {
-                return validateMemberName(nameGenerator.generateFieldTokenMethodName(parentTypeName, fieldName, tokenFieldTypesNames));
+            public String generateFieldTokenMethodName(String parentNodeType, String fieldName, List<String> tokenFieldTypesNames) {
+                return validateMemberName(nameGenerator.generateFieldTokenMethodName(parentNodeType, fieldName, tokenFieldTypesNames));
             }
 
             @Override
-            public String generateChildTokenMethodName(String parentTypeName, List<String> tokenChildrenTypesNames) {
-                return validateMemberName(nameGenerator.generateChildTokenMethodName(parentTypeName, tokenChildrenTypesNames));
+            public String generateChildTokenMethodName(String parentNodeType, List<String> tokenChildrenTypesNames) {
+                return validateMemberName(nameGenerator.generateChildTokenMethodName(parentNodeType, tokenChildrenTypesNames));
             }
         }
 

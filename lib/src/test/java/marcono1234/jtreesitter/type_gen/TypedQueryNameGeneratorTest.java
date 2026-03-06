@@ -22,8 +22,8 @@ class TypedQueryNameGeneratorTest {
             "custom,QNodeCustom",
             "first_second,QNodeFirstSecond",
         })
-        void generateBuilderClassName(String typeName, String expectedName) {
-            assertEquals(expectedName, nameGenerator.generateBuilderClassName(typeName));
+        void generateBuilderClassName(String nodeType, String expectedName) {
+            assertEquals(expectedName, nameGenerator.generateBuilderClassName(nodeType));
         }
 
         @ParameterizedTest
@@ -31,8 +31,8 @@ class TypedQueryNameGeneratorTest {
             "custom,nodeCustom",
             "first_second,nodeFirstSecond",
         })
-        void generateBuilderMethodName(String typeName, String expectedName) {
-            assertEquals(expectedName, nameGenerator.generateBuilderMethodName(typeName));
+        void generateBuilderMethodName(String nodeType, String expectedName) {
+            assertEquals(expectedName, nameGenerator.generateBuilderMethodName(nodeType));
         }
 
         @ParameterizedTest
@@ -40,8 +40,8 @@ class TypedQueryNameGeneratorTest {
             "node,custom,asSubtypeOfNodeCustom",
             "my_node,my_parent,asSubtypeOfNodeMyParent",
         })
-        void generateAsSubtypeMethodName(String typeName, String supertypeName, String expectedName) {
-            assertEquals(expectedName, nameGenerator.generateAsSubtypeMethodName(typeName, supertypeName));
+        void generateAsSubtypeMethodName(String nodeType, String nodeSupertype, String expectedName) {
+            assertEquals(expectedName, nameGenerator.generateAsSubtypeMethodName(nodeType, nodeSupertype));
         }
 
         @ParameterizedTest
@@ -49,8 +49,8 @@ class TypedQueryNameGeneratorTest {
             "parent,custom,withFieldCustom",
             "parent,my_field,withFieldMyField",
         })
-        void generateWithFieldMethodName(String parentTypeName, String fieldName, String expectedName) {
-            assertEquals(expectedName, nameGenerator.generateWithFieldMethodName(parentTypeName, fieldName));
+        void generateWithFieldMethodName(String parentNodeType, String fieldName, String expectedName) {
+            assertEquals(expectedName, nameGenerator.generateWithFieldMethodName(parentNodeType, fieldName));
         }
 
         @ParameterizedTest
@@ -58,8 +58,8 @@ class TypedQueryNameGeneratorTest {
             "parent,custom,withoutFieldCustom",
             "parent,my_field,withoutFieldMyField",
         })
-        void generateWithoutFieldMethodName(String parentTypeName, String fieldName, String expectedName) {
-            assertEquals(expectedName, nameGenerator.generateWithoutFieldMethodName(parentTypeName, fieldName));
+        void generateWithoutFieldMethodName(String parentNodeType, String fieldName, String expectedName) {
+            assertEquals(expectedName, nameGenerator.generateWithoutFieldMethodName(parentNodeType, fieldName));
         }
 
         @ParameterizedTest
@@ -67,10 +67,10 @@ class TypedQueryNameGeneratorTest {
             "parent,custom,'+,-',fieldTokenCustom",
             "parent,my_field,'+,-',fieldTokenMyField",
         })
-        void generateFieldTokenMethodName(String parentTypeName, String fieldName, String tokenFieldTypesNames, String expectedName) {
+        void generateFieldTokenMethodName(String parentNodeType, String fieldName, String tokenFieldTypesNames, String expectedName) {
             assertEquals(
                 expectedName,
-                nameGenerator.generateFieldTokenMethodName(parentTypeName, fieldName, Arrays.asList(tokenFieldTypesNames.split(",")))
+                nameGenerator.generateFieldTokenMethodName(parentNodeType, fieldName, Arrays.asList(tokenFieldTypesNames.split(",")))
             );
         }
 
@@ -78,10 +78,10 @@ class TypedQueryNameGeneratorTest {
         @CsvSource({
             "parent,'+,-',childToken",
         })
-        void generateChildTokenMethodName(String parentTypeName, String tokenChildrenTypesNames, String expectedName) {
+        void generateChildTokenMethodName(String parentNodeType, String tokenChildrenTypesNames, String expectedName) {
             assertEquals(
                 expectedName,
-                nameGenerator.generateChildTokenMethodName(parentTypeName, Arrays.asList(tokenChildrenTypesNames.split(",")))
+                nameGenerator.generateChildTokenMethodName(parentNodeType, Arrays.asList(tokenChildrenTypesNames.split(",")))
             );
         }
     }
