@@ -42,8 +42,9 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
     }
 
     /** Node type name, as defined in the Tree-sitter grammar */
-    private final String typeName;
-    private final boolean isExtra;
+    private final String nodeType;
+    /** Whether the node type is an 'extra' node */
+    private final boolean nodeIsExtra;
     private final ClassName javaTypeName;
     private final GeneratedJavaClassMembers javaClassMembers;
 
@@ -60,9 +61,9 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
 
     private final List<GenJavaInterface> interfacesToImplement;
 
-    private GenRegularNodeType(String typeName, boolean isExtra, ClassName javaTypeName, GeneratedJavaClassMembers javaClassMembers, @Nullable ChildType childrenRaw, Map<String, ChildType> fieldsRaw) {
-        this.typeName = typeName;
-        this.isExtra = isExtra;
+    private GenRegularNodeType(String nodeType, boolean nodeIsExtra, ClassName javaTypeName, GeneratedJavaClassMembers javaClassMembers, @Nullable ChildType childrenRaw, Map<String, ChildType> fieldsRaw) {
+        this.nodeType = nodeType;
+        this.nodeIsExtra = nodeIsExtra;
         this.javaTypeName = javaTypeName;
         this.javaClassMembers = javaClassMembers;
 
@@ -76,10 +77,10 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
     }
 
     public static GenRegularNodeType create(NodeType nodeType, NameGenerator nameGenerator, TypeNameCreator typeNameCreator, CustomMethodsProviderImpl customMethodsProvider) {
-        String typeName = nodeType.type;
-        ClassName javaTypeName = typeNameCreator.createOwnClassName(nameGenerator.generateJavaTypeName(typeName));
-        String typeNameConstant = nameGenerator.generateTypeNameConstant(typeName);
-        String typeIdConstant = nameGenerator.generateTypeIdConstant(typeName);
+        String nodeTypeName = nodeType.type;
+        ClassName javaTypeName = typeNameCreator.createOwnClassName(nameGenerator.generateJavaTypeName(nodeTypeName));
+        String typeNameConstant = nameGenerator.generateTypeNameConstant(nodeTypeName);
+        String typeIdConstant = nameGenerator.generateTypeIdConstant(nodeTypeName);
 
         var childrenRaw = nodeType.children;
 
@@ -88,8 +89,8 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
             fieldsRaw = Map.of();
         }
 
-        String getNonNamedChildrenMethodName = nameGenerator.generateNonNamedChildrenGetterName(typeName, childrenRaw != null, !fieldsRaw.isEmpty()).orElse(null);
-        var customMethods = customMethodsProvider.customMethodsForNodeType(typeName);
+        String getNonNamedChildrenMethodName = nameGenerator.generateNonNamedChildrenGetterName(nodeTypeName, childrenRaw != null, !fieldsRaw.isEmpty()).orElse(null);
+        var customMethods = customMethodsProvider.customMethodsForNodeType(nodeTypeName);
         var javaClassMembers = new GeneratedJavaClassMembers(
             typeNameConstant,
             typeIdConstant,
@@ -97,7 +98,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
             customMethods
         );
 
-        return new GenRegularNodeType(typeName, nodeType.extra, javaTypeName, javaClassMembers, childrenRaw, fieldsRaw);
+        return new GenRegularNodeType(nodeTypeName, nodeType.extra, javaTypeName, javaClassMembers, childrenRaw, fieldsRaw);
     }
 
     @Override
@@ -128,23 +129,23 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
         populatedChildren = true;
 
         if (childrenRaw != null) {
-            children = GenChildren.create(typeName, this, childrenRaw, nodeTypeLookup, nameGenerator, typeNameCreator, customMethodsProvider, additionalTypedNodeSubtypeCollector);
+            children = GenChildren.create(this, childrenRaw, nodeTypeLookup, nameGenerator, typeNameCreator, customMethodsProvider, additionalTypedNodeSubtypeCollector);
         }
         for (var field : fieldsRaw.entrySet()) {
             String fieldName = field.getKey();
             ChildType fieldType = field.getValue();
-            fields.add(GenField.create(typeName, this, fieldName, fieldType, nodeTypeLookup, nameGenerator, typeNameCreator, customMethodsProvider, additionalTypedNodeSubtypeCollector));
+            fields.add(GenField.create(this, fieldName, fieldType, nodeTypeLookup, nameGenerator, typeNameCreator, customMethodsProvider, additionalTypedNodeSubtypeCollector));
         }
     }
 
     @Override
-    public String getTypeName() {
-        return typeName;
+    public String getNodeType() {
+        return nodeType;
     }
 
     @Override
-    public boolean isExtra() {
-        return isExtra;
+    public boolean isNodeExtra() {
+        return nodeIsExtra;
     }
 
     @Override
@@ -296,7 +297,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
 
         CustomMethodData.createCustomMethodsJavadocSection(javaClassMembers.customMethods()).ifPresent(typeBuilder::addJavadoc);
 
-        codeGenHelper.customJavadocProvider().forNodeType(typeName).ifPresent(typeBuilder::addJavadoc);
+        codeGenHelper.customJavadocProvider().forNodeType(nodeType).ifPresent(typeBuilder::addJavadoc);
     }
 
     @Override
@@ -315,7 +316,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
 
         generateJavadoc(typeBuilder, codeGenHelper);
 
-        typeBuilder.addField(CodeGenHelper.createTypeNameConstantField(typeName, javaClassMembers.typeNameConstant()));
+        typeBuilder.addField(CodeGenHelper.createTypeNameConstantField(nodeType, javaClassMembers.typeNameConstant()));
         if (codeGenHelper.generatesNumericIdConstants()) {
             typeBuilder.addField(codeGenHelper.createTypeIdConstantField(javaClassMembers.typeIdConstant(), javaClassMembers.typeNameConstant()));
         }
@@ -352,7 +353,7 @@ public final class GenRegularNodeType implements GenNodeType, GenJavaType {
     @Override
     public String toString() {
         return "GenRegularNodeType{" +
-            "typeName='" + typeName + '\'' +
+            "nodeType='" + nodeType + '\'' +
             '}';
     }
 }

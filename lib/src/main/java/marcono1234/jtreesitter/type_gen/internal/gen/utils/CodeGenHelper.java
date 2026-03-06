@@ -168,12 +168,12 @@ public class CodeGenHelper {
     }
 
     /**
-     * Creates a Java constant field with name {@code constantName} storing the node type name {@code typeName}.
+     * Creates a Java constant field with name {@code constantName} storing the node type name {@code nodeType}.
      */
     // TODO: Make this method non-static to allow customizing it in the future?
-    public static FieldSpec createTypeNameConstantField(String typeName, String constantName) {
+    public static FieldSpec createTypeNameConstantField(String nodeType, String constantName) {
         return FieldSpec.builder(String.class, constantName, Modifier.PUBLIC, Modifier.STATIC, Modifier.FINAL)
-            .initializer("$S", typeName)
+            .initializer("$S", nodeType)
             .addJavadoc("Type name of this node, as defined in the grammar.")
             .build();
     }
@@ -255,7 +255,7 @@ public class CodeGenHelper {
         builder.addJavadoc("\n<ul>");
         // TODO: Sort these type names lexicographically (maybe already in `CodeGenerator`?)? It seems tree-sitter only emits them partially sorted
         for (var type : types) {
-            builder.addJavadoc("\n<li>{@link $T $L}", type.getJavaTypeName(), CodeGenHelper.escapeJavadocText(type.getTypeName()));
+            builder.addJavadoc("\n<li>{@link $T $L}", type.getJavaTypeName(), CodeGenHelper.escapeJavadocText(type.getNodeType()));
         }
         if (tokensType != null) {
             builder.addJavadoc("\n<li>{@linkplain $T <i>tokens</i>}", tokensType.getJavaTypeName());

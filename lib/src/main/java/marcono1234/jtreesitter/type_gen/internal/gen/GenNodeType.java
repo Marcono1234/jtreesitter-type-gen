@@ -11,17 +11,17 @@ import java.util.*;
  */
 public sealed interface GenNodeType extends GenJavaType permits GenRegularNodeType, GenSupertypeNodeType {
     /**
-     * Gets the type name defined in the grammar.
+     * Gets the node type name defined in the grammar.
      */
-    String getTypeName();
+    String getNodeType();
 
     /**
      * Whether the grammar defines this as 'extra' node which can appear anywhere.
      */
-    boolean isExtra();
+    boolean isNodeExtra();
 
     /**
-     * Gets the name of the Java field in the generated class which stores the value of {@link #getTypeName()}.
+     * Gets the name of the Java field in the generated class which stores the value of {@link #getNodeType()}.
      */
     String getTypeNameConstant();
 

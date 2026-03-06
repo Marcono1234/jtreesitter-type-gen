@@ -55,7 +55,7 @@ public class TypedTreeClassGenerator {
         var jtreesitterTree = codeGenHelper.jtreesitterConfig().tree();
         var typedNode = codeGenHelper.typedNodeConfig();
 
-        typeBuilder.addJavadoc("A 'typed parse-tree', with expected root node {@link $T $L}.", rootNodeType.getJavaTypeName(), CodeGenHelper.escapeJavadocText(rootNodeType.getTypeName()));
+        typeBuilder.addJavadoc("A 'typed parse-tree', with expected root node {@link $T $L}.", rootNodeType.getJavaTypeName(), CodeGenHelper.escapeJavadocText(rootNodeType.getNodeType()));
         typeBuilder.addJavadoc(" A jtreesitter {@link $T} can be converted to a typed tree with {@link #$N}.", jtreesitterTree.className(), config.methodFromTree());
 
         typeBuilder.addJavadoc("\n\n<p>Individual jtreesitter nodes can be converted to a typed node with {@link $T#$N},", typedNode.className(), typedNode.methodFromNode());
@@ -116,7 +116,7 @@ public class TypedTreeClassGenerator {
             .addJavadoc("Wraps a jtreesitter tree as a typed tree, throwing an {@link $T} if the tree has an unexpected root node.", thrownExceptionType)
             // Check root node to prevent confusing exceptions later if wrong / unexpected tree was provided
             .addStatement("var $N = $N.$N().$N()", rootNodeTypeVar, treeParam, jtreesitterTree.methodGetRootNode(), jtreesitterNode.methodGetType())
-            .beginControlFlow("if ($N.equals($S))", rootNodeTypeVar, rootNodeType.getTypeName())
+            .beginControlFlow("if ($N.equals($S))", rootNodeTypeVar, rootNodeType.getNodeType())
             .addStatement("return new $T($N)", className, treeParam)
             .endControlFlow()
             .addStatement("throw new $T(\"Wrong node type: \" + $N)", thrownExceptionType, rootNodeTypeVar)

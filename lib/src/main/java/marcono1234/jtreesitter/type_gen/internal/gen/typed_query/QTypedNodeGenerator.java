@@ -413,12 +413,12 @@ class QTypedNodeGenerator {
         typeBuilder.addMethod(constructorNewSupertype);
 
         for (var supertype : supertypes) {
-            String methodName = nameGenerator.generateAsSubtypeMethodName(nodeData.nodeType(), supertype.getTypeName());
+            String methodName = nameGenerator.generateAsSubtypeMethodName(nodeData.nodeType(), supertype.getNodeType());
             var methodAsSubtypeBuilder = MethodSpec.methodBuilder(methodName)
                 .addModifiers(Modifier.PUBLIC)
                 // Return `QTypedNode` instead of current subclass to only allow setting supertype once
                 .returns(ParameterizedTypeName.get(qTypedNodeConfig.name(), typeVarCollector, nodeData.typedNodeClass()))
-                .addJavadoc("Returns this node builder as subtype of its supertype $L.", CodeGenHelper.createJavadocCodeTag(supertype.getTypeName()))
+                .addJavadoc("Returns this node builder as subtype of its supertype $L.", CodeGenHelper.createJavadocCodeTag(supertype.getNodeType()))
                 .addJavadoc("\n\n<p>This can be useful to restrict matches to locations where the node is used as subtype of that supertype")
                 .addJavadoc("\nand to exclude all other occurrences. For example consider a node type 'identifier' for which the query should")
                 .addJavadoc("\nonly match the occurrences where it is used as 'expression' (its supertype) and not other usages such as")
@@ -512,7 +512,7 @@ class QTypedNodeGenerator {
      * Generates a {@code QTypedNode} subclass for the given node.
      */
     public QTypedNodeSubclassData generateQTypedNodeSubclass(TypeNameCreator typeNameCreator, GenNodeType node, String builderMethodName) {
-        String nodeType = node.getTypeName();
+        String nodeType = node.getNodeType();
         var queryNodeClass = typeNameCreator.createOwnClassName(nameGenerator.generateBuilderClassName(nodeType));
         var nodeData = new NodeData(
             queryNodeClass,
@@ -520,7 +520,7 @@ class QTypedNodeGenerator {
             builderMethodName,
             node.getJavaTypeName(),
             nodeType,
-            node.isExtra()
+            node.isNodeExtra()
         );
 
         return switch (node) {

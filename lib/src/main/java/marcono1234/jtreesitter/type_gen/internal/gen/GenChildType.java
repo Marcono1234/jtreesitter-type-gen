@@ -89,21 +89,21 @@ public sealed interface GenChildType {
     }
 
     static GenChildType create(
-        GenRegularNodeType enclosingNodeType,
-        List<Type> types,
+        GenRegularNodeType parent,
+        List<Type> childTypes,
         ChildTypeConfigProvider configProvider,
         TypeNameCreator typeNameCreator,
         NodeTypeLookup nodeTypeLookup,
         Consumer<GenJavaType> additionalTypedNodeSubtypeCollector,
         ChildCustomMethodsProvider customMethodsProvider
     ) {
-        if (types.isEmpty()) {
-            throw new IllegalArgumentException("Empty types");
+        if (childTypes.isEmpty()) {
+            throw new IllegalArgumentException("Empty child types");
         }
 
         List<String> nonNamedTypes = new ArrayList<>();
         List<Type> namedTypes = new ArrayList<>();
-        for (var type : types) {
+        for (var type : childTypes) {
             if (type.named) {
                 namedTypes.add(type);
             } else {
@@ -132,7 +132,7 @@ public sealed interface GenChildType {
             // because there won't be cyclic inheritance
             BooleanSupplier mustBeTopLevel = () -> false;
             String javaName = configProvider.generateTokenClassName(nonNamedTypes);
-            ClassName javaTypeName = typeNameCreator.createChildClassName(enclosingNodeType.getJavaTypeName(), javaName, mustBeTopLevel);
+            ClassName javaTypeName = typeNameCreator.createChildClassName(parent.getJavaTypeName(), javaName, mustBeTopLevel);
 
             SequencedMap<String, UnnamedTokensChildType.TokenConstant> tokensToJavaConstants = new LinkedHashMap<>();
             for (int i = 0; i < nonNamedTypes.size(); i++) {
@@ -141,12 +141,12 @@ public sealed interface GenChildType {
                 SpecificCustomJavadocProvider customJavadocProvider = javadocProvider -> configProvider.getTokenTypeCustomJavadoc(javadocProvider, tokenType);
                 var existing = tokensToJavaConstants.put(tokenType, new UnnamedTokensChildType.TokenConstant(constantName, customJavadocProvider));
                 if (existing != null) {
-                    throw new IllegalArgumentException("Duplicate non-named type '%s' for enclosing type '%s'".formatted(tokenType, enclosingNodeType.getTypeName()));
+                    throw new IllegalArgumentException("Duplicate non-named child type '%s' for parent type '%s'".formatted(tokenType, parent.getNodeType()));
                 }
             }
 
             SpecificCustomJavadocProvider customJavadocProvider = javadocProvider -> configProvider.getTokenClassCustomJavadoc(javadocProvider, nonNamedTypes);
-            tokensChildType = new UnnamedTokensChildType(enclosingNodeType, javaTypeName, tokensToJavaConstants, customJavadocProvider);
+            tokensChildType = new UnnamedTokensChildType(parent, javaTypeName, tokensToJavaConstants, customJavadocProvider);
 
             if (namedTypes.isEmpty()) {
                 // Only add tokensChildType at this place, if `namedTypes.isEmpty()`; otherwise if it is part of MultiChildType,
@@ -160,13 +160,13 @@ public sealed interface GenChildType {
         List<String> namedTypesNames = namedTypes.stream().map(t -> t.type).toList();
         List<GenNodeType> genTypes = namedTypesNames.stream().map(nodeTypeLookup::getNodeType).toList();
 
-        // Check if there is a direct or indirect reference back to the enclosing type,
-        // for example `Node.Child -> Node` or `Node.Child -> Supertype -> Node`
+        // Check if there is a direct or indirect reference back to the enclosing parent type,
+        // for example `Node.Child -> Node`
         // In that case child type must be top-level; generating it as nested type leads to "cyclic inheritance" error
-        BooleanSupplier mustBeTopLevel = () -> genTypes.contains(enclosingNodeType)
+        BooleanSupplier mustBeTopLevel = () -> genTypes.contains(parent)
             // Also have to check indirect references, e.g. `Node.Child -> Supertype -> Node`; javac does not
             // permit this either when Child is a nested class
-            || genTypes.stream().anyMatch(t -> t.refersToType(enclosingNodeType, new HashSet<>()));
+            || genTypes.stream().anyMatch(t -> t.refersToType(parent, new HashSet<>()));
 
         String javaName = configProvider.generateInterfaceName();
         /*
@@ -178,13 +178,13 @@ public sealed interface GenChildType {
          * been populated (alternative would be to perform name creation after code structure creation, but that would
          * require large refactoring, and would probably require making all classes stateful)
          */
-        Supplier<ClassName> javaTypeNameSupplier = () -> typeNameCreator.createChildClassName(enclosingNodeType.getJavaTypeName(), javaName, mustBeTopLevel);
+        Supplier<ClassName> javaTypeNameSupplier = () -> typeNameCreator.createChildClassName(parent.getJavaTypeName(), javaName, mustBeTopLevel);
         javaTypeNameSupplier = new MemoizedSupplier<>(javaTypeNameSupplier);
 
         var customMethods = customMethodsProvider.createCustomMethods();
 
         SpecificCustomJavadocProvider customJavadocProvider = configProvider::getInterfaceCustomJavadoc;
-        MultiChildType childType = new MultiChildType(genTypes, tokensChildType, enclosingNodeType, javaTypeNameSupplier, customMethods, new ArrayList<>(), customJavadocProvider);
+        MultiChildType childType = new MultiChildType(genTypes, tokensChildType, parent, javaTypeNameSupplier, customMethods, new ArrayList<>(), customJavadocProvider);
         additionalTypedNodeSubtypeCollector.accept(childType);
         genTypes.forEach(t -> t.addInterfaceToImplement(childType));
         return childType;
@@ -257,7 +257,7 @@ public sealed interface GenChildType {
         record TokenConstant(String constantName, SpecificCustomJavadocProvider customJavadocProvider) {
         }
         
-        private final GenRegularNodeType enclosingNodeType;
+        private final GenRegularNodeType parent;
         private final ClassName javaTypeName;
         /** Map from token type name to Java constant config */
         // SequencedMap for deterministic order
@@ -268,12 +268,12 @@ public sealed interface GenChildType {
         private final SpecificCustomJavadocProvider customJavadocProvider;
 
         UnnamedTokensChildType(
-            GenRegularNodeType enclosingNodeType,
+            GenRegularNodeType parent,
             ClassName javaTypeName,
             SequencedMap<String, TokenConstant> tokensToJavaConstants,
             SpecificCustomJavadocProvider customJavadocProvider
         ) {
-            this.enclosingNodeType = enclosingNodeType;
+            this.parent = parent;
             this.javaTypeName = javaTypeName;
             this.tokensToJavaConstants = tokensToJavaConstants;
             this.interfaceToImplement = null;
@@ -410,7 +410,7 @@ public sealed interface GenChildType {
         }
 
         private void generateJavadoc(TypeSpec.Builder typeBuilder, String childGetterName, String tokenGetterName, CustomJavadocProviderImpl customJavadocProvider) {
-            typeBuilder.addJavadoc("Child node type without name, returned by {@link $T#$N}.\n", enclosingNodeType.getJavaTypeName(), childGetterName);
+            typeBuilder.addJavadoc("Child node type without name, returned by {@link $T#$N}.\n", parent.getJavaTypeName(), childGetterName);
             typeBuilder.addJavadoc("<p>The type of the node can be obtained using {@link #$N}.", tokenGetterName);
             
             this.customJavadocProvider.getJavadoc(customJavadocProvider).ifPresent(typeBuilder::addJavadoc);
@@ -488,7 +488,7 @@ public sealed interface GenChildType {
     record MultiChildType(
         List<GenNodeType> types,
         @Nullable UnnamedTokensChildType tokensChildType,
-        GenRegularNodeType enclosingNodeType,
+        GenRegularNodeType parent,
         Supplier<ClassName> javaTypeNameSupplier,
         List<CustomMethodData> customMethods,
         // commonMethods are populated after construction
@@ -548,7 +548,7 @@ public sealed interface GenChildType {
         }
 
         private void generateJavadoc(TypeSpec.Builder typeBuilder, CodeGenHelper codeGenHelper, String childGetterName) {
-            typeBuilder.addJavadoc("Child type returned by {@link $T#$N}.\n", enclosingNodeType.getJavaTypeName(), childGetterName);
+            typeBuilder.addJavadoc("Child type returned by {@link $T#$N}.\n", parent.getJavaTypeName(), childGetterName);
             typeBuilder.addJavadoc("<p>Possible types:");
             codeGenHelper.addJavadocTypeMapping(typeBuilder, types, tokensChildType);
 

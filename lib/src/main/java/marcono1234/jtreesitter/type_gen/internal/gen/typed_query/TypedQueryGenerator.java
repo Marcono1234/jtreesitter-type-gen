@@ -609,13 +609,13 @@ public class TypedQueryGenerator {
         var nodeBuilderMethodData = new ArrayList<QTypedNodeBuilderMethodData>();
 
         for (var node : nodes) {
-            String typeName = node.getTypeName();
-            String builderMethodName = nameGenerator.generateBuilderMethodName(typeName);
+            String nodeType = node.getNodeType();
+            String builderMethodName = nameGenerator.generateBuilderMethodName(nodeType);
             var qTypedNodeData = qTypedNodeGenerator.generateQTypedNodeSubclass(typeNameCreator, node, builderMethodName);
             nodeBuilderMethodData.add(new QTypedNodeBuilderMethodData(
                 builderMethodName,
                 qTypedNodeData.className(),
-                typeName
+                nodeType
             ));
             javaFiles.add(qTypedNodeData.javaFile());
         }

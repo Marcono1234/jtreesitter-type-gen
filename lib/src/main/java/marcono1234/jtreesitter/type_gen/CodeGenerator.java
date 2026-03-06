@@ -349,7 +349,7 @@ public class CodeGenerator {
         String rootNodeType = rootNodeTypeCustom != null ? rootNodeTypeCustom : rootNodeTypeJson;
         GenNodeType rootNode = rootNodeType == null
             ? null
-            : allNodeTypeGens.stream().filter(n -> n.getTypeName().equals(rootNodeType)).findFirst().orElse(null);
+            : allNodeTypeGens.stream().filter(n -> n.getNodeType().equals(rootNodeType)).findFirst().orElse(null);
         if (rootNode == null) {
             // If root node type was specified by user, verify that it was actually found
             if (rootNodeTypeCustom != null) {

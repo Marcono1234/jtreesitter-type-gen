@@ -13,15 +13,15 @@ public class TypedNodeNamePatternParser extends NamePattern.Parser<TypedNodeName
     public static final TypedNodeNamePatternParser INSTANCE = new TypedNodeNamePatternParser();
 
     /**
-     * @param typeName node type name as defined in the Tree-sitter grammar
+     * @param nodeType node type name as defined in the Tree-sitter grammar
      */
-    public record Data(String typeName) {
+    public record Data(String nodeType) {
     }
 
     private TypedNodeNamePatternParser() {
         super(Map.of(
             // Something like "node_type" might be more correct, but prefer a shorter name to keep it concise
-            "node", data -> typeNameToUpperCamel(data.typeName())
+            "node", data -> typeNameToUpperCamel(data.nodeType())
         ));
     }
 }
