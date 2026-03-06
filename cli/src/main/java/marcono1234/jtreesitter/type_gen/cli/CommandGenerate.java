@@ -300,34 +300,34 @@ class CommandGenerate implements Callable<Void> {
     @CommandLine.Option(
         names = {"--custom-javadoc-config"},
         paramLabel = "<config-file>",
-            // Maybe this description is a bit too verbose for CLI help?
-            description = {
-                "Configuration for custom Javadoc text to be added to the generated code",
-                "JSON file which provides the configuration for custom user-defined Javadoc which should be added to"
-                + " the generated code. All JSON properties of the config file are optional and can be omitted.",
-                "WARNING: Do not include untrusted content in Javadoc; it could lead to arbitrary code injection.",
-                "JSON format for custom Javadoc for node children / fields:",
-                "- getter-javadoc: Javadoc for the getter method retrieving the children / field nodes",
-                "- interface-javadoc: Javadoc for the interface which groups together multiple children / field types",
-                "- token-class-javadoc: Javadoc for the class representing all 'token' (= non-named) children / field types",
-                "- tokens-javadoc (object): Javadoc for the individual 'token' types",
-                "  - <key>: token type, for example '+'",
-                "  - <value> (string): Javadoc for that token",
-                "JSON format for custom Javadoc for a node type:",
-                "- javadoc: Javadoc for the node type",
-                "- children (children-javadoc): Javadoc config for the children types",
-                "- fields (object):",
-                "  - <key>: field name",
-                "  - <value> (field-javadoc): Javadoc config for that field",
-                "JSON config file format:",
-                "- typed-tree-javadoc: Javadoc for the 'TypedTree' class (only generated if 'root node' is specified)",
-                "- typed-node-javadoc: Javadoc for the 'TypedNode' interface which is the base type for all typed node classes",
-                "- node-types (object):",
-                "  - <key>: node type, as defined in the grammar",
-                "  - <value> (array[node-type-javadoc]): Javadoc for the node type class",
-                "Example:",
-                "'{\"node-types\": {\"my_node\": {\"javadoc\": \"custom Javadoc for node type\", \"fields\": {\"my_field\": {\"getter-javadoc\": \"custom Javadoc for getter\"}}}}}'",
-            }
+        // Maybe this description is a bit too verbose for CLI help?
+        description = {
+            "Configuration for custom Javadoc text to be added to the generated code",
+            "JSON file which provides the configuration for custom user-defined Javadoc which should be added to"
+            + " the generated code. All JSON properties of the config file are optional and can be omitted.",
+            "WARNING: Do not include untrusted content in Javadoc; it could lead to arbitrary code injection.",
+            "JSON format for custom Javadoc for node children / fields:",
+            "- getter-javadoc: Javadoc for the getter method retrieving the children / field nodes",
+            "- interface-javadoc: Javadoc for the interface which groups together multiple children / field types",
+            "- token-class-javadoc: Javadoc for the class representing all 'token' (= non-named) children / field types",
+            "- tokens-javadoc (object): Javadoc for the individual 'token' types",
+            "  - <key>: token type, for example '+'",
+            "  - <value> (string): Javadoc for that token",
+            "JSON format for custom Javadoc for a node type:",
+            "- javadoc: Javadoc for the node type",
+            "- children (children-javadoc): Javadoc config for the children types",
+            "- fields (object):",
+            "  - <key>: field name",
+            "  - <value> (field-javadoc): Javadoc config for that field",
+            "JSON config file format:",
+            "- typed-tree-javadoc: Javadoc for the 'TypedTree' class (only generated if 'root node' is specified)",
+            "- typed-node-javadoc: Javadoc for the 'TypedNode' interface which is the base type for all typed node classes",
+            "- node-types (object):",
+            "  - <key>: node type, as defined in the grammar",
+            "  - <value> (array[node-type-javadoc]): Javadoc for the node type class",
+            "Example:",
+            "'{\"node-types\": {\"my_node\": {\"javadoc\": \"custom Javadoc for node type\", \"fields\": {\"my_field\": {\"getter-javadoc\": \"custom Javadoc for getter\"}}}}}'",
+        }
     )
     @Nullable
     private Path customJavadocConfigFile;
