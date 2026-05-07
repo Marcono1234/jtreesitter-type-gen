@@ -26,7 +26,7 @@ jobs:
           java-version: 22
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Build with Gradle
         # Don't automatically download JDK toolchain; existing JDK of this workflow should be compatible
@@ -121,7 +121,7 @@ jobs:
           gcc -shared -o ../cli/$LIB_NAME -fPIC -I src/tree_sitter src/parser.c src/scanner.c
 
       - name: Set up Gradle
-        uses: gradle/actions/setup-gradle@v5
+        uses: gradle/actions/setup-gradle@v6
 
       - name: Build with Gradle
         run: |
