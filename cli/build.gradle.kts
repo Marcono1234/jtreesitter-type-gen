@@ -50,7 +50,7 @@ testing {
     suites {
         val testName = "integrationTest"
         val testNameUpper = testName.replaceFirstChar(Char::uppercaseChar)
-        val testSuite by register<JvmTestSuite>(testName) {
+        val testSuite = register<JvmTestSuite>(testName) {
             useJUnitJupiter(libs.versions.junit)
 
             dependencies {
@@ -132,10 +132,12 @@ testing {
             // Use individual output dirs, otherwise when using a single output dir for all tests Gradle build cache
             // cannot reliably cache the outputs
             val generatedSourcesDir = layout.buildDirectory.dir("${testName}/generated-sources-${langName}-${codegenTaskIndex}")
-            testSuite.sources.java.srcDir(generatedSourcesDir)
+            testSuite.configure {
+                sources.java.srcDir(generatedSourcesDir)
+            }
 
             val langNameUpper = langName.replaceFirstChar(Char::uppercaseChar)
-            val generateSourcesTask by tasks.register<CodegenCliTask>("generate${testNameUpper}Sources${langNameUpper}${codegenTaskIndex}") {
+            val generateSourcesTask = tasks.register<CodegenCliTask>("generate${testNameUpper}Sources${langNameUpper}${codegenTaskIndex}") {
                 description = "Integration test code generation with config: ${taskConfig}"
 
                 codeGenCliJar.set(tasks.shadowJar.map { it.archiveFile.get() })
