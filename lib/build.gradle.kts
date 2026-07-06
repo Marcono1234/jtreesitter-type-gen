@@ -33,7 +33,7 @@ sourceSets.main {
 }
 // Note: Including the Git commit ref in a resource file defeats the build cache to some extent; though at least during
 //   development when not committing changes yet the build cache helps
-val createVersionProperties by tasks.registering(WriteProperties::class) {
+val createVersionProperties = tasks.register("createVersionProperties", WriteProperties::class) {
     // Place property file under own package to avoid clashes or issues when library is packaged as JAR with dependencies
     destinationFile = generatedResourcesDir.map { it.file("marcono1234/jtreesitter/type_gen/version.properties") }
 
