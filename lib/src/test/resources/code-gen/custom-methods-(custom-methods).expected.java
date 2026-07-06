@@ -283,7 +283,6 @@ import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.example.custom.CustomMethods;
@@ -371,7 +370,7 @@ public final class NodeContainedA implements TypedNode,
     var query = new Query(language, queryString);
     var queryCursor = new QueryCursor(query);
     var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
-        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, null);
     return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContainedA::fromNodeThrowing).onClose(() -> {
           queryCursor.close();
           query.close();
@@ -460,7 +459,6 @@ import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.example.custom.CustomMethods;
@@ -547,7 +545,7 @@ public final class NodeContainedB implements TypedNode,
     var query = new Query(language, queryString);
     var queryCursor = new QueryCursor(query);
     var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
-        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, null);
     return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeContainedB::fromNodeThrowing).onClose(() -> {
           queryCursor.close();
           query.close();
@@ -637,7 +635,6 @@ import java.lang.foreign.SegmentAllocator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.example.custom.CustomMethods;
@@ -736,7 +733,7 @@ public final class NodeChildrenSingle implements TypedNode {
     var query = new Query(language, queryString);
     var queryCursor = new QueryCursor(query);
     var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
-        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, null);
     return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeChildrenSingle::fromNodeThrowing).onClose(() -> {
           queryCursor.close();
           query.close();
@@ -826,7 +823,6 @@ import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.example.custom.CustomMethods;
@@ -925,7 +921,7 @@ public final class NodeChildrenMulti implements TypedNode {
     var query = new Query(language, queryString);
     var queryCursor = new QueryCursor(query);
     var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
-        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, null);
     return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeChildrenMulti::fromNodeThrowing).onClose(() -> {
           queryCursor.close();
           query.close();
@@ -1042,7 +1038,6 @@ import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.example.custom.CustomMethods;
@@ -1206,7 +1201,7 @@ public final class NodeFields implements TypedNode {
     var query = new Query(language, queryString);
     var queryCursor = new QueryCursor(query);
     var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
-        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, null);
     return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeFields::fromNodeThrowing).onClose(() -> {
           queryCursor.close();
           query.close();
@@ -1506,7 +1501,6 @@ import java.lang.IllegalArgumentException;
 import java.lang.String;
 import java.lang.foreign.SegmentAllocator;
 import java.util.Objects;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 import javax.annotation.processing.Generated;
 import org.example.custom.CustomMethods;
@@ -1576,7 +1570,7 @@ public sealed interface NodeSuper extends TypedNode permits NodeContainedA, Node
     var query = new Query(language, queryString);
     var queryCursor = new QueryCursor(query);
     var stream = allocator == null ? queryCursor.findMatches(startNodeUnwrapped)
-        : queryCursor.findMatches(startNodeUnwrapped, allocator, new QueryCursor.Options((Predicate<QueryCursor.State>) null));
+        : queryCursor.findMatches(startNodeUnwrapped, allocator, null);
     return stream.flatMap(m -> m.findNodes(captureName).stream()).map(NodeSuper::fromNodeThrowing).onClose(() -> {
           queryCursor.close();
           query.close();
