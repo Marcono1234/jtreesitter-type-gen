@@ -15,6 +15,9 @@ on:
 permissions:
   contents: write # to update code and create release
 
+# Disable caching for release workflow; should run from clean state and not be influenced by previous
+# cache, see also https://docs.zizmor.sh/audits/#cache-poisoning
+cache-mode: none
 
 jobs:
   release:
