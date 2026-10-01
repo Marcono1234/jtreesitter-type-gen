@@ -8,7 +8,7 @@ jtreesitter = "0.26.1"
 junit = "6.1.0"
 
 [libraries]
-jspecify = { module = "org.jspecify:jspecify", version = "1.0.0" }
+jspecify = { module = "org.jspecify:jspecify", version = "1.0.1" }
 jackson-databind = { module = "tools.jackson.core:jackson-databind", version = "3.2.0" }
 # Don't use official JavaPoet because it is not actively maintained anymore, see https://github.com/square/javapoet/discussions/866
 # Instead uses https://github.com/palantir/javapoet
