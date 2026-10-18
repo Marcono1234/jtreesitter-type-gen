@@ -91,7 +91,7 @@ jobs:
       # Set up tree-sitter CLI to re-generate tree-sitter-json source code using newer tree-sitter version (to include language metadata)
       # TODO: Remove this (and the `tree-sitter generate` command below) again once newer version of tree-sitter-json is available
       - name: Set up tree-sitter
-        uses: tree-sitter/setup-action/cli@49f8c1f20b60102eae8c033bb7c7f6cd056f6086
+        uses: tree-sitter/setup-action/cli@faab9a23fa6195da0f1cf868219cc1e89f238d3d
         with:
           tree-sitter-ref: v0.26.3
       - name: Build tree-sitter-json
