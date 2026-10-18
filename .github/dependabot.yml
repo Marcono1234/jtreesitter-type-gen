@@ -17,3 +17,8 @@ updates:
     cooldown:
       default-days: 14
     open-pull-requests-limit: 15
+    groups:
+      # Update all CodeQL actions at once to avoid incompatibilities between them
+      codeql:
+        patterns:
+          - "github/codeql-action/*"
